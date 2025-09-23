@@ -1,7 +1,7 @@
 github.com/Ptt-official-app/go-pttbbs v0.26.2 h1:VwiC+uYgY4HT1NOIEMNcWGqj2nHjOYNH7W1+5/GCNBA=
 github.com/Ptt-official-app/go-pttbbs v0.26.2/go.mod h1:HDr1qTk6/qyi9hgdv8aijUYP9L+qKqMRimeRCtVYKnU=
-github.com/appleboy/graceful v1.1.1 h1:vYqfpBdyEFztXofmw9iL8aohnxbcE+2Nq2j67SCoMBo=
-github.com/appleboy/graceful v1.1.1/go.mod h1:gjCrWFsKhOX2N6jNY0QyQhK+WE8Z3TFSen4fExHg3wk=
+github.com/appleboy/graceful v1.2.1 h1:OCNfj5QdQQ82eBuxEF7RAILQCGG+Ued7BOMQwcTv9DQ=
+github.com/appleboy/graceful v1.2.1/go.mod h1:XlEg3jkgb42weJeCXch3HRXvWrU5r+EYymCyPVy0EkA=
 github.com/bytedance/sonic v1.11.6 h1:oUp34TzMlL+OY1OUWxHqsdkgC/Zfc85zGqw9siXjrc0=
 github.com/bytedance/sonic v1.11.6/go.mod h1:LysEHSvpvDySVdC2f87zGWf6CIKJcAvqab1ZaiQtds4=
 github.com/bytedance/sonic/loader v0.1.1 h1:c+e5Pt1k/cy5wMveRDyk2X4B9hF4g7an8N3zCYjJFNM=
