@@ -38,6 +38,8 @@ var (
 	ErrBoardReported = errors.New("board reported")
 	ErrBoardBucket   = errors.New("board bucket")
 
+	ErrBoardNotPopular = errors.New("board not popular")
+
 	ErrPermBoardCreatePermission = errors.New("no board create permission")
 
 	ErrPermBoardReadHidden   = errors.New("hidden board")
