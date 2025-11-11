@@ -1,4 +1,4 @@
-version: '2'
+name: pttbbs-backend
 services:
   go-pttbbs:
     image: pttofficialapps/go-pttbbs:v0.26.2
@@ -31,7 +31,7 @@ services:
       - ${POSTFIX_MAIN_CF}:/etc/postfix/main.cf
       - ${POSTFIX_MASTER_CF}:/etc/postfix/master.cf
   pttbbs-backend:
-    image: pttofficialapps/pttbbs-backend:v0.39.5
+    image: pttofficialapps/pttbbs-backend:v0.40.0
     ports:
       - "127.0.0.1:3457:3457"
       - "127.0.0.1:[local-port]:[docker-port]"
