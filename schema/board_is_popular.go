@@ -1,12 +1,33 @@
 package schema
 
-import "go.mongodb.org/mongo-driver/bson"
+import (
+	"github.com/Ptt-official-app/go-pttbbs/bbs"
+	"go.mongodb.org/mongo-driver/bson"
+)
 
 type BoardIsPopular struct {
+	BBoardID bbs.BBoardID `bson:"bid"`
+
 	IsPopular bool `bson:"is_popular"`
 }
 
-var EMPTY_BOARD_IS_POPULAR = &BoardIsPopular{}
+var (
+	EMPTY_BOARD_IS_POPULAR = &BoardIsPopular{}
+	boardIsPopularFields   = getFields(EMPTY_BOARD, EMPTY_BOARD_IS_POPULAR)
+)
+
+func GetBoardIsPopular(boardID bbs.BBoardID) (boardIsPopular *BoardIsPopular, err error) {
+	query := bson.M{
+		BOARD_BBOARD_ID_b: boardID,
+	}
+
+	err = Board_c.FindOne(query, &boardIsPopular, boardIsPopularFields)
+	if err != nil {
+		return nil, err
+	}
+
+	return boardIsPopular, nil
+}
 
 func ResetBoardIsPopular() (err error) {
 	filter := bson.M{

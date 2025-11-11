@@ -14,7 +14,27 @@ import (
 )
 
 func toBoardID(fboardID apitypes.FBoardID, remoteAddr string, userID bbs.UUserID, c *gin.Context) (boardID bbs.BBoardID, err error) {
-	return fboardID.ToBBoardID()
+	boardID, err = fboardID.ToBBoardID()
+	if err != nil {
+		return "", err
+	}
+
+	// if this site is not for all guest:
+	//    we can return boardID.
+	if !types.IS_ALL_GUEST {
+		return boardID, nil
+	}
+
+	// XXX ensure that board is popular.
+	boardIsPopular, err := schema.GetBoardIsPopular(boardID)
+	if err != nil {
+		return "", err
+	}
+	if !boardIsPopular.IsPopular {
+		return "", ErrBoardNotPopular
+	}
+
+	return boardID, nil
 }
 
 func bidToBoardID(bid ptttype.Bid) (boardID bbs.BBoardID, err error) {

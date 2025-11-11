@@ -86,7 +86,7 @@ var (
 	IS_CARRIAGE_RETURN = true
 
 	// is-all-guest
-	IS_ALL_GUEST = true
+	IS_ALL_GUEST = false
 
 	// pttweb-hotboard-url
 	PTTWEB_HOTBOARD_URL = "http://localhost:3457/static/ptt_cc_websites/HotBoards.html"

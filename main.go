@@ -22,13 +22,13 @@ func withPrefix(path string) string {
 
 func initGin() (*gin.Engine, error) {
 	if types.IS_ALL_GUEST {
-		return initGitAllGuest()
+		return initGinAllGuest()
 	}
 
 	return initGinCore()
 }
 
-func initGitAllGuest() (*gin.Engine, error) {
+func initGinAllGuest() (*gin.Engine, error) {
 	router := gin.Default()
 
 	// options

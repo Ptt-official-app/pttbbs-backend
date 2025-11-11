@@ -1,5 +1,4 @@
 //go:build queue
-// +build queue
 
 package queue
 
