@@ -57,6 +57,8 @@ type Board struct {
 	IsPopular bool `bson:"is_popular"`
 	IsOver18  bool `bson:"is_over_18"` // 18歲板
 
+	IsOver18UpdateNanoTS types.NanoTS `bson:"is_over_18_update_nano_ts"`
+
 	IsNoStats             bool `bson:"is_no_stats"`               // 不列入統計
 	IsGroupBoard          bool `bson:"is_group_board"`            // 群組板
 	IsHide                bool `bson:"is_hide"`                   // 隱板

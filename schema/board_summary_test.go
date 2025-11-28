@@ -41,6 +41,8 @@ func TestUpdateBoardSummaries(t *testing.T) {
 
 		UpdateNanoTS: updateNanoTS,
 
+		IsOver18UpdateNanoTS: updateNanoTS,
+
 		Gid: 3,
 		Bid: 1,
 
@@ -64,6 +66,8 @@ func TestUpdateBoardSummaries(t *testing.T) {
 
 		UpdateNanoTS: updateNanoTS,
 
+		IsOver18UpdateNanoTS: updateNanoTS,
+
 		Gid: 3,
 		Bid: 2,
 
@@ -85,6 +89,8 @@ func TestUpdateBoardSummaries(t *testing.T) {
 		LastPostTime: types.NanoTS(1300000000000000000),
 
 		UpdateNanoTS: updateNanoTS,
+
+		IsOver18UpdateNanoTS: updateNanoTS,
 
 		Gid: 3,
 		Bid: 3,
@@ -111,6 +117,8 @@ func TestUpdateBoardSummaries(t *testing.T) {
 
 		UpdateNanoTS: updateNanoTS,
 
+		IsOver18UpdateNanoTS: updateNanoTS,
+
 		Gid: 3,
 		Bid: 2,
 
@@ -134,6 +142,8 @@ func TestUpdateBoardSummaries(t *testing.T) {
 		LastPostTime: types.NanoTS(1300000000000000000),
 
 		UpdateNanoTS: updateNanoTS1,
+
+		IsOver18UpdateNanoTS: updateNanoTS,
 
 		Gid: 3,
 		Bid: 2,
@@ -225,6 +235,8 @@ func TestGetBoardSummariesByClsID(t *testing.T) {
 
 		LastPostTime: types.NanoTS(1234567890000000000),
 
+		IsOver18UpdateNanoTS: updateNanoTS,
+
 		UpdateNanoTS: updateNanoTS,
 		Gid:          3,
 		Bid:          1,
@@ -245,6 +257,8 @@ func TestGetBoardSummariesByClsID(t *testing.T) {
 		NUser:     101,
 
 		LastPostTime: types.NanoTS(1300000000000000000),
+
+		IsOver18UpdateNanoTS: updateNanoTS,
 
 		UpdateNanoTS: updateNanoTS,
 		Gid:          3,
@@ -328,6 +342,8 @@ func TestNewBoardSummaryFromPBBoard(t *testing.T) {
 		IdxByClass:   "tPq41Q@test",
 		BoardType:    "◎",
 		UpdateNanoTS: 1234567890000000000,
+
+		IsOver18UpdateNanoTS: 1234567890000000000,
 	}
 
 	type args struct {

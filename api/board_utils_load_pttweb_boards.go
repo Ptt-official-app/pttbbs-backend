@@ -43,6 +43,7 @@ func TryLoadPttWebPopularBoards(c *gin.Context) (boards []*schema.BoardSummary, 
 		return nil, err
 	}
 
+	updateNanoTS := types.NowNanoTS()
 	boards = make([]*schema.BoardSummary, 0, types.MAX_POPULAR_BOARDS)
 	for node := range doc.Descendants() {
 		if node.DataAtom == atom.Div {
@@ -52,18 +53,13 @@ func TryLoadPttWebPopularBoards(c *gin.Context) (boards []*schema.BoardSummary, 
 				continue
 			}
 			if theClass.Val == "b-ent" {
-				board, _ := loadPttWebBoardsParseBoard(node, c)
+				board, _ := loadPttWebBoardsParseBoard(node, c, updateNanoTS)
 				if board == nil {
 					continue
 				}
 				boards = append(boards, board)
 			}
 		}
-	}
-
-	updateNanoTS := types.NowNanoTS()
-	for _, board := range boards {
-		board.UpdateNanoTS = updateNanoTS
 	}
 
 	_ = schema.ResetBoardIsPopular()
@@ -84,7 +80,7 @@ func attrsToMap(attrs []html.Attribute) (ret map[string]html.Attribute) {
 	return ret
 }
 
-func loadPttWebBoardsParseBoard(node *html.Node, c *gin.Context) (board *schema.BoardSummary, err error) {
+func loadPttWebBoardsParseBoard(node *html.Node, c *gin.Context, updateNanoTS types.NanoTS) (board *schema.BoardSummary, err error) {
 	boardName := ""
 	nUser := 0
 	boardClass := ""
@@ -136,19 +132,9 @@ func loadPttWebBoardsParseBoard(node *html.Node, c *gin.Context) (board *schema.
 		return nil, err
 	}
 
-	board = &schema.BoardSummary{
-		BBoardID:  bbs.BBoardID(boardName),
-		Brdname:   boardName,
-		Title:     boardTitle,
-		BoardType: boardType,
-		Category:  boardClass,
-
-		NUser:        nUser,
-		Total:        total,
-		LastPostTime: lastPostTime,
-
-		IsPopular: true,
-		IsOver18:  isOver18,
+	board, err = schema.NewBoardSummaryFromPttWeb(boardName, boardTitle, boardType, boardClass, nUser, total, lastPostTime, isOver18, updateNanoTS)
+	if err != nil {
+		return nil, err
 	}
 
 	return board, nil
@@ -174,6 +160,16 @@ func loadPttWebBoardsGetBoardInfo(boardName string, c *gin.Context) (total int, 
 }
 
 func loadPttWebBoardsGetIsOver18(boardName string, c *gin.Context) (isOver18 bool, err error) {
+	board, err := schema.GetBoardSummary(bbs.BBoardID(boardName))
+	if err != nil {
+		return false, err
+	}
+
+	nowNanoTS := types.NowNanoTS()
+	if nowNanoTS-board.IsOver18UpdateNanoTS < REFRESH_IS_OVER18_NANO_TS {
+		return board.IsOver18, nil
+	}
+
 	url := types.PTTWEB_BASE_URL + "/" + boardName + "/index.html"
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -183,7 +179,10 @@ func loadPttWebBoardsGetIsOver18(boardName string, c *gin.Context) (isOver18 boo
 	}
 
 	ctx, cancel := context.WithTimeout(req.Context(), time.Duration(types.EXPIRE_HTTP_REQUEST_TS)*time.Second)
-	defer cancel()
+	defer func() {
+		cancel()
+		time.Sleep(10 * time.Second)
+	}()
 
 	req = req.WithContext(ctx)
 

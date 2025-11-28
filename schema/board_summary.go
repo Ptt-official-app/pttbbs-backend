@@ -40,6 +40,8 @@ type BoardSummary struct {
 	IsPopular bool `bson:"is_popular"`
 	IsOver18  bool `bson:"is_over_18"` // 18歲板
 
+	IsOver18UpdateNanoTS types.NanoTS `bson:"is_over_18_update_nano_ts"`
+
 	IsNoStats             bool `bson:"is_no_stats"`               // 不列入統計
 	IsGroupBoard          bool `bson:"is_group_board"`            // 群組板
 	IsHide                bool `bson:"is_hide"`                   // 隱板
@@ -94,7 +96,8 @@ func NewBoardSummary(b_b *bbs.BoardSummary, updateNanoTS types.NanoTS) *BoardSum
 		IdxByClass: b_b.IdxByClass,
 
 		// IsPopular: b_b.BrdAttr.HasPerm(ptttype.BRD_TOP),
-		// IsOver18:  b_b.BrdAttr.HasPerm(ptttype.BRD_OVER18),
+		IsOver18:             b_b.BrdAttr.HasPerm(ptttype.BRD_OVER18),
+		IsOver18UpdateNanoTS: updateNanoTS,
 
 		IsNoStats:             b_b.BrdAttr.HasPerm(ptttype.BRD_NOCOUNT),
 		IsGroupBoard:          b_b.BrdAttr.HasPerm(ptttype.BRD_GROUPBOARD),
@@ -145,17 +148,22 @@ func NewBoardSummaryFromPBBoard(b_b *boardd.Board, updateNanoTS types.NanoTS) *B
 		boardType = "Σ"
 	}
 
+	isOver18 := brdAttr.HasPerm(ptttype.BRD_OVER18)
+
 	parentID, _ := GetBoardIDByPttbid(ptttype.Bid(b_b.Parent))
 
 	return &BoardSummary{
 		BBoardID: bboardID,
 		Brdname:  b_b.Name,
 		Title:    b_b.Title,
-		BrdAttr:  ptttype.BrdAttr(b_b.Attributes),
+		BrdAttr:  brdAttr,
 		Category: b_b.Bclass,
 		BMs:      bms,
 		Total:    int(b_b.NumPosts),
 		NUser:    int(b_b.NumUsers),
+
+		IsOver18:             isOver18,
+		IsOver18UpdateNanoTS: updateNanoTS,
 
 		UpdateNanoTS: updateNanoTS,
 
@@ -167,6 +175,26 @@ func NewBoardSummaryFromPBBoard(b_b *boardd.Board, updateNanoTS types.NanoTS) *B
 
 		BoardType: boardType,
 	}
+}
+
+func NewBoardSummaryFromPttWeb(boardName string, boardTitle string, boardType string, boardClass string, nUser int, total int, lastPostTime types.NanoTS, isOver18 bool, updateNanoTS types.NanoTS) (boardSummary *BoardSummary, err error) {
+	return &BoardSummary{
+		BBoardID:  bbs.BBoardID(boardName),
+		Brdname:   boardName,
+		Title:     boardTitle,
+		BoardType: boardType,
+		Category:  boardClass,
+
+		NUser:        nUser,
+		Total:        total,
+		LastPostTime: lastPostTime,
+
+		IsPopular:            true,
+		IsOver18:             isOver18,
+		IsOver18UpdateNanoTS: updateNanoTS,
+
+		UpdateNanoTS: updateNanoTS,
+	}, nil
 }
 
 func UpdateBoardSummaries(boardSummaries []*BoardSummary, updateNanoTS types.NanoTS) (err error) {
