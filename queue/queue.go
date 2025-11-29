@@ -9,7 +9,7 @@ var client *queue.Queue
 
 func Start() error {
 	client = queue.NewPool(
-		WORKER_NUM,
+		WORKER_NUM_i64,
 		queue.WithQueueSize(QUEUE_SIZE),
 	)
 
