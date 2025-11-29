@@ -54,4 +54,4 @@ jobs:
         TAGS: noqueue
 
     - name: Upload coverage report
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
