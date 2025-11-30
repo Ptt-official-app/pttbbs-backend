@@ -44,6 +44,15 @@ def _load_popular_boards():
     return ''
 
 
+@app.route(_with_app_prefix('/boards/refresh-white-list'))
+def _refresh_white_list():
+    """
+    swagger_from_file: apidoc/refresh_white_list.yaml
+
+    """
+    return ''
+
+
 @app.route(_with_app_prefix('/userid'))
 def _get_user_id():
     """

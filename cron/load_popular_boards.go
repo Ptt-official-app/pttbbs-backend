@@ -11,6 +11,12 @@ import (
 func RetryLoadPopularBoards(ctx context.Context) error {
 	time.Sleep(5 * time.Second)
 
+	nBoardID, err := api.RefreshBoardIDWhiteListMap()
+	if err != nil {
+		logrus.Warnf("RetryLoadPopularBoards: unable to refresh BOARD_ID_WHITE_LIST_MAP: e: %v", err)
+	}
+	logrus.Infof("RetryLoadPopularBoards: refresh %v board-ids in BOARD_ID_WHITE_LIST_MAP", nBoardID)
+
 	for {
 		select {
 		case <-ctx.Done():

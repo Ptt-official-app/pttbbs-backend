@@ -3,6 +3,7 @@ package api
 import (
 	"time"
 
+	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 )
 
@@ -32,6 +33,8 @@ var (
 		".html": "text/html",
 		".map":  "application/json",
 	}
+
+	BOARD_ID_WHITE_LIST_MAP = map[bbs.BBoardID]bool{}
 )
 
 const (

@@ -99,4 +99,6 @@ var (
 
 	// max-popular-boards
 	MAX_POPULAR_BOARDS = 128
+
+	BOARD_ID_WHITE_LIST_MAP_FILENAME = ""
 )

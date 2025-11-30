@@ -81,4 +81,7 @@ func config() {
 
 	// expire-http-request-ts
 	EXPIRE_HTTP_REQUEST_TS = setIntConfig("EXPIRE_HTTP_REQUEST_TS", EXPIRE_HTTP_REQUEST_TS)
+
+	// board-id-white-list-map-filename
+	BOARD_ID_WHITE_LIST_MAP_FILENAME = setStringConfig("BOARD_ID_WHITE_LIST_MAP_FILENAME", BOARD_ID_WHITE_LIST_MAP_FILENAME)
 }

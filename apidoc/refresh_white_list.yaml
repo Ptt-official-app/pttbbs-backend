@@ -1,0 +1,7 @@
+重新整理 board 白名單.
+---
+tags:
+  - board
+responses:
+  200:
+    description:

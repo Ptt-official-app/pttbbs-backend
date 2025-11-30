@@ -1,6 +1,10 @@
 package api
 
 import (
+	"bufio"
+	"os"
+	"strings"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/pttbbs-backend/apitypes"
@@ -25,16 +29,29 @@ func toBoardID(fboardID apitypes.FBoardID, remoteAddr string, userID bbs.UUserID
 		return boardID, nil
 	}
 
-	// XXX ensure that board is popular.
-	boardIsPopular, err := schema.GetBoardIsPopular(boardID)
+	err = validateBoardID(boardID)
 	if err != nil {
 		return "", err
 	}
-	if !boardIsPopular.IsPopular {
-		return "", ErrBoardNotPopular
-	}
 
 	return boardID, nil
+}
+
+func validateBoardID(boardID bbs.BBoardID) (err error) {
+	isWhiteList, ok := BOARD_ID_WHITE_LIST_MAP[boardID]
+	if ok && isWhiteList {
+		return nil
+	}
+
+	// ensure that board is popular.
+	boardIsPopular, err := schema.GetBoardIsPopular(boardID)
+	if err != nil {
+		return err
+	}
+	if !boardIsPopular.IsPopular {
+		return ErrBoardNotPopular
+	}
+	return nil
 }
 
 func bidToBoardID(bid ptttype.Bid) (boardID bbs.BBoardID, err error) {
@@ -318,4 +335,47 @@ func checkUserReadBoard(userID bbs.UUserID, userBoardInfoMap map[bbs.BBoardID]*a
 	}
 
 	return userBoardInfoMap, nil
+}
+
+func RefreshBoardIDWhiteListMap() (nBoardID int, err error) {
+	if types.BOARD_ID_WHITE_LIST_MAP_FILENAME == "" {
+		return 0, nil
+	}
+
+	file, err := os.Open(types.BOARD_ID_WHITE_LIST_MAP_FILENAME)
+	if err != nil {
+		return 0, err
+	}
+	// Ensure the file is closed when the function exits
+	defer file.Close()
+
+	// Create a new Scanner for the file
+	scanner := bufio.NewScanner(file)
+
+	nBoardID = 0
+	boardIDWhiteListMap := map[bbs.BBoardID]bool{}
+	for scanner.Scan() {
+		line := scanner.Text()
+		line = strings.TrimSpace(line)
+
+		if line == "" {
+			continue
+		}
+
+		if line[0] == '#' {
+			continue
+		}
+		boardIDWhiteListMap[bbs.BBoardID(line)] = true
+		nBoardID++
+	}
+
+	// Check for errors during scanning
+	if err := scanner.Err(); err != nil {
+		return 0, err
+	}
+
+	// update BOARD_ID_WHITE_LIST_MAP
+	BOARD_ID_WHITE_LIST_MAP = boardIDWhiteListMap
+
+	return nBoardID, nil
 }

@@ -44,6 +44,8 @@ func initGinAllGuest() (*gin.Engine, error) {
 	router.GET(withPrefix(api.GET_BOARD_DETAIL_R), api.GetBoardDetailAllGuestWrapper)
 	router.GET(withPrefix(api.GET_BOARD_SUMMARY_R), api.GetBoardSummaryAllGuestWrapper)
 
+	router.GET(withPrefix(api.REFRESH_BOARD_ID_WHITE_LIST_MAP_R), api.RefreshBoardIDWhiteListMapAllGuestWrapper)
+
 	// article
 	router.GET(withPrefix(api.LOAD_GENERAL_ARTICLES_R), api.LoadGeneralArticlesAllGuestWrapper)
 	router.GET(withPrefix(api.LOAD_BOTTOM_ARTICLES_R), api.LoadBottomArticlesAllGuestWrapper)
