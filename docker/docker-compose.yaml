@@ -30,7 +30,7 @@ services:
       - ${POSTFIX_MASTER_CF}:/etc/postfix/master.cf
     restart: always
   pttbbs-backend:
-    image: pttofficialapps/pttbbs-backend:v0.41.0
+    image: pttofficialapps/pttbbs-backend:v0.41.1
     ports:
       - "127.0.0.1:3457:3457"
     volumes:
