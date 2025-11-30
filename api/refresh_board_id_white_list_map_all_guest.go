@@ -11,7 +11,7 @@ type RefreshBoardIDWhiteListMapResult struct {
 }
 
 func RefreshBoardIDWhiteListMapAllGuestWrapper(c *gin.Context) {
-	Query(LoadPopularBoardsAllGuest, nil, c)
+	Query(RefreshBoardIDWhiteListMapAllGuest, nil, c)
 }
 
 func RefreshBoardIDWhiteListMapAllGuest(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
