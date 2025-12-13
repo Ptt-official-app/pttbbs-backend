@@ -1,5 +1,4 @@
 SERVICE ?= pttbbs-backend
-GOFMT ?= gofumpt -l -s
 GO ?= go
 BUILD_DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 GOFILES := $(shell find . -name "*.go")
@@ -19,9 +18,16 @@ all: build
 .PHONY: lint
 lint:
 	@hash golangci-lint > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.43.0; \
+		$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest; \
 	fi
 	golangci-lint run -v --deadline=3m
+
+.PHONY: fmt
+fmt:
+	@hash golangci-lint > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
+		$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest; \
+	fi
+	golangci-lint fmt
 
 install: $(GOFILES)
 	$(GO) install -v -tags '$(TAGS)' -ldflags '$(EXTLDFLAGS)-s -w $(LDFLAGS)'
