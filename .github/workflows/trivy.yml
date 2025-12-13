@@ -26,7 +26,7 @@ jobs:
           severity: "CRITICAL,HIGH"
 
       - name: Run Trivy vulnerability scanner (SARIF)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         if: always()
         with:
           scan-type: "fs"
