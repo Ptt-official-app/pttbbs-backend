@@ -25,3 +25,17 @@ func DeleteArticles(boardID bbs.BBoardID, articleIDs []bbs.ArticleID, updateNano
 	_, err = Article_c.UpdateManyOnly(query, update)
 	return err
 }
+
+// DeleteArticles deletes articles in Database
+func DeleteArticlesByBoardID(boardID bbs.BBoardID, updateNanoTS types.NanoTS) (err error) {
+	query := bson.M{
+		ARTICLE_BBOARD_ID_b:      boardID,
+		ARTICLE_UPDATE_NANO_TS_b: bson.M{"$lt": updateNanoTS},
+	}
+	update := &ArticleIsDeleted{
+		IsDeleted:    true,
+		UpdateNanoTS: updateNanoTS,
+	}
+	_, err = Article_c.UpdateManyOnly(query, update)
+	return err
+}

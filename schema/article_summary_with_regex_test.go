@@ -139,13 +139,13 @@ func TestUpdateArticleSummaryWithRegexes(t *testing.T) {
 
 	articleSummaryWithRegexes0 := make([]*ArticleSummaryWithRegex, len(ret.Articles))
 	for idx, each_b := range ret.Articles {
-		articleSummaryWithRegexes0[idx] = NewArticleSummaryWithRegex(each_b, updateNanoTS0)
+		articleSummaryWithRegexes0[idx] = NewArticleSummaryWithRegex(each_b, updateNanoTS0, false)
 	}
 
 	updateNanoTS1 := types.NowNanoTS()
 	articleSummaryWithRegexes1 := make([]*ArticleSummaryWithRegex, len(ret.Articles))
 	for idx, each_b := range ret.Articles {
-		articleSummaryWithRegexes1[idx] = NewArticleSummaryWithRegex(each_b, updateNanoTS1)
+		articleSummaryWithRegexes1[idx] = NewArticleSummaryWithRegex(each_b, updateNanoTS1, false)
 	}
 
 	type args struct {
