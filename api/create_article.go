@@ -79,7 +79,7 @@ func CreateArticle(remoteAddr string, user *UserInfo, params interface{}, path i
 	// update to db
 	theList_b := []*bbs.ArticleSummary{(*bbs.ArticleSummary)(result_b)}
 	updateNanoTS := types.NowNanoTS()
-	articleSummaries_db, _, err := deserializeArticlesAndUpdateDB(userID, boardID, theList_b, updateNanoTS)
+	articleSummaries_db, _, err := deserializeArticlesAndUpdateDB(userID, boardID, theList_b, updateNanoTS, false)
 	if err != nil {
 		return nil, 500, err
 	}

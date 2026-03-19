@@ -181,7 +181,7 @@ func parseTitle(realTitleWithClass string) (theClass string, title string) {
 // NewArticleSummaryWithRegex
 //
 // no n_comments in bbs.ArticleSummary from backend.
-func NewArticleSummaryWithRegex(a_b *bbs.ArticleSummary, updateNanoTS types.NanoTS) *ArticleSummaryWithRegex {
+func NewArticleSummaryWithRegex(a_b *bbs.ArticleSummary, updateNanoTS types.NanoTS, isBottom bool) *ArticleSummaryWithRegex {
 	title := types.Big5ToUtf8(a_b.RealTitle)
 
 	titleRegex := articleTitleToTitleRegex(title)
@@ -208,6 +208,8 @@ func NewArticleSummaryWithRegex(a_b *bbs.ArticleSummary, updateNanoTS types.Nano
 		Idx: a_b.Idx,
 
 		SubjectType: a_b.SubjectType,
+
+		IsBottom: isBottom,
 	}
 }
 
