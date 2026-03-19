@@ -77,7 +77,7 @@ func CrossPost(remoteAddr string, user *UserInfo, params interface{}, path inter
 	// set article
 	theList_b := []*bbs.ArticleSummary{result_b.ArticleSummary}
 	updateNanoTS := types.NowNanoTS()
-	articleSummaries_db, _, err := deserializeArticlesAndUpdateDB(userID, xBoardID, theList_b, updateNanoTS)
+	articleSummaries_db, _, err := deserializeArticlesAndUpdateDB(userID, xBoardID, theList_b, updateNanoTS, false)
 	if err != nil {
 		return nil, 500, err
 	}

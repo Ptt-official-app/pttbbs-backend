@@ -43,6 +43,7 @@ func LoadGeneralArticles() (err error) {
 	for {
 		boardIDs, err := schema.GetBoardIDs(nextBrdname, false, N_BOARDS+1, true)
 		if err != nil {
+			logrus.Errorf("cron.LoadGeneralArticles: unable to GetBoardIDs: e: %v", err)
 			return err
 		}
 
@@ -59,13 +60,14 @@ func LoadGeneralArticles() (err error) {
 			} else {
 				err = loadGeneralArticlesPtt(each.BBoardID)
 			}
+
 			if err == nil {
 				count++
 			}
 		}
 
 		if newNextBrdname == "" {
-			logrus.Infof("cron.LoadGeneralArticle: load %v boards", count)
+			logrus.Infof("cron.LoadGeneralArticles: load %v boards", count)
 			return nil
 
 		}
@@ -86,10 +88,7 @@ func loadGeneralArticlesBoardd(boardID bbs.BBoardID) (err error) {
 		}
 		count += len(articleSummaries)
 
-		// logrus.Infof("cron.LoadGeneralArticles: bid: %v count: %v", boardID, count)
-
 		if newNextIdx == INVALID_LOAD_GENERAL_ARTICLES_NEXT_IDX_BOARDD {
-			// logrus.Infof("cron.LoadGeneralArticles: bid: %v load %v articles", boardID, count)
 			break
 		}
 
@@ -173,34 +172,39 @@ func loadGeneralArticlesPtt(boardID bbs.BBoardID) (err error) {
 	nextIdx := ""
 	count := 0
 
+	updateNanoTS := types.NowNanoTS()
 	for {
-		articleSummaries, newNextIdx, err := loadGeneralArticlesCorePtt(boardID, nextIdx)
+		articleSummaries, newNextIdx, err := loadGeneralArticlesCorePtt(boardID, nextIdx, updateNanoTS)
 		if err != nil {
 			logrus.Errorf("cron.loadGeneralArticlesPtt: unable to loadGeneralArticlesCorePtt: nextIdx: %v e: %v", nextIdx, err)
 			return err
 		}
 		count += len(articleSummaries)
 
-		// logrus.Infof("cron.LoadGeneralArticles: bid: %v count: %v", boardID, count)
-
 		if newNextIdx == INVALID_LOAD_GENERAL_ARTICLES_NEXT_IDX_PTT {
-			// logrus.Infof("cron.LoadGeneralArticles: bid: %v load %v articles", boardID, count)
 			break
 		}
 
 		nextIdx = newNextIdx
 	}
 
-	err = loadBottomArticlesPtt(boardID)
+	bottomUpdateNanoTS := types.NowNanoTS()
+	err = loadBottomArticlesPtt(boardID, bottomUpdateNanoTS)
 	if err != nil {
-		logrus.Errorf("loadGeneralArticlesPtt: unable to loadBottomArticles: e: %v", err)
+		logrus.Errorf("cron.loadGeneralArticlesPtt: unable to loadBottomArticles: boardID: %v e: %v", boardID, err)
+		return err
+	}
+
+	err = schema.DeleteArticlesByBoardID(boardID, updateNanoTS)
+	if err != nil {
+		logrus.Errorf("cron.loadGeneralArticlesPtt: unable to delete previous articles: boardID: %v e: %v", boardID, err)
 		return err
 	}
 
 	return nil
 }
 
-func loadGeneralArticlesCorePtt(boardID bbs.BBoardID, startIdx string) (articleSummaries []*schema.ArticleSummaryWithRegex, nextIdx string, err error) {
+func loadGeneralArticlesCorePtt(boardID bbs.BBoardID, startIdx string, updateNanoTS types.NanoTS) (articleSummaries []*schema.ArticleSummaryWithRegex, nextIdx string, err error) {
 	// backend load-general-articles
 	theParams_b := &pttbbsapi.LoadGeneralArticlesParams{
 		StartIdx:  startIdx,
@@ -219,8 +223,7 @@ func loadGeneralArticlesCorePtt(boardID bbs.BBoardID, startIdx string) (articleS
 		return nil, "", err
 	}
 
-	updateNanoTS := types.NowNanoTS()
-	articleSummaries, err = api.DeserializeArticlesAndUpdateDB(result_b.Articles, updateNanoTS)
+	articleSummaries, err = api.DeserializeArticlesAndUpdateDB(result_b.Articles, updateNanoTS, false)
 	if err != nil {
 		return nil, "", err
 	}
@@ -228,9 +231,9 @@ func loadGeneralArticlesCorePtt(boardID bbs.BBoardID, startIdx string) (articleS
 	return articleSummaries, result_b.NextIdx, nil
 }
 
-func loadBottomArticlesPtt(boardID bbs.BBoardID) (err error) {
+func loadBottomArticlesPtt(boardID bbs.BBoardID, updateNanoTS types.NanoTS) (err error) {
 	// backend load-general-articles
-	var result_b *pttbbsapi.LoadGeneralArticlesResult
+	var result_b *pttbbsapi.LoadBottomArticlesResult
 
 	urlMap := map[string]string{
 		"bid": string(boardID),
@@ -241,8 +244,7 @@ func loadBottomArticlesPtt(boardID bbs.BBoardID) (err error) {
 		return err
 	}
 
-	updateNanoTS := types.NowNanoTS()
-	_, err = api.DeserializeArticlesAndUpdateDB(result_b.Articles, updateNanoTS)
+	_, err = api.DeserializeArticlesAndUpdateDB(result_b.Articles, updateNanoTS, true)
 	if err != nil {
 		return err
 	}

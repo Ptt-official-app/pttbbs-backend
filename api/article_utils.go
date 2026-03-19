@@ -59,13 +59,13 @@ func UpdateArticleContentInfo(
 	return err
 }
 
-func DeserializeArticlesAndUpdateDB(articleSummaries_b []*bbs.ArticleSummary, updateNanoTS types.NanoTS) (articleSummaries []*schema.ArticleSummaryWithRegex, err error) {
+func DeserializeArticlesAndUpdateDB(articleSummaries_b []*bbs.ArticleSummary, updateNanoTS types.NanoTS, isBottom bool) (articleSummaries []*schema.ArticleSummaryWithRegex, err error) {
 	if len(articleSummaries_b) == 0 {
 		return nil, nil
 	}
 	articleSummaries = make([]*schema.ArticleSummaryWithRegex, len(articleSummaries_b))
 	for idx, each_b := range articleSummaries_b {
-		articleSummaries[idx] = schema.NewArticleSummaryWithRegex(each_b, updateNanoTS)
+		articleSummaries[idx] = schema.NewArticleSummaryWithRegex(each_b, updateNanoTS, isBottom)
 	}
 
 	err = schema.UpdateArticleSummaryWithRegexes(articleSummaries, updateNanoTS)
@@ -76,12 +76,12 @@ func DeserializeArticlesAndUpdateDB(articleSummaries_b []*bbs.ArticleSummary, up
 	return articleSummaries, nil
 }
 
-func deserializeArticlesAndUpdateDB(userID bbs.UUserID, bboardID bbs.BBoardID, articleSummaries_b []*bbs.ArticleSummary, updateNanoTS types.NanoTS) (articleSummaries []*schema.ArticleSummaryWithRegex, userReadArticleMap map[bbs.ArticleID]bool, err error) {
+func deserializeArticlesAndUpdateDB(userID bbs.UUserID, bboardID bbs.BBoardID, articleSummaries_b []*bbs.ArticleSummary, updateNanoTS types.NanoTS, isBottom bool) (articleSummaries []*schema.ArticleSummaryWithRegex, userReadArticleMap map[bbs.ArticleID]bool, err error) {
 	if len(articleSummaries_b) == 0 {
 		return nil, nil, nil
 	}
 
-	articleSummaries, err = DeserializeArticlesAndUpdateDB(articleSummaries_b, updateNanoTS)
+	articleSummaries, err = DeserializeArticlesAndUpdateDB(articleSummaries_b, updateNanoTS, isBottom)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -430,7 +430,7 @@ func tryGetArticleDetailSummary(userID bbs.UUserID, boardID bbs.BBoardID, articl
 
 	// update to db
 	updateNanoTS := types.NowNanoTS()
-	articleSummaries_db, _, err := deserializeArticlesAndUpdateDB(userID, boardID, result_b.Articles, updateNanoTS)
+	articleSummaries_db, _, err := deserializeArticlesAndUpdateDB(userID, boardID, result_b.Articles, updateNanoTS, false)
 	if err != nil {
 		return nil, 500, err
 	}

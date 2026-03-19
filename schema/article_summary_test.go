@@ -364,7 +364,7 @@ func TestGetArticleSummariesByRegex(t *testing.T) {
 
 	articleSummaryWithRegexes0 := make([]*ArticleSummaryWithRegex, len(ret.Articles))
 	for idx, each_b := range ret.Articles {
-		articleSummaryWithRegexes0[idx] = NewArticleSummaryWithRegex(each_b, updateNanoTS)
+		articleSummaryWithRegexes0[idx] = NewArticleSummaryWithRegex(each_b, updateNanoTS, false)
 	}
 
 	UpdateArticleSummaryWithRegexes(articleSummaryWithRegexes0, updateNanoTS)
