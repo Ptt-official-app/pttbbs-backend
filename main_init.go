@@ -2,18 +2,18 @@ package main
 
 import (
 	"flag"
-	"strings"
 
 	"github.com/Ptt-official-app/pttbbs-backend/boardd"
+	"github.com/Ptt-official-app/pttbbs-backend/configutil"
 	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/Ptt-official-app/pttbbs-backend/dbcs"
 	"github.com/Ptt-official-app/pttbbs-backend/mand"
 	"github.com/Ptt-official-app/pttbbs-backend/queue"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
-	"github.com/spf13/viper"
 
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
+
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	pttbbstypes "github.com/Ptt-official-app/go-pttbbs/types"
 	"github.com/sirupsen/logrus"
@@ -27,24 +27,11 @@ import (
 // Return
 //
 //	error: err
-func initAllConfig(filename string) error {
-	filenameList := strings.Split(filename, ".")
-	if len(filenameList) == 1 {
-		return ErrInvalidIni
-	}
-
-	filenamePrefix := strings.Join(filenameList[:len(filenameList)-1], ".")
-	filenamePostfix := filenameList[len(filenameList)-1]
-	viper.SetConfigName(filenamePrefix)
-	viper.SetConfigType(filenamePostfix)
-	viper.AddConfigPath("/etc/pttbbs-backend")
-	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
+func initAllConfig(filename string) (err error) {
+	err = configutil.InitViper(filename)
 	if err != nil {
 		return err
 	}
-
-	logrus.Debugf("viper keys: %v", viper.AllKeys())
 
 	err = types.InitConfig()
 	if err != nil {
