@@ -1,7 +1,7 @@
 name: pttbbs-backend
 services:
   go-pttbbs:
-    image: pttofficialapps/go-pttbbs:v0.26.3
+    image: pttofficialapps/go-pttbbs:v0.26.5
     ports:
       - "127.0.0.1:8888:8888"
       - "127.0.0.1:48763:48763"
@@ -30,7 +30,7 @@ services:
       - ${POSTFIX_MASTER_CF}:/etc/postfix/master.cf
     restart: always
   pttbbs-backend:
-    image: pttofficialapps/pttbbs-backend:v0.42.0
+    image: pttofficialapps/pttbbs-backend:v0.42.1
     ports:
       - "127.0.0.1:3457:3457"
     volumes:
