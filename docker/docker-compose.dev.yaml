@@ -48,7 +48,7 @@ services:
       init-bbs-bin:
         condition: service_completed_successfully
   go-pttbbs:
-    image: pttofficialapps/go-pttbbs:v0.26.3
+    image: pttofficialapps/go-pttbbs:v0.26.5
     ports:
       - "127.0.0.1:3456:3456"
     restart: always

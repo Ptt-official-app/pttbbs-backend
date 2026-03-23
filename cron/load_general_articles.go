@@ -29,8 +29,8 @@ func RetryLoadGeneralArticles(ctx context.Context) error {
 			case <-ctx.Done():
 				return nil
 			default:
-				logrus.Infof("RetryLoadGeneralArticles: to sleep 10 min")
-				time.Sleep(10 * time.Minute)
+				logrus.Infof("RetryLoadGeneralArticles: to sleep %v seconds", types.SLEEP_RETRY_LOAD_GENERAL_ARTICLES_TS_DURATION.Seconds())
+				time.Sleep(types.SLEEP_RETRY_LOAD_GENERAL_ARTICLES_TS_DURATION)
 			}
 		}
 	}
@@ -176,7 +176,7 @@ func loadGeneralArticlesPtt(boardID bbs.BBoardID) (err error) {
 	for {
 		articleSummaries, newNextIdx, err := loadGeneralArticlesCorePtt(boardID, nextIdx, updateNanoTS)
 		if err != nil {
-			logrus.Errorf("cron.loadGeneralArticlesPtt: unable to loadGeneralArticlesCorePtt: nextIdx: %v e: %v", nextIdx, err)
+			logrus.Errorf("cron.loadGeneralArticlesPtt: unable to loadGeneralArticlesCorePtt: board: %v nextIdx: %v e: %v", boardID, nextIdx, err)
 			return err
 		}
 		count += len(articleSummaries)

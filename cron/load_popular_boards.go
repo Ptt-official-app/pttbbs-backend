@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Ptt-official-app/pttbbs-backend/api"
+	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,8 +29,8 @@ func RetryLoadPopularBoards(ctx context.Context) error {
 			case <-ctx.Done():
 				return nil
 			default:
-				logrus.Infof("RetryLoadPopularBoards: to sleep 10 min")
-				time.Sleep(10 * time.Minute)
+				logrus.Infof("RetryLoadPopularBoards: to sleep %v seconds", types.SLEEP_RETRY_LOAD_POPULAR_BOARDS_TS_DURATION.Seconds())
+				time.Sleep(types.SLEEP_RETRY_LOAD_POPULAR_BOARDS_TS_DURATION)
 			}
 		}
 	}

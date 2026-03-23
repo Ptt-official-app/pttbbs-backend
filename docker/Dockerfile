@@ -1,4 +1,4 @@
-FROM golang:1.24-bookworm
+FROM golang:1.25-bookworm
 
 ENV GOROOT=/usr/local/go
 ENV PATH=${PATH}:/usr/local/go/bin

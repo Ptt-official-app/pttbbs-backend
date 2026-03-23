@@ -7,6 +7,7 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/api"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
+	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,8 +25,8 @@ func RetryLoadArticleDetails(ctx context.Context) error {
 			case <-ctx.Done():
 				return nil
 			default:
-				logrus.Infof("RetryLoadArticleDetails: to sleep 10 min")
-				time.Sleep(10 * time.Minute)
+				logrus.Infof("RetryLoadArticleDetails: to sleep %v seconds", types.SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS_DURATION.Seconds())
+				time.Sleep(types.SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS_DURATION)
 			}
 		}
 	}
@@ -86,7 +87,7 @@ func loadArticleDetails(boardID bbs.BBoardID) (err error) {
 				continue
 			}
 
-			_, _, _, _, _, _, _, _, _, _, _, _, err = api.TryGetArticleContentInfo("SYSOP", each.BBoardID, each.ArticleID, nil, true, false, false)
+			err = tryGetArticleContentInfo(each.BBoardID, each.ArticleID)
 
 			if err == nil {
 				count++
@@ -94,9 +95,25 @@ func loadArticleDetails(boardID bbs.BBoardID) (err error) {
 		}
 
 		if newNextIdx == "" {
+			logrus.Infof("loadArticleDetails: boardID: %v loaded %v articles", boardID, count)
 			return nil
 		}
 
 		nextIdx = newNextIdx
 	}
+}
+
+func tryGetArticleContentInfo(boardID bbs.BBoardID, articleID bbs.ArticleID) (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			logrus.Errorf("cron.tryGetArticleContentInfo (panic): boardID: %v articleID: %v e: %v", boardID, articleID, e)
+			err = ErrPanic
+		}
+	}()
+
+	_, _, _, _, _, _, _, _, _, _, _, _, err = api.TryGetArticleContentInfo("SYSOP", boardID, articleID, nil, true, false, false)
+	if err != nil {
+		logrus.Errorf("cron.tryGetArticleContentInfo: unable get article content info: boardID: %v articleID: %v e: %v", boardID, articleID, err)
+	}
+	return err
 }
