@@ -3,7 +3,7 @@ module github.com/Ptt-official-app/pttbbs-backend
 go 1.25.0
 
 require (
-	github.com/Ptt-official-app/go-pttbbs v0.26.3
+	github.com/Ptt-official-app/go-pttbbs v0.26.5
 	github.com/appleboy/graceful v1.3.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-redis/redis/v8 v8.11.5
