@@ -14,9 +14,15 @@ func RetryLoadPopularBoards(ctx context.Context) error {
 
 	nBoardID, err := api.RefreshBrdnameWhiteListMap()
 	if err != nil {
-		logrus.Warnf("RetryLoadPopularBoards: unable to refresh BOARD_ID_WHITE_LIST_MAP: e: %v", err)
+		logrus.Warnf("RetryLoadPopularBoards: unable to refresh BRDNAME_WHITE_LIST_MAP: e: %v", err)
 	}
-	logrus.Infof("RetryLoadPopularBoards: refresh %v board-ids in BOARD_ID_WHITE_LIST_MAP", nBoardID)
+	logrus.Infof("RetryLoadPopularBoards: refresh %v board-ids in BRDNAME_WHITE_LIST_MAP", nBoardID)
+
+	nBoardID, err = api.RefreshBrdnameBlackListMap()
+	if err != nil {
+		logrus.Warnf("RetryLoadPopularBoards: unable to refresh BRDNAME_BLACK_LIST_MAP: e: %v", err)
+	}
+	logrus.Infof("RetryLoadPopularBoards: refresh %v board-ids in BRDNAME_BLACK_LIST_MAP", nBoardID)
 
 	for {
 		select {

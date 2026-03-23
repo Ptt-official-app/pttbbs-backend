@@ -53,6 +53,15 @@ def _refresh_white_list():
     return ''
 
 
+@app.route(_with_app_prefix('/boards/refresh-black-list'))
+def _refresh_black_list():
+    """
+    swagger_from_file: apidoc/refresh_black_list.yaml
+
+    """
+    return ''
+
+
 @app.route(_with_app_prefix('/userid'))
 def _get_user_id():
     """
