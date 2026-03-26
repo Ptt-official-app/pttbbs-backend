@@ -4,7 +4,7 @@
 # 2. docker compose to ensure running the containers.
 # 3. go build and run pttbbs-backend.
 
-docker compose -f docker/docker-compose.dev.yaml up -d
+docker compose -f docker/docker-compose.dev.yaml up -d --no-recreate
 
 ini_filename=docs/examples/etc/pttbbs-backend/production.ini
 package=github.com/Ptt-official-app/pttbbs-backend/types

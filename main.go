@@ -65,6 +65,7 @@ func initGinAllGuest() (*gin.Engine, error) {
 	router.GET(api.INDEX_HTML_R, api.IndexHTMLWrapper)
 
 	router.Static("/static", filepath.Join(types.STATIC_DIR, "static"))
+	router.Static("/assets", filepath.Join(types.STATIC_DIR, "assets"))
 
 	staticFiles := []string{
 		"asset-manifest.json",
