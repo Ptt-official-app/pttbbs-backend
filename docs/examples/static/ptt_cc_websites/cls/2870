@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>分類看板 - 批踢踢實業坊</title>
+
+<link rel="stylesheet" type="text/css" href="//images.ptt.cc/bbs/v2.27/bbs-common.css">
+<link rel="stylesheet" type="text/css" href="//images.ptt.cc/bbs/v2.27/bbs-base.css" media="screen">
+<link rel="stylesheet" type="text/css" href="//images.ptt.cc/bbs/v2.27/bbs-custom.css">
+<link rel="stylesheet" type="text/css" href="//images.ptt.cc/bbs/v2.27/pushstream.css" media="screen">
+<link rel="stylesheet" type="text/css" href="//images.ptt.cc/bbs/v2.27/bbs-print.css" media="print">
+
+
+
+
+	</head>
+    <body>
+		
+<div id="topbar-container">
+	<div id="topbar" class="bbs-content">
+		<a id="logo" href="/bbs/">批踢踢實業坊</a>
+		<a class="right small" href="/about.html">關於我們</a>
+		<a class="right small" href="/contact.html">聯絡資訊</a>
+	</div>
+</div>
+
+<div id="main-container">
+	<div id="action-bar-container">
+		<div class="action-bar">
+			<div class="btn-group btn-group-cls">
+				<a class="btn" href="/bbs/hotboards.html">熱門看板</a>
+                <a class="btn selected" href="/cls/1">分類看板</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="b-list-container action-bar-margin bbs-screen">
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/5574">
+                <div class="board-name">OtherBBS</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">他站</div>
+                <div class="board-title">&#931;其他站台 ChinaBBS/CIA/FPG/SOB/wretch</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/bbs/Announce/index.html">
+                <div class="board-name">Announce</div>
+                <div class="board-nuser">2</div>
+                <div class="board-class">本站</div>
+                <div class="board-title">&#9678;批踢踢公布欄</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/5343">
+                <div class="board-name">PttAct</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">本站</div>
+                <div class="board-title">&#931;批踢踢活動部</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/4383">
+                <div class="board-name">PttArt</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">本站</div>
+                <div class="board-title">&#931;批踢踢視覺美工部</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/5348">
+                <div class="board-name">PttBoard</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">本站</div>
+                <div class="board-title">&#931;批踢踢板務部</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/5214">
+                <div class="board-name">PttExtra</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">本站</div>
+                <div class="board-title">&#931;聯盟服務 PCman/TWBBS</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/7481">
+                <div class="board-name">PttIDs</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">本站</div>
+                <div class="board-title">&#931;批踢踢帳號部</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/5342">
+                <div class="board-name">PttLaws</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">本站</div>
+                <div class="board-title">&#931;批踢踢法務部</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/5346">
+                <div class="board-name">PttSystem</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">本站</div>
+                <div class="board-title">&#931;批踢踢系統部</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/bbs/WhoAmI/index.html">
+                <div class="board-name">WhoAmI</div>
+                <div class="board-nuser">5</div>
+                <div class="board-class">本站</div>
+                <div class="board-title">我是誰</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/bbs/SYSOP/index.html">
+                <div class="board-name">SYSOP</div>
+                <div class="board-nuser">1</div>
+                <div class="board-class">本站</div>
+                <div class="board-title">&#9678;請小心加LINE看細圖詐騙手法</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/3503">
+                <div class="board-name">PttCollab</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">批踢</div>
+                <div class="board-title">&#931; </div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/13662">
+                <div class="board-name">PttPR</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">站內</div>
+                <div class="board-title">&#931;批踢踢公關部</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/9680">
+                <div class="board-name">PttCosign</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">連署</div>
+                <div class="board-title">&#931;Ptt連署群組</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/2445">
+                <div class="board-name">PttBirthDay</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">慶生</div>
+                <div class="board-title">&#931;&lt;&lt;   Ptt 20 週年生日快樂   &gt;&gt;</div>
+            </a>
+        </div>
+        
+        <div class="b-ent">
+            <a class="board" href="/cls/5349">
+                <div class="board-name">WelcometoPTT</div>
+                <div class="board-nuser"></div>
+                <div class="board-class">歡迎</div>
+                <div class="board-title">&#931;批踢踢新手服務中心</div>
+            </a>
+        </div>
+        
+	</div>
+</div>
+
+		
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DZ6Y3BY9GW"></script>
+<script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DZ6Y3BY9GW');
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-32365737-1', {
+    cookieDomain: 'ptt.cc',
+    legacyCookieDomain: 'ptt.cc'
+  });
+  ga('send', 'pageview');
+</script>
+
+
+		
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="//images.ptt.cc/bbs/v2.27/bbs.js"></script>
+
+    </body>
+</html>
