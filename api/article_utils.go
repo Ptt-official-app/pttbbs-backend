@@ -449,6 +449,7 @@ func tryGetArticleDetailSummary(userID bbs.UUserID, boardID bbs.BBoardID, articl
 		Class:        articleSummary_db.Class,
 		Filemode:     articleSummary_db.Filemode,
 		UpdateNanoTS: articleSummary_db.UpdateNanoTS,
+		SubjectType:  articleSummary_db.SubjectType,
 	}
 
 	return articleDetailSummary, 200, nil

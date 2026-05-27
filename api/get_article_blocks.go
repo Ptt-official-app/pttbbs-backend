@@ -24,17 +24,18 @@ type GetArticleBlocksPath struct {
 type GetArticleBlocksResult struct {
 	Content [][]*types.Rune `json:"content,omitempty"`
 
-	IsDeleted  bool             `json:"deleted,omitempty"`     //
-	CreateTime types.Time8      `json:"create_time,omitempty"` //
-	MTime      types.Time8      `json:"modified,omitempty"`    //
-	Recommend  int              `json:"recommend,omitempty"`   //
-	NComments  int              `json:"n_comments,omitempty"`  //
-	Owner      bbs.UUserID      `json:"owner,omitempty"`       //
-	Nickname   string           `json:"nickname,omitempty"`
-	Title      string           `json:"title,omitempty"` //
-	Money      int              `json:"money,omitempty"` //
-	Class      string           `json:"class,omitempty"` // can be: R: 轉, [class]
-	Filemode   ptttype.FileMode `json:"mode,omitempty"`  //
+	IsDeleted   bool                `json:"deleted,omitempty"`     //
+	CreateTime  types.Time8         `json:"create_time,omitempty"` //
+	MTime       types.Time8         `json:"modified,omitempty"`    //
+	Recommend   int                 `json:"recommend,omitempty"`   //
+	NComments   int                 `json:"n_comments,omitempty"`  //
+	Owner       bbs.UUserID         `json:"owner,omitempty"`       //
+	Nickname    string              `json:"nickname,omitempty"`
+	Title       string              `json:"title,omitempty"` //
+	Money       int                 `json:"money,omitempty"` //
+	Class       string              `json:"class,omitempty"` // can be: R: 轉, [class]
+	Filemode    ptttype.FileMode    `json:"mode,omitempty"`  //
+	SubjectType ptttype.SubjectType `json:"subject_type"`
 
 	IP   string `json:"ip,omitempty"`
 	Host string `json:"host,omitempty"` // ip 的中文呈現, 外國則為國家.
@@ -130,6 +131,7 @@ func GetArticleBlocks(remoteAddr string, user *UserInfo, params interface{}, pat
 		ret.Host = articleDetailSummary.Host
 		ret.BBS = articleDetailSummary.BBS
 		ret.Rank = articleDetailSummary.Rank
+		ret.SubjectType = articleDetailSummary.SubjectType
 	}
 
 	return ret, 200, nil

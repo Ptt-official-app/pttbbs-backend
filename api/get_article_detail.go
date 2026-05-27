@@ -33,6 +33,8 @@ type GetArticleDetailResult struct {
 	Class      string              `json:"class"` // can be: R: 轉, [class]
 	Filemode   ptttype.FileMode    `json:"mode"`  //
 
+	SubjectType ptttype.SubjectType `json:"subject_type"`
+
 	URL  string `json:"url"`  //
 	Read bool   `json:"read"` //
 
@@ -117,6 +119,7 @@ func GetArticleDetail(remoteAddr string, user *UserInfo, params interface{}, pat
 		Host:          host,
 		BBS:           bbs,
 		Rank:          articleDetailSummary.Rank,
+		SubjectType:   articleDetailSummary.SubjectType,
 
 		TokenUser: userID,
 	}
