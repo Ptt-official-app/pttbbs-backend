@@ -47,6 +47,8 @@ type ArticleDetailSummary struct {
 	RankUpdateNanoTS types.NanoTS `bson:"rank_update_nano_ts"`
 
 	Idx string `bson:"pttidx"`
+
+	SubjectType ptttype.SubjectType `bson:"subject_type"`
 }
 
 var (

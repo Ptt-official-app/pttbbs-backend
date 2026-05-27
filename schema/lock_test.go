@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"sync"
 	"testing"
 	"time"
 )
@@ -43,8 +44,12 @@ func TestTryLock(t *testing.T) {
 			sleepTS: 4,
 		},
 	}
+
+	var wg sync.WaitGroup // to sequentially exec the test.
 	for _, tt := range tests {
+		wg.Add(1)
 		t.Run(tt.name, func(t *testing.T) {
+			defer wg.Done()
 			if tt.sleepTS > 0 {
 				time.Sleep(time.Duration(tt.sleepTS) * time.Second)
 			}
@@ -61,5 +66,6 @@ func TestTryLock(t *testing.T) {
 				t.Errorf("TryLock: e: %v expected: %v", err, tt.expectedErr)
 			}
 		})
+		wg.Wait()
 	}
 }
