@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/base64"
 	"fmt"
+	"mime"
 	"net/mail"
 	"net/smtp"
 	"strings"
@@ -16,7 +17,7 @@ func SendEmail(rcpts []string, title string, content string) (err error) {
 		return nil
 	}
 
-	from := mail.Address{Name: types.BBSNAME + "管理員", Address: types.EMAIL_FROM}
+	from := mail.Address{Name: types.BBSNAME + types.SENDER_SUFFIX, Address: types.EMAIL_FROM}
 	to := make([]string, len(rcpts))
 	for idx, each := range rcpts {
 		eachAddr := mail.Address{Name: "", Address: each}
@@ -50,6 +51,5 @@ func SendEmail(rcpts []string, title string, content string) (err error) {
 
 func encodeRFC2047(str string) string {
 	// use mail's rfc2047 to encode any string
-	addr := mail.Address{Name: str, Address: ""}
-	return strings.TrimSuffix(strings.Trim(addr.String(), " <>"), " <@")
+	return mime.BEncoding.Encode("utf-8", str)
 }

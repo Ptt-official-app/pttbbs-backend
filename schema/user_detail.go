@@ -11,8 +11,10 @@ import (
 type UserDetail struct {
 	UserID   bbs.UUserID `bson:"user_id"`
 	Username string      `bson:"username"`
-	Realname string      `bson:"realtime"`
+	Realname string      `bson:"realname"`
 	Nickname string      `bson:"nickname"`
+
+	IsGovernmentID bool `bson:"is_government_id"`
 
 	Uflag        ptttype.UFlag `bson:"flag"`
 	Userlevel    ptttype.PERM  `bson:"perm"`
@@ -95,6 +97,20 @@ func NewUserDetailGuest(updateNanoTS types.NanoTS) (user *UserDetail) {
 
 		UpdateNanoTS: updateNanoTS,
 	}
+}
+
+func GetUserDetailByUsername(username string) (userDetail *UserDetail, err error) {
+	query := bson.M{
+		USER_USERNAME_b: username,
+	}
+
+	userDetail = &UserDetail{}
+	err = User_c.FindOne(query, userDetail, userDetailFields)
+	if err != nil {
+		return nil, err
+	}
+
+	return userDetail, nil
 }
 
 func NewUserDetail(user_b pttbbsapi.GetUserResult, updateNanoTS types.NanoTS) (user *UserDetail) {

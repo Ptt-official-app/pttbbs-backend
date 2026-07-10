@@ -26,32 +26,37 @@
 
 1. 安裝 [docker](https://www.docker.com/)
 2. `./scripts/start-getting-started.sh`
-3. `telnet localhost 8888`
-4. 使用 SYSOP/123123 登入.
+3. 到 [http://localhost:8080](http://localhost:8080) 使用 API.
+
+### [舊版 pttbbs](https://github.com/ptt/pttbbs)
+
+您可以使用以下方式連到 舊版 pttbbs:
+
+4. `telnet localhost 8888`
+5. 使用 SYSOP/123123 登入.
 
 ## API
 
 您可以到 [https://doc.devptt.dev](https://doc.devptt.dev) 試著使用 api.
 
-如果您在 api 網頁裡遇到 CORS 的問題. 你可以在網頁裡 copy `curl` 指令測試.
+如果您在 api 網頁裡遇到 CORS 的問題. 您可以在網頁裡 copy `curl` 指令測試.
 
 ## Coding Convention
 
 我們使用以下 library 幫助 coding convention:
 
-* [gotests](https://github.com/cweill/gotests) for test-generation
-* [gofumpt](https://github.com/mvdan/gofumpt) for formatting
+* [gotests](https://github.com/cweill/gotests) for test-generation.
+* [gofumpt](https://github.com/mvdan/gofumpt) for formatting.
 
 ## Discussing / Reviewing / Questioning the code
 
 除了開 issues 以外, 您還可以做以下的事情來對於 code 做討論 / review / 提出問題.
 
 * `git clone` 這個 repo.
-* 開一個 review-[topic] 的 branch.
+* 開一個 review-\[topic\] 的 branch.
 * 對於想要討論的部分在 code 裡寫 comments.
 * pull-request
 * 對於 PR 進行討論.
-* 當 PR 關掉時, comments 會留下關於這個 pr 討論的 link.
 
 ## Develop
 
@@ -72,13 +77,13 @@
 You can run swagger with:
 
 * 設定 python virtualenv.
-* `cd apidoc; pip install . && pip uninstall apidoc -y && python setup.py develop; cd ..`
+* `cd apidoc; pip install .; cd ..`
 * `./scripts/swagger.sh [host]`
-* go to `http://localhost:5000`
+* go to [http://localhost:8080](http://localhost:8080)
 
 ## Schema definition
 
-* `https://github.com/Ptt-official-app/pttbbs-backend/tree/main/schema`
+* [https://github.com/Ptt-official-app/pttbbs-backend/tree/main/schema](https://github.com/Ptt-official-app/pttbbs-backend/tree/main/schema)
 
 ## Repository Naming
 

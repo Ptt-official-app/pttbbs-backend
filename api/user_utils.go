@@ -23,7 +23,7 @@ func deserializeUserDetailAndUpdateDBGuest(updateNanoTS types.NanoTS) (userDetai
 	return userDetail, nil
 }
 
-func deserializeUserDetailAndUpdateDB(user_b pttbbsapi.GetUserResult, updateNanoTS types.NanoTS) (userDetail *schema.UserDetail, err error) {
+func DeserializeUserDetailAndUpdateDBForTest(user_b pttbbsapi.GetUserResult, updateNanoTS types.NanoTS) (userDetail *schema.UserDetail, err error) {
 	userDetail = schema.NewUserDetail(user_b, updateNanoTS)
 
 	err = schema.UpdateUserDetail(userDetail)
@@ -34,19 +34,19 @@ func deserializeUserDetailAndUpdateDB(user_b pttbbsapi.GetUserResult, updateNano
 	return userDetail, nil
 }
 
-func deserializeEmailTokenAndEmail(email string, title string, userID bbs.UUserID, jwt string, urlTemplate string, contentTemplate string) (err error) {
-	content := deserializeEmailToken(email, userID, jwt, urlTemplate, contentTemplate)
+func serializeEmailTokenAndEmail(email string, title string, userID bbs.UUserID, token string, urlTemplate string, contentTemplate string) (err error) {
+	content := serializeEmailToken(email, userID, token, urlTemplate, contentTemplate)
 
 	return utils.SendEmail([]string{email}, title, content)
 }
 
-func deserializeEmailToken(email string, userID bbs.UUserID, token string, urlTemplate string, contentTemplate string) (content string) {
+func serializeEmailToken(email string, userID bbs.UUserID, token string, urlTemplate string, contentTemplate string) (content string) {
 	userIDStr := string(userID)
 
 	urlMap := map[string]string{
 		"user_id": userIDStr,
 	}
-	url := types.FRONTEND_PREFIX + utils.MergeURL(urlMap, urlTemplate)
+	url := types.HTTP_SCHEME + types.HTTP_HOST + utils.MergeURL(urlMap, urlTemplate)
 
 	url += fmt.Sprintf("?%v=%v", types.EMAIL_TOKEN_NAME, token)
 
@@ -76,8 +76,7 @@ func checkUniqueIDEmail(email string) (err error) {
 }
 
 func checkUniqueEmail(email string) (err error) {
-	nowNanoTS := types.NowNanoTS()
-	userEmail, err := schema.GetUserEmailByEmail(email, nowNanoTS)
+	userEmail, err := schema.GetUserEmailByEmail(email)
 	if err != nil {
 		return err
 	}

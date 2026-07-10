@@ -11,16 +11,23 @@ import (
 func config() {
 	SERVICE_MODE = ServiceMode(setStringConfig("SERVICE_MODE", string(SERVICE_MODE)))
 
+	HTTP_SCHEME = setStringConfig("HTTP_SCHEME", HTTP_SCHEME)
 	HTTP_HOST = setStringConfig("HTTP_HOST", HTTP_HOST)
 	URL_PREFIX = setStringConfig("URL_PREFIX", URL_PREFIX)
 	BACKEND_PREFIX = setStringConfig("BACKEND_PREFIX", BACKEND_PREFIX)
 	FRONTEND_PREFIX = setStringConfig("FRONTEND_PREFIX", FRONTEND_PREFIX)
 	API_PREFIX = setStringConfig("API_PREFIX", API_PREFIX)
+	REGISTER_USER_URL = setStringConfig("REGISTER_USER_URL", REGISTER_USER_URL)
+	INIT_URL = setStringConfig("INIT_URL", INIT_URL)
+	ERR_URL = setStringConfig("ERR_URL", ERR_URL)
+	ZK_PREFIX = setStringConfig("ZK_PREFIX", ZK_PREFIX)
+	EMAIL_URL = setStringConfig("EMAIL_URL", EMAIL_URL)
 
 	PTTSYSOP = bbs.UUserID(setStringConfig("PTTSYSOP", string(PTTSYSOP)))
 
 	BBSNAME = setStringConfig("BBSNAME", BBSNAME)
-	BBSENAME = setStringConfig("BBSENAME", BBSENAME)
+	BBSNAME_EN = setStringConfig("BBSNAME_EN", BBSNAME_EN)
+	SENDER_SUFFIX = setStringConfig("SENDER_SUFFIX", SENDER_SUFFIX)
 
 	// web
 	STATIC_DIR = setStringConfig("STATIC_DIR", STATIC_DIR)
@@ -36,8 +43,12 @@ func config() {
 	CSRF_TOKEN = setStringConfig("CSRF_TOKEN", CSRF_TOKEN)
 	CSRF_TOKEN_TS = setIntConfig("CSRF_TOKEN_TS", CSRF_TOKEN_TS)
 
-	ACCESS_TOKEN_NAME = setStringConfig("ACCESS_TOKEN", ACCESS_TOKEN_NAME)
+	ACCESS_TOKEN_NAME = setStringConfig("ACCESS_TOKEN_NAME", ACCESS_TOKEN_NAME)
 	ACCESS_TOKEN_EXPIRE_TS = setIntConfig("ACCESS_TOKEN_EXPIRE_TS", ACCESS_TOKEN_EXPIRE_TS)
+	ACCESS_TOKEN_SECRET = setBytesConfig("ACCESS_TOKEN_SECRET", ACCESS_TOKEN_SECRET)
+
+	REFRESH_TOKEN_EXPIRE_TS = setIntConfig("REFRESH_TOKEN_EXPIRE_TS", REFRESH_TOKEN_EXPIRE_TS)
+	REFRESH_TOKEN_SECRET = setBytesConfig("REFRESH_TOKEN_SECRET", REFRESH_TOKEN_SECRET)
 
 	IS_OVER_18_NAME = setStringConfig("IS_OVER_18_NAME", IS_OVER_18_NAME)
 	IS_OVER_18_VALUE = setStringConfig("IS_OVER_18_VALUE", IS_OVER_18_VALUE)
@@ -48,9 +59,14 @@ func config() {
 	EMAIL_FROM = setStringConfig("EMAIL_FROM", EMAIL_FROM)
 	EMAIL_SERVER = setStringConfig("EMAIL_SERVER", EMAIL_SERVER)
 
+	EMAILTOKEN_TITLE_TEMPLATE = setStringConfig("EMAILTOKEN_TITLE_TEMPLATE", EMAILTOKEN_TITLE_TEMPLATE)
 	EMAILTOKEN_TEMPLATE = setStringConfig("EMAILTOKEN_TEMPLATE", EMAILTOKEN_TEMPLATE)
+	IDEMAILTOKEN_TITLE_TEMPLATE = setStringConfig("IDEMAILTOKEN_TITLE_TEMPLATE", IDEMAILTOKEN_TITLE_TEMPLATE)
 	IDEMAILTOKEN_TEMPLATE = setStringConfig("IDEMAILTOKEN_TEMPLATE", IDEMAILTOKEN_TEMPLATE)
+	ATTEMPT_REGISTER_USER_TITLE_TEMPLATE = setStringConfig("ATTEMPT_REGISTER_USER_TITLE_TEMPLATE", ATTEMPT_REGISTER_USER_TITLE_TEMPLATE)
 	ATTEMPT_REGISTER_USER_TEMPLATE = setStringConfig("ATTEMPT_REGISTER_USER_TEMPLATE", ATTEMPT_REGISTER_USER_TEMPLATE)
+	ATTEMPT_LOGIN_TITLE_TEMPLATE = setStringConfig("ATTEMPT_LOGIN_TITLE_TEMPLATE", ATTEMPT_LOGIN_TITLE_TEMPLATE)
+	ATTEMPT_LOGIN_TEMPLATE = setStringConfig("ATTEMPT_LOGIN_TEMPLATE", ATTEMPT_LOGIN_TEMPLATE)
 
 	EXPIRE_USER_ID_EMAIL_IS_SET_NANO_TS = NanoTS(setInt64Config("EXPIRE_USER_ID_EMAIL_IS_SET_NANO_TS", int64(EXPIRE_USER_ID_EMAIL_IS_SET_NANO_TS)))
 	EXPIRE_USER_EMAIL_IS_SET_NANO_TS = NanoTS(setInt64Config("EXPIRE_USER_EMAIL_IS_SET_NANO_TS", int64(EXPIRE_USER_EMAIL_IS_SET_NANO_TS)))
@@ -62,6 +78,7 @@ func config() {
 
 	IS_2FA = setBoolConfig("IS_2FA", IS_2FA)
 	MAX_2FA_TOKEN = setInt64Config("MAX_2FA_TOKEN", MAX_2FA_TOKEN)
+	MAX_2FA_TOKEN_STR_PROMPT = setStringConfig("MAX_2FA_TOKEN_STR_PROMPT", MAX_2FA_TOKEN_STR_PROMPT)
 
 	// big5
 	BIG5_TO_UTF8 = setStringConfig("BIG5_TO_UTF8", BIG5_TO_UTF8)
@@ -85,6 +102,8 @@ func config() {
 
 	// expire-http-request-ts
 	EXPIRE_HTTP_REQUEST_TS = setIntConfig("EXPIRE_HTTP_REQUEST_TS", EXPIRE_HTTP_REQUEST_TS)
+
+	MAX_POPULAR_BOARDS = setIntConfig("MAX_POPULAR_BOARDS", MAX_POPULAR_BOARDS)
 
 	// brdname-white-list-map
 	BRDNAME_WHITE_LIST_MAP_FILENAME = setStringConfig("BRDNAME_WHITE_LIST_MAP_FILENAME", BRDNAME_WHITE_LIST_MAP_FILENAME)
@@ -114,19 +133,19 @@ func postConfig() (err error) {
 	if _, err = setAccessTokenExpireTS(ACCESS_TOKEN_EXPIRE_TS); err != nil {
 		return err
 	}
+	if _, err = setRefreshTokenExpireTS(REFRESH_TOKEN_EXPIRE_TS); err != nil {
+		return err
+	}
 
 	if _, err = setBBSName(BBSNAME); err != nil {
 		return err
 	}
 
-	if _, err = setBBSEName(BBSENAME); err != nil {
+	if _, err = setBBSNameEN(BBSNAME_EN); err != nil {
 		return err
 	}
 
-	if _, err = setEmailTokenTemplate(EMAILTOKEN_TEMPLATE); err != nil {
-		return err
-	}
-	if _, err = setIDEmailTokenTemplate(IDEMAILTOKEN_TEMPLATE); err != nil {
+	if err = replaceTemplates(); err != nil {
 		return err
 	}
 
@@ -213,6 +232,16 @@ func setAccessTokenExpireTS(accessTokenExpireTS int) (origAccessTokenExpireTS in
 	return origAccessTokenExpireTS, nil
 }
 
+func setRefreshTokenExpireTS(refreshTokenExpireTS int) (origRefreshTokenExpireTS int, err error) {
+	origRefreshTokenExpireTS = REFRESH_TOKEN_EXPIRE_TS
+
+	REFRESH_TOKEN_EXPIRE_TS = refreshTokenExpireTS
+
+	REFRESH_TOKEN_EXPIRE_TS_DURATION = time.Duration(REFRESH_TOKEN_EXPIRE_TS) * time.Second
+
+	return origRefreshTokenExpireTS, nil
+}
+
 func setAttemptRegisterUserEmailTS(expireAttemptRegisterUserEmailTS int) (origExpireAttemptRegisterUserEmailTS int, err error) {
 	origExpireAttemptRegisterUserEmailTS = EXPIRE_ATTEMPT_REGISTER_USER_EMAIL_TS
 	EXPIRE_ATTEMPT_REGISTER_USER_EMAIL_TS = expireAttemptRegisterUserEmailTS
@@ -220,6 +249,15 @@ func setAttemptRegisterUserEmailTS(expireAttemptRegisterUserEmailTS int) (origEx
 	EXPIRE_ATTEMPT_REGISTER_USER_EMAIL_TS_DURATION = time.Duration(EXPIRE_ATTEMPT_REGISTER_USER_EMAIL_TS) * time.Second
 
 	return origExpireAttemptRegisterUserEmailTS, nil
+}
+
+func setEmailTokenTitleTemplate(emailTokenTitleTemplate string) (origEmailTokenTitleTemplate string, err error) {
+	origEmailTokenTitleTemplate = EMAILTOKEN_TITLE_TEMPLATE
+	EMAILTOKEN_TITLE_TEMPLATE = emailTokenTitleTemplate
+
+	EMAILTOKEN_TITLE = replaceTemplate(EMAILTOKEN_TITLE_TEMPLATE)
+
+	return origEmailTokenTitleTemplate, nil
 }
 
 func setEmailTokenTemplate(emailTokenTemplate string) (origEmailTokenTemplate string, err error) {
@@ -231,13 +269,18 @@ func setEmailTokenTemplate(emailTokenTemplate string) (origEmailTokenTemplate st
 		return "", err
 	}
 
-	EMAILTOKEN_TEMPLATE_CONTENT = strings.ReplaceAll(
-		strings.ReplaceAll(
-			string(contentBytes), "__BBSNAME__", BBSNAME,
-		), "__BBSENAME__", BBSENAME,
-	)
+	EMAILTOKEN_TEMPLATE_CONTENT = replaceTemplate(string(contentBytes))
 
 	return origEmailTokenTemplate, nil
+}
+
+func setIDEmailTokenTitleTemplate(idEmailTokenTitleTemplate string) (origIDEmailTokenTitleTemplate string, err error) {
+	origIDEmailTokenTitleTemplate = IDEMAILTOKEN_TITLE_TEMPLATE
+	IDEMAILTOKEN_TITLE_TEMPLATE = idEmailTokenTitleTemplate
+
+	IDEMAILTOKEN_TITLE = replaceTemplate(IDEMAILTOKEN_TITLE_TEMPLATE)
+
+	return origIDEmailTokenTitleTemplate, nil
 }
 
 func setIDEmailTokenTemplate(idEmailTokenTemplate string) (origIDEmailTokenTemplate string, err error) {
@@ -249,13 +292,18 @@ func setIDEmailTokenTemplate(idEmailTokenTemplate string) (origIDEmailTokenTempl
 		return "", err
 	}
 
-	IDEMAILTOKEN_TEMPLATE_CONTENT = strings.ReplaceAll(
-		strings.ReplaceAll(
-			string(contentBytes), "__BBSNAME__", BBSNAME,
-		), "__BBSENAME__", BBSENAME,
-	)
+	IDEMAILTOKEN_TEMPLATE_CONTENT = replaceTemplate(string(contentBytes))
 
 	return origIDEmailTokenTemplate, nil
+}
+
+func setAttemptRegisterUserTitleTemplate(attemptRegisterUserTitleTemplate string) (origAttemptRegisterUserTitleTemplate string, err error) {
+	origAttemptRegisterUserTitleTemplate = ATTEMPT_REGISTER_USER_TITLE_TEMPLATE
+	ATTEMPT_REGISTER_USER_TITLE_TEMPLATE = attemptRegisterUserTitleTemplate
+
+	ATTEMPT_REGISTER_USER_TITLE = replaceTemplate(ATTEMPT_REGISTER_USER_TITLE_TEMPLATE)
+
+	return origAttemptRegisterUserTitleTemplate, nil
 }
 
 func setAttemptRegisterUserTemplate(attemptRegisterUserTemplate string) (origAttemptRegisterUserTemplate string, err error) {
@@ -267,36 +315,39 @@ func setAttemptRegisterUserTemplate(attemptRegisterUserTemplate string) (origAtt
 		return "", err
 	}
 
-	ATTEMPT_REGISTER_USER_TEMPLATE_CONTENT = strings.ReplaceAll(
-		strings.ReplaceAll(
-			string(contentBytes), "__BBSNAME__", BBSNAME,
-		), "__BBSENAME__", BBSENAME,
-	)
+	ATTEMPT_REGISTER_USER_TEMPLATE_CONTENT = replaceTemplate(string(contentBytes))
 
 	return origAttemptRegisterUserTemplate, nil
+}
+
+func setAttemptLoginTitleTemplate(attemptLoginTitleTemplate string) (origAttemptLoginTitleTemplate string, err error) {
+	origAttemptLoginTitleTemplate = ATTEMPT_LOGIN_TITLE_TEMPLATE
+	ATTEMPT_LOGIN_TITLE_TEMPLATE = attemptLoginTitleTemplate
+
+	ATTEMPT_LOGIN_TITLE = replaceTemplate(ATTEMPT_LOGIN_TITLE_TEMPLATE)
+
+	return origAttemptLoginTitleTemplate, nil
+}
+
+func setAttemptLoginTemplate(attemptLoginTemplate string) (origAttemptLoginTemplate string, err error) {
+	origAttemptLoginTemplate = ATTEMPT_LOGIN_TEMPLATE
+	ATTEMPT_LOGIN_TEMPLATE = attemptLoginTemplate
+
+	contentBytes, err := os.ReadFile(ATTEMPT_LOGIN_TEMPLATE)
+	if err != nil {
+		return "", err
+	}
+
+	ATTEMPT_LOGIN_TEMPLATE_CONTENT = replaceTemplate(string(contentBytes))
+
+	return origAttemptLoginTemplate, nil
 }
 
 func setBBSName(bbsname string) (origBBSName string, err error) {
 	origBBSName = BBSNAME
 	BBSNAME = bbsname
 
-	EMAILTOKEN_TITLE = "更換 " + BBSNAME + " 的聯絡信箱 (Updating " + BBSENAME + " Contact Email)"
-
-	IDEMAILTOKEN_TITLE = "更換 " + BBSNAME + " 的認證信箱 (Updating " + BBSENAME + " Identity Email)"
-
-	ATTEMPT_REGISTER_USER_TITLE = "註冊 " + BBSNAME + " 的確認碼 (Registering " + BBSENAME + " Confirmation Code)"
-
-	_, err = setEmailTokenTemplate(EMAILTOKEN_TEMPLATE)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = setIDEmailTokenTemplate(IDEMAILTOKEN_TEMPLATE)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = setAttemptRegisterUserTemplate(ATTEMPT_REGISTER_USER_TEMPLATE)
+	err = replaceTemplates()
 	if err != nil {
 		return "", err
 	}
@@ -304,25 +355,16 @@ func setBBSName(bbsname string) (origBBSName string, err error) {
 	return origBBSName, nil
 }
 
-func setBBSEName(bbsename string) (origBBSEName string, err error) {
-	origBBSEName = BBSENAME
-	BBSENAME = bbsename
+func setBBSNameEN(bbsnameEN string) (origBBSNameEN string, err error) {
+	origBBSNameEN = BBSNAME_EN
+	BBSNAME_EN = bbsnameEN
 
-	EMAILTOKEN_TITLE = "更換 " + BBSNAME + " 的聯絡信箱 (Update " + BBSENAME + " Contact Email)"
-
-	IDEMAILTOKEN_TITLE = "更換 " + BBSNAME + " 的認證信箱 (Update " + BBSENAME + " Identity Email)"
-
-	_, err = setEmailTokenTemplate(EMAILTOKEN_TEMPLATE)
+	err = replaceTemplates()
 	if err != nil {
 		return "", err
 	}
 
-	_, err = setIDEmailTokenTemplate(IDEMAILTOKEN_TEMPLATE)
-	if err != nil {
-		return "", err
-	}
-
-	return origBBSEName, nil
+	return origBBSNameEN, nil
 }
 
 func setSleepRetryLoadPopularBoardsTS(sleepRetryLoadPoluarBoardsTS int) (origSleepRetryLoadPoluarBoardsTS int, err error) {
@@ -350,4 +392,52 @@ func setSleepRetryLoadArticleDetailsTS(sleepRetryLoadArticleDetailsTS int) (orig
 	SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS_DURATION = time.Duration(SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS) * time.Second
 
 	return origSleepRetryLoadArticleDetailsTS, nil
+}
+
+func replaceTemplates() (err error) {
+	if _, err = setEmailTokenTitleTemplate(EMAILTOKEN_TITLE_TEMPLATE); err != nil {
+		return err
+	}
+
+	if _, err = setEmailTokenTemplate(EMAILTOKEN_TEMPLATE); err != nil {
+		return err
+	}
+
+	if _, err = setIDEmailTokenTitleTemplate(EMAILTOKEN_TITLE_TEMPLATE); err != nil {
+		return err
+	}
+
+	_, err = setIDEmailTokenTemplate(IDEMAILTOKEN_TEMPLATE)
+	if err != nil {
+		return err
+	}
+
+	_, err = setAttemptRegisterUserTitleTemplate(ATTEMPT_REGISTER_USER_TITLE_TEMPLATE)
+	if err != nil {
+		return err
+	}
+	_, err = setAttemptRegisterUserTemplate(ATTEMPT_REGISTER_USER_TEMPLATE)
+	if err != nil {
+		return err
+	}
+
+	_, err = setAttemptLoginTitleTemplate(ATTEMPT_LOGIN_TITLE_TEMPLATE)
+	if err != nil {
+		return err
+	}
+
+	_, err = setAttemptLoginTemplate(ATTEMPT_LOGIN_TEMPLATE)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func replaceTemplate(template string) (content string) {
+	return strings.ReplaceAll(
+		strings.ReplaceAll(
+			template, TEMPLATE_BBSNAME, BBSNAME,
+		), TEMPLATE_BBSNAME_EN, BBSNAME_EN,
+	)
 }

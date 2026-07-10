@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -20,9 +19,12 @@ func NewCollection(name string, db *mongo.Database) *Collection {
 	}
 }
 
-// CreateOnly
-//
 // Mongo update-one with setOnInsert + upsert operation
+//
+// Return:
+//  1. db-error: err != nil
+//  2. created: r.UpsertedCount != 0
+//  3. not created: r.UpsertedCount == 0
 func (c *Collection) CreateOnly(filter interface{}, update interface{}) (r *mongo.UpdateResult, err error) {
 	opts := &options.UpdateOptions{}
 	opts.SetUpsert(true)
@@ -48,9 +50,12 @@ func (c *Collection) CreateOnly(filter interface{}, update interface{}) (r *mong
 	return r, err
 }
 
-// UpdateOneOnly
-//
 // Mongo update-one with set + no-upsert operation
+//
+// Return:
+//  1. db-error: err != nil.
+//  2. updated: r.ModifiedCount != 0
+//  3. not updated: r.ModifiedCount == 0
 func (c *Collection) UpdateOneOnly(filter interface{}, update interface{}) (r *mongo.UpdateResult, err error) {
 	opts := &options.UpdateOptions{}
 	opts.SetUpsert(false)
@@ -76,9 +81,14 @@ func (c *Collection) UpdateOneOnly(filter interface{}, update interface{}) (r *m
 	return r, nil
 }
 
-// UpdateOneOnlyNoSet
+// Mongo update-one with no-upsert operation.
 //
-// Mongo update-one with no-upsert operation
+// WARNING!!! Must ensure that the update part is with $set, $unset.
+//
+// Return
+//  1. db-error: err != nil.
+//  2. updated: r.ModifiedCount != 0
+//  3. not updated: r.ModifiedCount == 0
 func (c *Collection) UpdateOneOnlyNoSet(filter interface{}, update interface{}) (r *mongo.UpdateResult, err error) {
 	opts := &options.UpdateOptions{}
 	opts.SetUpsert(false)
@@ -102,9 +112,11 @@ func (c *Collection) UpdateOneOnlyNoSet(filter interface{}, update interface{}) 
 	return r, nil
 }
 
-// FindOneAndUpdate
-//
 // Mongo update-one with set + no-upsert operation
+//
+// Return:
+//  1. db-err (not found): error
+//  2. ret: ret.Decode(&data) to Unmarshal to data.
 func (c *Collection) FindOneAndUpdate(filter interface{}, update interface{}, isNew bool) (r *mongo.SingleResult, err error) {
 	opts := &options.FindOneAndUpdateOptions{}
 	opts.SetUpsert(false)
@@ -134,9 +146,13 @@ func (c *Collection) FindOneAndUpdate(filter interface{}, update interface{}, is
 	return r, nil
 }
 
-// FindOneAndUpdate
+// Mongo update-one with set + no-upsert operation.
 //
-// Mongo update-one with set + no-upsert operation
+// [WARNING] Must ensure that the update part is with $set, $unset.
+//
+// Return:
+//  1. db-err (not found): error
+//  2. ret: ret.Decode(&data) to Unmarshal data. Default to old data. Specify isNew as true if we want new data.
 func (c *Collection) FindOneAndUpdateNoSet(filter interface{}, update interface{}, isNew bool) (r *mongo.SingleResult, err error) {
 	opts := &options.FindOneAndUpdateOptions{}
 	opts.SetUpsert(false)
@@ -194,9 +210,13 @@ func (c *Collection) UpdateManyOnly(filter interface{}, update interface{}) (r *
 	return r, nil
 }
 
-// UpdateManyOnly
+// Mongo update-many with set + no-upsert operation. Requiring $set/$unset in update.
 //
-// Mongo update-many with set + no-upsert operation
+// Return:
+//  1. db-error: err
+//  2. updated: ModifiedCount != 0
+//  3. no update: ModifiedCount == 0
+//  4. no match: MatchedCount == 0
 func (c *Collection) UpdateManyOnlyNoSet(filter interface{}, update interface{}) (r *mongo.UpdateResult, err error) {
 	opts := &options.UpdateOptions{}
 	opts.SetUpsert(false)
@@ -220,9 +240,13 @@ func (c *Collection) UpdateManyOnlyNoSet(filter interface{}, update interface{})
 	return r, nil
 }
 
-// Update
-//
 // Mongo update with set + upsert operation
+//
+// Return:
+//  1. db-error: err
+//  2. updated: ModifiedCount != 0
+//  3. no update: ModifiedCount == 0
+//  4. no match: MatchedCount == 0
 func (c *Collection) Update(filter interface{}, update interface{}) (r *mongo.UpdateResult, err error) {
 	opts := &options.UpdateOptions{}
 	opts.SetUpsert(true)
@@ -247,9 +271,11 @@ func (c *Collection) Update(filter interface{}, update interface{}) (r *mongo.Up
 	return r, nil
 }
 
-// BulkCreateOnly
-//
 // Mongo update with setOnInsert + upsert operation
+//
+// Return:
+//  1. db-error: err
+//  2. created: UpsertedCount > 0
 func (c *Collection) BulkCreateOnly(theList []*UpdatePair) (r *mongo.BulkWriteResult, err error) {
 	theList_b := make([]mongo.WriteModel, len(theList))
 	for idx, each := range theList {
@@ -274,12 +300,15 @@ func (c *Collection) BulkCreateOnly(theList []*UpdatePair) (r *mongo.BulkWriteRe
 	if err != nil {
 		return nil, err
 	}
+
 	return r, nil
 }
 
-// BulkUpdateOneOnly
-//
 // Mongo update with set + no-upsert operation
+//
+// Return:
+//  1. db-error: err
+//  2. updated: ModifiedCount > 0
 func (c *Collection) BulkUpdateOneOnly(theList []*UpdatePair) (r *mongo.BulkWriteResult, err error) {
 	theList_b := make([]mongo.WriteModel, len(theList))
 	for idx, each := range theList {
@@ -308,10 +337,13 @@ func (c *Collection) BulkUpdateOneOnly(theList []*UpdatePair) (r *mongo.BulkWrit
 	return r, nil
 }
 
-// BulkUpdateOneOnlyNoSet
-//
 // Mongo update without set and no-upsert operation
-// WARNING!!! Must ensure that the update part is with $set, $unset, $setOnInsert.
+//
+// [WARNING] Must ensure that the update part is with $set, $unset, $setOnInsert.
+//
+// Return:
+//  1. db-error: err
+//  2. updated: ModifiedCount > 0
 func (c *Collection) BulkUpdateOneOnlyNoSet(theList []*UpdatePair) (r *mongo.BulkWriteResult, err error) {
 	theList_b := make([]mongo.WriteModel, len(theList))
 	for idx, each := range theList {
@@ -340,6 +372,9 @@ func (c *Collection) BulkUpdateOneOnlyNoSet(theList []*UpdatePair) (r *mongo.Bul
 // BulkUpdate
 //
 // Mongo update with set + upsert operation
+// Return:
+//  1. db-error: err
+//  2. updated: ModifiedCount > 0 created: UpsertedCount > 0
 func (c *Collection) BulkUpdate(theList []*UpdatePair) (r *mongo.BulkWriteResult, err error) {
 	theList_b := make([]mongo.WriteModel, len(theList))
 	for idx, each := range theList {
@@ -367,24 +402,24 @@ func (c *Collection) BulkUpdate(theList []*UpdatePair) (r *mongo.BulkWriteResult
 	return r, nil
 }
 
-// Find
+// Find finds the data based on filter.
 //
 // Never return error with normal operations. need to check len for not-found.
 //
 // Params:
 //
-//	ret: return values, requiring passing with pointer (malloced in cur.All)
+//	ret: return values, requiring passing with pointer (malloced in cur.All).
 //	project: the empty struct of the return type.
 //
-// ex:
+// Example:
 //
 //	query := make(map[string]interface{})
 //	query["test"] = 1
 //
-//	var ret []*Temp //!!! declare but initiate
+//	var ret []*Temp //!!! declare but not initiate
 //
 //	Find(query, 4, &ret, &Temp{})
-func (c *Collection) Find(filter interface{}, n int64, ret interface{}, project interface{}, sort interface{}) (err error) {
+func (c *Collection) Find(filter interface{}, limit int64, ret interface{}, project interface{}, sort interface{}) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), TIMEOUT_MILLI_TS*time.Millisecond)
 	defer func() {
 		ctxErr := ctx.Err()
@@ -395,8 +430,8 @@ func (c *Collection) Find(filter interface{}, n int64, ret interface{}, project 
 	}()
 
 	opts := &options.FindOptions{}
-	if n > 0 {
-		opts.SetLimit(n)
+	if limit > 0 {
+		opts.SetLimit(limit)
 	}
 
 	if project != nil {
@@ -414,7 +449,6 @@ func (c *Collection) Find(filter interface{}, n int64, ret interface{}, project 
 	defer cur.Close(ctx)
 
 	if err = cur.All(ctx, ret); err != nil {
-		logrus.Warnf("Find: unable to find data: e: %v", err)
 		return err
 	}
 
@@ -422,6 +456,10 @@ func (c *Collection) Find(filter interface{}, n int64, ret interface{}, project 
 }
 
 // Count
+//
+// Return:
+//  1. db-error: err.
+//  2. count.
 func (c *Collection) Count(filter interface{}, n int64) (count int64, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), TIMEOUT_MILLI_TS*time.Millisecond)
 	defer func() {
@@ -502,6 +540,7 @@ func (c *Collection) Remove(filter bson.M) (err error) {
 	return err
 }
 
+// drop collection.
 func (c *Collection) Drop() (err error) {
 	if !isTest {
 		return ErrInvalidOp
@@ -524,6 +563,7 @@ func (c *Collection) Drop() (err error) {
 	return nil
 }
 
+// create index.
 func (c *Collection) CreateIndex(keys *bson.D, opts *options.IndexOptions) (err error) {
 	iv := c.coll.Indexes()
 
@@ -547,11 +587,13 @@ func (c *Collection) CreateIndex(keys *bson.D, opts *options.IndexOptions) (err 
 	return err
 }
 
+// create unique index.
 func (c *Collection) CreateUniqueIndex(keys *bson.D) (err error) {
 	opts := options.Index().SetUnique(true)
 	return c.CreateIndex(keys, opts)
 }
 
+// aggregate with filter (match) and group.
 func (c *Collection) Aggregate(filter interface{}, group interface{}) (ret []bson.M, err error) {
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},

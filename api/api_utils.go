@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -9,13 +8,12 @@ import (
 	"strings"
 	"time"
 
-	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
-	pttbbstypes "github.com/Ptt-official-app/go-pttbbs/types"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/sirupsen/logrus"
 )
 
 func verifyIsOver18(c *gin.Context) bool {
@@ -23,22 +21,24 @@ func verifyIsOver18(c *gin.Context) bool {
 }
 
 func verifyJwt(c *gin.Context) (userID bbs.UUserID, err error) {
-	jwt := pttbbsapi.GetJwt(c) // get jwt from access-token
+	token := utils.GetCookie(c, types.ACCESS_TOKEN_NAME)
 
-	if jwt == "" {
-		jwt = utils.GetCookie(c, types.ACCESS_TOKEN_NAME)
-	}
-
-	userID, _, clientInfoStr, err := pttbbsapi.VerifyJwt(jwt, true)
+	userID, _, _, err = verifyAccessToken(token)
+	logrus.Infof("api.verifyJwt: after verifyAccessToken: userID: %v e: %v", userID, err)
 	if err != nil {
 		return "", err
 	}
 
-	clientInfo := &ClientInfo{}
-	err = json.Unmarshal([]byte(clientInfoStr), clientInfo)
-	if err != nil {
-		return "", err
+	// XXX skip client-info for now.
+	clientInfo := &ClientInfo{
+		ClientType: types.CLIENT_TYPE_APP,
 	}
+	/*
+		err = json.Unmarshal([]byte(clientInfoStr), clientInfo)
+		if err != nil {
+			return "", err
+		}
+	*/
 
 	if clientInfo.ClientType == types.CLIENT_TYPE_APP {
 		return userID, nil
@@ -67,7 +67,7 @@ func verifyJwt(c *gin.Context) (userID bbs.UUserID, err error) {
 
 func createCSRFToken() (raw string, err error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp": int(pttbbstypes.NowTS()) + types.CSRF_TOKEN_TS,
+		"exp": int(types.NowTS()) + types.CSRF_TOKEN_TS,
 	})
 
 	raw, err = token.SignedString(types.CSRF_SECRET)
@@ -79,7 +79,7 @@ func createCSRFToken() (raw string, err error) {
 }
 
 func isValidCSRFToken(raw string) bool {
-	tok, err := pttbbsapi.ParseJwt(raw, types.CSRF_SECRET)
+	tok, err := ParseJwt(raw, types.CSRF_SECRET)
 	if err != nil {
 		return false
 	}
@@ -89,12 +89,12 @@ func isValidCSRFToken(raw string) bool {
 		return false
 	}
 
-	exp, err := pttbbsapi.ParseClaimInt(claim, "exp")
+	exp, err := ParseClaimInt(claim, "exp")
 	if err != nil {
 		return false
 	}
 
-	nowTS := int(pttbbstypes.NowTS())
+	nowTS := int(types.NowTS())
 
 	return nowTS <= exp
 }

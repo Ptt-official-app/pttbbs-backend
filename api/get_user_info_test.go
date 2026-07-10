@@ -13,10 +13,10 @@ func TestGetUserInfo(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
-	_, _ = deserializeUserDetailAndUpdateDB(testUserSYSOP_b, 123456890000000000)
-	_, _ = deserializeUserDetailAndUpdateDB(testUserChhsiao123_b, 123456891000000000)
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserChhsiao123_b, 123456891000000000)
 
-	path0 := &GetUserInfoPath{UserID: "SYSOP"}
+	path0 := &GetUserInfoPath{Username: "SYSOP"}
 
 	type args struct {
 		remoteAddr string

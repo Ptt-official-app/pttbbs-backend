@@ -6,18 +6,17 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
-	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/gin-gonic/gin"
 )
 
-const GET_USER_INFO_R = "/user/:user_id"
+const GET_USER_INFO_R = "/user/:username"
 
 type GetUserInfoParams struct {
 	Fields string `json:"fields,omitempty" form:"fields,omitempty" url:"fields,omitempty"`
 }
 
 type GetUserInfoPath struct {
-	UserID bbs.UUserID `uri:"user_id"`
+	Username string `uri:"username"`
 }
 
 type GetUserInfoResult struct {
@@ -25,6 +24,8 @@ type GetUserInfoResult struct {
 	Username string      `json:"username"`
 	Realname string      `json:"realtime"`
 	Nickname string      `json:"nickname"`
+
+	IsGovernmentID bool `json:"is_government_id"`
 
 	Uflag        ptttype.UFlag `json:"flag"`
 	Userlevel    ptttype.PERM  `json:"perm"`
@@ -90,9 +91,8 @@ type GetUserInfoResult struct {
 	Avatar   []byte      `json:"avatar"`
 	AvatarTS types.Time8 `json:"avatar_ts"`
 
-	Email    string      `json:"email"`
-	EmailSet bool        `json:"email_set"`
-	EmailTS  types.Time8 `json:"email_ts"`
+	Email   string      `json:"email"`
+	EmailTS types.Time8 `json:"email_ts"`
 
 	TwoFactorEnabled   bool        `json:"twofactor_enabled"`
 	TwoFactorEnabledTS types.Time8 `json:"twofactor_enabled_ts"`
@@ -127,12 +127,12 @@ func GetUserInfo(remoteAddr string, user *UserInfo, params interface{}, path int
 
 	updateNanoTS := types.NowNanoTS()
 
-	userDetail, statusCode, err := tryGetUserInfo(userID, thePath.UserID, updateNanoTS, c)
+	userDetail, statusCode, err := tryGetUserInfo(userID, thePath.Username, updateNanoTS, c)
 	if err != nil {
 		return nil, statusCode, err
 	}
 
-	queryUserID := thePath.UserID
+	queryUserID := userDetail.UserID
 
 	userNewInfo, err := schema.GetUserNewInfo(queryUserID)
 	if err != nil {
@@ -144,7 +144,7 @@ func GetUserInfo(remoteAddr string, user *UserInfo, params interface{}, path int
 		return nil, 500, err
 	}
 
-	userEmail, err := schema.GetUserEmailByUserID(queryUserID, updateNanoTS)
+	userEmail, err := schema.GetUserEmailByUserID(queryUserID)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -154,7 +154,7 @@ func GetUserInfo(remoteAddr string, user *UserInfo, params interface{}, path int
 	return result, 200, nil
 }
 
-func tryGetUserInfo(userID bbs.UUserID, queryUserID bbs.UUserID, updateNanoTS types.NanoTS, c *gin.Context) (userDetail *schema.UserDetail, statusCode int, err error) {
+func tryGetUserInfo(userID bbs.UUserID, queryUsername string, updateNanoTS types.NanoTS, c *gin.Context) (userDetail *schema.UserDetail, statusCode int, err error) {
 	// special treatment to pttbbsapi.GUEST
 	if userID == bbs.UUserID(pttbbsapi.GUEST) {
 		userDetail, err = deserializeUserDetailAndUpdateDBGuest(updateNanoTS)
@@ -166,19 +166,7 @@ func tryGetUserInfo(userID bbs.UUserID, queryUserID bbs.UUserID, updateNanoTS ty
 	}
 
 	// get backend data
-	var result_b pttbbsapi.GetUserResult
-
-	urlMap := map[string]string{
-		"uid": string(queryUserID),
-	}
-	url := utils.MergeURL(urlMap, pttbbsapi.GET_USER_R)
-
-	statusCode, err = utils.BackendGet(c, url, nil, nil, &result_b)
-	if err != nil {
-		return nil, statusCode, err
-	}
-
-	userDetail, err = deserializeUserDetailAndUpdateDB(result_b, updateNanoTS)
+	userDetail, err = schema.GetUserDetailByUsername(queryUsername)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -233,6 +221,8 @@ func NewUserInfoResult(userDetail_db *schema.UserDetail, userNewInfo_db *schema.
 		Username: userDetail_db.Username,
 		Realname: userDetail_db.Realname,
 		Nickname: userDetail_db.Nickname,
+
+		IsGovernmentID: userDetail_db.IsGovernmentID,
 
 		Uflag:        userDetail_db.Uflag,
 		Userlevel:    userDetail_db.Userlevel,
@@ -298,9 +288,8 @@ func NewUserInfoResult(userDetail_db *schema.UserDetail, userNewInfo_db *schema.
 		Avatar:   userNewInfo_db.Avatar,
 		AvatarTS: userNewInfo_db.AvatarNanoTS.ToTime8(),
 
-		Email:    userEmail_db.Email,
-		EmailTS:  userEmail_db.UpdateNanoTS.ToTime8(),
-		EmailSet: userEmail_db.IsSet,
+		Email:   userEmail_db.Email,
+		EmailTS: userEmail_db.UpdateNanoTS.ToTime8(),
 
 		IDEmail:    userIDEmail_db.IDEmail,
 		IDEmailTS:  userIDEmail_db.UpdateNanoTS.ToTime8(),

@@ -70,7 +70,7 @@ func ChangeEmail(remoteAddr string, user *UserInfo, params interface{}, path int
 
 	// create db-record first to avoid race-condition
 	updateNanoTS := types.NowNanoTS()
-	err = schema.CreateUserEmail(queryUserID, email, updateNanoTS)
+	err = schema.CreateUserEmail(queryUserID, email, false, updateNanoTS)
 	if err != nil {
 		return nil, 403, err
 	}
@@ -94,7 +94,7 @@ func ChangeEmail(remoteAddr string, user *UserInfo, params interface{}, path int
 
 	// update db-record to complete the record.
 	updateNanoTS = types.NowNanoTS()
-	err = schema.UpdateUserEmailIsSet(queryUserID, result_b.Email, true, updateNanoTS)
+	err = schema.UpdateUserEmailIsDefault(queryUserID, result_b.Email, true, updateNanoTS)
 	if err != nil {
 		return nil, statusCode, err
 	}

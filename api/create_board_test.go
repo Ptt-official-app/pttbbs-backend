@@ -15,7 +15,7 @@ func TestCreateBoard(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
-	_, _ = deserializeUserDetailAndUpdateDB(testUserSYSOP_b, 123456890000000000)
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
 
 	path0 := &CreateBoardPath{
 		ClsBid: 2,

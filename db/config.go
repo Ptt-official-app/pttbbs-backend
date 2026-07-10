@@ -2,4 +2,5 @@ package db
 
 func config() {
 	TIMEOUT_MILLI_TS = setDurationConfig("TIMEOUT_MILLI_TS", TIMEOUT_MILLI_TS)
+	REDIS_TIMEOUT_MILLI_TS = setDurationConfig("REDIS_TIMEOUT_MILLI_TS", REDIS_TIMEOUT_MILLI_TS)
 }

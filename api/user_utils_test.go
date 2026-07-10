@@ -42,7 +42,7 @@ func Test_deserializeEmailToken(t *testing.T) {
 		wg.Add(1)
 		t.Run(tt.name, func(t *testing.T) {
 			defer wg.Done()
-			if gotContent := deserializeEmailToken(tt.args.email, tt.args.userID, tt.args.token, tt.args.urlTemplate, tt.args.contentTemplate); gotContent != tt.expectedContent {
+			if gotContent := serializeEmailToken(tt.args.email, tt.args.userID, tt.args.token, tt.args.urlTemplate, tt.args.contentTemplate); gotContent != tt.expectedContent {
 				t.Errorf("deserializeEmailToken() = %v, want %v", gotContent, tt.expectedContent)
 			}
 		})

@@ -32,3 +32,4 @@ coverage.txt
 /docs/config/00-config-production.go.template.me
 /apidoc/build
 /docs/examples/home/bbs
+/docs/examples/var/mail

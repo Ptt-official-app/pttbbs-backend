@@ -15,8 +15,8 @@ func TestLoadArticleComments(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
-	_, _ = deserializeUserDetailAndUpdateDB(testUserSYSOP_b, 123456890000000000)
-	_, _ = deserializeUserDetailAndUpdateDB(testUserChhsiao123_b, 123456891000000000)
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserChhsiao123_b, 123456891000000000)
 
 	boardSummaries_b := []*bbs.BoardSummary{testBoardSummaryWhoAmI_b}
 	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", boardSummaries_b, 123456890000000000)

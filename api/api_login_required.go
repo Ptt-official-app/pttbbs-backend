@@ -29,15 +29,23 @@ func LoginRequiredQuery(theFunc LoginRequiredAPIFunc, params interface{}, c *gin
 }
 
 func loginRequiredProcess(theFunc LoginRequiredAPIFunc, params interface{}, c *gin.Context) {
-	remoteAddr := strings.TrimSpace(c.ClientIP())
-	if !isValidRemoteAddr(remoteAddr) {
+	remoteAddr, user, err := loginRequiredCore(c)
+	if err != nil {
 		processResult(c, nil, 403, ErrInvalidRemoteAddr, "")
-		return
+	}
+
+	result, statusCode, err := theFunc(remoteAddr, user, params, c)
+	processResult(c, result, statusCode, err, user.UserID)
+}
+
+func loginRequiredCore(c *gin.Context) (remoteAddr string, user *UserInfo, err error) {
+	remoteAddr = strings.TrimSpace(c.ClientIP())
+	if !isValidRemoteAddr(remoteAddr) {
+		return "", nil, ErrInvalidRemoteAddr
 	}
 
 	if !isValidOriginReferer(c) {
-		processResult(c, nil, 403, ErrInvalidOrigin, "")
-		return
+		return "", nil, ErrInvalidOrigin
 	}
 
 	userID, err := verifyJwt(c)
@@ -46,9 +54,7 @@ func loginRequiredProcess(theFunc LoginRequiredAPIFunc, params interface{}, c *g
 	}
 
 	isOver18 := verifyIsOver18(c)
+	user = &UserInfo{IsOver18: isOver18, UserID: userID}
 
-	user := &UserInfo{IsOver18: isOver18, UserID: userID}
-
-	result, statusCode, err := theFunc(remoteAddr, user, params, c)
-	processResult(c, result, statusCode, err, userID)
+	return remoteAddr, user, nil
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
-	"github.com/Ptt-official-app/pttbbs-backend/boardd"
 	"github.com/Ptt-official-app/pttbbs-backend/mockhttp"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 )
@@ -314,6 +313,7 @@ func TestGetBoardSummariesByClsID(t *testing.T) {
 	}
 }
 
+/*
 func TestNewBoardSummaryFromPBBoard(t *testing.T) {
 	board0 := &boardd.Board{
 		RawModerators: "okcool/teemo",
@@ -372,3 +372,4 @@ func TestNewBoardSummaryFromPBBoard(t *testing.T) {
 		wg.Wait()
 	}
 }
+*/

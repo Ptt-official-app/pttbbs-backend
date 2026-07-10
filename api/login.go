@@ -3,10 +3,7 @@ package api
 import (
 	"fmt"
 
-	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
-	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
-	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -17,8 +14,10 @@ type LoginParams struct {
 	ClientID     string `json:"client_id" form:"client_id"`
 	ClientSecret string `json:"client_secret" form:"client_secret"`
 
-	Username string `json:"username" form:"username"`
-	Password string `json:"password" form:"password"`
+	// Input can be username or email
+	Input string `json:"input" form:"input"`
+
+	VerifyCode string `json:"verify_code" form:"verify_code"`
 }
 
 func NewLoginParams() *LoginParams {
@@ -26,14 +25,12 @@ func NewLoginParams() *LoginParams {
 }
 
 type LoginResult struct {
-	UserID        bbs.UUserID `json:"user_id"`
-	AccessToken   string      `json:"access_token"`
-	TokenType     string      `json:"token_type"`
-	RefreshToken  string      `json:"refresh_token"`
-	AccessExpire  types.Time8 `json:"access_expire"`
-	RefreshExpire types.Time8 `json:"refresh_expire"`
-
-	TokenUser bbs.UUserID `json:"tokenuser"`
+	Username        string      `json:"username"`
+	AccessToken     string      `json:"access_token"`
+	TokenType       string      `json:"token_type"`
+	RefreshToken    string      `json:"refresh_token"`
+	AccessExpireTS  types.Time8 `json:"access_expire"`
+	RefreshExpireTS types.Time8 `json:"refresh_expire"`
 }
 
 // LoginLog record user login info, no matter success or not
@@ -67,7 +64,7 @@ func Login(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context
 		ClientInfo: ClientInfo{
 			ClientID: theParams.ClientID,
 		},
-		LoginID:   theParams.Username,
+		LoginID:   theParams.Input,
 		LoginIP:   remoteAddr,
 		LoginTime: types.NowNanoTS(),
 		IsSuccess: false, // default is false
@@ -80,48 +77,56 @@ func Login(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context
 		return nil, 400, ErrInvalidParams
 	}
 
-	isValidClient, client := checkClient(theParams.ClientID, theParams.ClientSecret)
+	// XXX skip client-info for now.
+	/*
+		isValidClient, client := checkClient(theParams.ClientID, theParams.ClientSecret)
+		if !isValidClient {
+			return nil, 401, ErrInvalidParams
+		}
 
-	if !isValidClient {
-		return nil, 400, ErrInvalidParams
+		clientInfo := getClientInfo(client)
+	*/
+	clientInfo := ""
+
+	userID, username, _, err := loginInputToUsernameEmail(theParams.Input)
+	if err != nil {
+		return nil, 401, err
 	}
 
-	clientInfo := getClientInfo(client)
-
-	// backend login
-	theParams_b := &pttbbsapi.LoginParams{
-		ClientInfo: clientInfo,
-		Username:   theParams.Username,
-		Passwd:     theParams.Password,
+	err = check2FAToken(userID, theParams.VerifyCode)
+	if err != nil {
+		return nil, 401, err
 	}
 
-	var result_b *pttbbsapi.LoginResult
-
-	url := pttbbsapi.LOGIN_R
-	statusCode, err = utils.BackendPost(c, url, theParams_b, nil, &result_b)
-
-	if err != nil || statusCode != 200 {
-		return nil, statusCode, err
+	// gen tokens
+	accessToken, accessExpireTS, err := genAccessToken(userID, clientInfo)
+	if err != nil {
+		return nil, 500, err
 	}
+
+	refreshToken, refresExpireTS, err := genRefreshToken(userID, clientInfo)
+	if err != nil {
+		return nil, 500, err
+	}
+
 	// update: loginLog success login
 	loginLog.IsSuccess = true
 
 	// result
-	result = NewLoginResult(result_b)
+	result = NewLoginResult(username, accessToken, accessExpireTS, refreshToken, refresExpireTS)
 
-	setTokenToCookie(c, result_b.Jwt)
+	setTokenToCookie(c, accessToken)
 
 	return result, 200, nil
 }
 
-func NewLoginResult(result_b *pttbbsapi.LoginResult) *LoginResult {
+func NewLoginResult(username string, accessToken string, accessExpireTS types.Time8, refreshToken string, refreshExpireTS types.Time8) *LoginResult {
 	return &LoginResult{
-		UserID:        result_b.UserID,
-		AccessToken:   result_b.Jwt,
-		TokenType:     "bearer",
-		RefreshToken:  result_b.Refresh,
-		AccessExpire:  types.Time8(result_b.AccessExpire),
-		RefreshExpire: types.Time8(result_b.RefreshExpire),
-		TokenUser:     result_b.UserID,
+		Username:        username,
+		TokenType:       "bearer",
+		AccessToken:     accessToken,
+		AccessExpireTS:  accessExpireTS,
+		RefreshToken:    refreshToken,
+		RefreshExpireTS: refreshExpireTS,
 	}
 }

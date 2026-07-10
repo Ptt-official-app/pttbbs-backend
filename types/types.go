@@ -130,6 +130,11 @@ func (t Time8) ToNanoTS() NanoTS {
 	return NanoTS(t) * TS_TO_NANO_TS
 }
 
+func NowTS() Time8 {
+	ns := NowNanoTS()
+	return ns.ToTime8()
+}
+
 func (t NanoTS) ToTime8() Time8 {
 	return Time8(t / TS_TO_NANO_TS)
 }

@@ -70,7 +70,7 @@ func TestGet2FA(t *testing.T) {
 		// TODO: Add test cases.
 		{
 			args:          args{userID: "SYSOP"},
-			expectedToken: "123456:test@ptt.test",
+			expectedToken: "123456",
 		},
 		{
 			args:    args{userID: "SYSOP2"},
