@@ -5,7 +5,7 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/types"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func Login(params *api.LoginParams) (ret *api.LoginResult) {

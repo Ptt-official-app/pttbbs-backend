@@ -11,7 +11,7 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 )
 
