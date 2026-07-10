@@ -1,6 +1,6 @@
 package api
 
-import "github.com/golang-jwt/jwt/v4"
+import "github.com/golang-jwt/jwt/v5"
 
 func ParseJwt(raw string, secret []byte) (tok *jwt.Token, err error) {
 	tok, err = jwt.Parse(raw, func(token *jwt.Token) (interface{}, error) {
