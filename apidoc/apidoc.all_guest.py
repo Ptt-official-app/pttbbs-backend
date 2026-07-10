@@ -22,8 +22,8 @@ def _with_app_prefix(path):
     return _APP_PREFIX + path
 
 
-with open('apidoc/template.json', 'r') as f:
-    template = yaml.full_load(f)
+# with open('apidoc/template.json', 'r') as f:
+#     template = yaml.full_load(f)
 
 
 @app.route('/')

@@ -37,16 +37,13 @@ func TestCollection_CreateOnly(t *testing.T) {
 	}
 	update1 := &testUpdate{Test1: "2", Test3: true}
 
-	expected1 := &mongo.UpdateResult{}
-	expected1.UpsertedCount = 1
+	expected1 := &mongo.UpdateResult{
+		UpsertedCount: 1,
+	}
 
-	expectedData1 := make(map[string]interface{})
-	expectedData1["test"] = 1
-	expectedData1["test1"] = "2"
-	expectedData1["test3"] = true
-
-	expected2 := &mongo.UpdateResult{}
-	expected2.MatchedCount = 1
+	expected2 := &mongo.UpdateResult{
+		MatchedCount: 1,
+	}
 
 	type fields struct {
 		coll *Collection
@@ -125,20 +122,22 @@ func TestCollection_UpdateOneOnly(t *testing.T) {
 
 	update1 := &testUpdate{Test1: "2", Test3: true}
 
-	expected1 := &mongo.UpdateResult{}
-	expected1.MatchedCount = 0
-	expected1.ModifiedCount = 0
-	expected1.UpsertedCount = 0
+	expected1 := &mongo.UpdateResult{
+		MatchedCount:  0,
+		ModifiedCount: 0,
+		UpsertedCount: 0,
+	}
 
 	filter2 := make(map[string]interface{})
 	filter2["test"] = 1
 
 	update2 := &testUpdate{Test1: "2", Test3: true}
 
-	expected2 := &mongo.UpdateResult{}
-	expected2.MatchedCount = 1
-	expected2.ModifiedCount = 1
-	expected2.UpsertedCount = 0
+	expected2 := &mongo.UpdateResult{
+		MatchedCount:  1,
+		ModifiedCount: 1,
+		UpsertedCount: 0,
+	}
 
 	type fields struct {
 		coll *Collection
@@ -1533,38 +1532,43 @@ func TestCollection_UpdateOneOnlyNoSet(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter0 := make(map[string]interface{})
-	filter0["test"] = 1
-	filter0["test1"] = "4"
+	filter0 := map[string]interface{}{
+		"test":  1,
+		"test1": "4",
+	}
 
 	update0 := &testUpdate{Test1: "4"}
 
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := make(map[string]interface{})
-	filter1["test"] = 1
-	filter1["test1"] = "3"
+	filter1 := map[string]interface{}{
+		"test":  1,
+		"test1": "3",
+	}
 
 	update1 := bson.M{
 		"$set": &testUpdate{Test1: "2", Test3: true},
 	}
 
-	expected1 := &mongo.UpdateResult{}
-	expected1.MatchedCount = 0
-	expected1.ModifiedCount = 0
-	expected1.UpsertedCount = 0
+	expected1 := &mongo.UpdateResult{
+		MatchedCount:  0,
+		ModifiedCount: 0,
+		UpsertedCount: 0,
+	}
 
-	filter2 := make(map[string]interface{})
-	filter2["test"] = 1
+	filter2 := map[string]interface{}{
+		"test": 1,
+	}
 
 	update2 := bson.M{
 		"$set": &testUpdate{Test1: "2", Test3: true},
 	}
 
-	expected2 := &mongo.UpdateResult{}
-	expected2.MatchedCount = 1
-	expected2.ModifiedCount = 1
-	expected2.UpsertedCount = 0
+	expected2 := &mongo.UpdateResult{
+		MatchedCount:  1,
+		ModifiedCount: 1,
+		UpsertedCount: 0,
+	}
 
 	type fields struct {
 		coll *mongo.Collection
@@ -1627,16 +1631,18 @@ func TestCollection_FindOneAndUpdateNoSet(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter0 := make(map[string]interface{})
-	filter0["test"] = 1
-	filter0["test1"] = "4"
+	filter0 := map[string]interface{}{
+		"test":  1,
+		"test1": "4",
+	}
 
 	update0 := &testUpdate{Test1: "4"}
 
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := make(map[string]interface{})
-	filter1["test"] = 1
+	filter1 := map[string]interface{}{
+		"test": 1,
+	}
 
 	update1 := bson.M{
 		"$set": &testUpdate{Test1: "2", Test3: true},
@@ -1644,14 +1650,21 @@ func TestCollection_FindOneAndUpdateNoSet(t *testing.T) {
 
 	expected1 := &testUpdate{Test1: "4", Test3: false}
 
-	filter2 := make(map[string]interface{})
-	filter2["test"] = 1
+	filter2 := map[string]interface{}{
+		"test": 1,
+	}
 
 	update2 := bson.M{
 		"$set": &testUpdate{Test1: "3", Test3: false},
 	}
 
-	expected2 := &testUpdate{Test1: "2", Test3: true}
+	expected2 := &testUpdate{Test1: "3", Test3: false}
+
+	filter3 := map[string]interface{}{
+		"test": 1,
+	}
+
+	update3 := &testUpdate{Test1: "5", Test3: true}
 
 	type fields struct {
 		coll *mongo.Collection
@@ -1674,7 +1687,19 @@ func TestCollection_FindOneAndUpdateNoSet(t *testing.T) {
 			expectedR: expected1,
 		},
 		{
+			args:      args{filter: filter2, update: update2, isNew: true},
+			expectedR: expected2,
+		},
+		{
+			args:    args{filter: filter3, update: update3},
+			wantErr: true,
+		},
+		{
 			args:      args{filter: filter2, update: update2},
+			expectedR: expected2,
+		},
+		{
+			args:      args{filter: filter2, update: update2, isNew: true},
 			expectedR: expected2,
 		},
 	}
@@ -1689,6 +1714,10 @@ func TestCollection_FindOneAndUpdateNoSet(t *testing.T) {
 				t.Errorf("Collection.FindOneAndUpdateNoSet() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			if gotR == nil {
+				return
+			}
+
 			got := &testUpdate{}
 			_ = gotR.Decode(got)
 			if !reflect.DeepEqual(got, tt.expectedR) {
@@ -1717,27 +1746,36 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter0 := make(map[string]interface{})
-	filter0["test"] = 1
-	filter0["test1"] = "4"
+	filter0 := map[string]interface{}{
+		"test":  1,
+		"test1": "4",
+	}
 
 	update0 := &testUpdate{Test1: "4"}
 
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := make(map[string]interface{})
-	filter1["test"] = 1
+	filter1 := map[string]interface{}{
+		"test": 1,
+	}
 
 	update1 := &testUpdate{Test1: "2", Test3: true}
 
 	expected1 := &testUpdate{Test1: "4", Test3: false}
 
-	filter2 := make(map[string]interface{})
-	filter2["test"] = 1
+	filter2 := map[string]interface{}{
+		"test": 1,
+	}
 
 	update2 := &testUpdate{Test1: "3", Test3: false}
 
 	expected2 := &testUpdate{Test1: "2", Test3: true}
+
+	filter3 := map[string]interface{}{
+		"test": 2,
+	}
+
+	update3 := &testUpdate{Test1: "3", Test3: false}
 
 	type fields struct {
 		coll *mongo.Collection
@@ -1762,6 +1800,11 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 			args:      args{filter: filter2, update: update2},
 			expectedR: expected2,
 		},
+		{
+			args:      args{filter: filter3, update: update3},
+			expectedR: nil,
+			wantErr:   true,
+		},
 	}
 	var wg sync.WaitGroup
 	for _, tt := range tests {
@@ -1774,6 +1817,10 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 				t.Errorf("Collection.FindOneAndUpdate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			if gotR == nil {
+				return
+			}
+
 			got := &testUpdate{}
 			_ = gotR.Decode(got)
 			if !reflect.DeepEqual(got, tt.expectedR) {

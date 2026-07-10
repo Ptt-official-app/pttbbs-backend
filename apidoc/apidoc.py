@@ -1,1 +1,1 @@
-apidoc.all_guest.py
+apidoc.full.py

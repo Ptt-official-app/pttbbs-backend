@@ -244,6 +244,13 @@ func Init() (err error) {
 	if err != nil {
 		return err
 	}
+	keys = &bson.D{
+		{Key: USER_USERNAME_b, Value: 1},
+	}
+	err = User_c.CreateUniqueIndex(keys)
+	if err != nil {
+		return err
+	}
 
 	// UserAloha
 	UserAloha_c = client.Collection("user_aloha")
@@ -334,7 +341,7 @@ func Init() (err error) {
 	keys = &bson.D{
 		{Key: USER_EMAIL_EMAIL_b, Value: 1},
 	}
-	err = UserEmail_c.CreateIndex(keys, nil)
+	err = UserEmail_c.CreateUniqueIndex(keys)
 	if err != nil {
 		return err
 	}

@@ -29,7 +29,7 @@ def include(self, node):
 
     '''
     with open(filename, 'r') as f:
-        return yaml.full_load(f, Loader)
+        return yaml.full_load(f)
     '''
 
 

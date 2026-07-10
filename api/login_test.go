@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
-	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -18,15 +16,32 @@ func TestLogin(t *testing.T) {
 
 	defer schema.AccessToken_c.Drop()
 
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+
+	_ = schema.CreateUserEmail("SYSOP", "root@localhost.dev", false, 123456890000000000)
+
+	paramsAttemptLogin := &AttemptLoginParams{
+		Input: "SYSOP",
+	}
+
+	userInfo := &UserInfo{
+		UserID:   "SYSOP",
+		IsOver18: true,
+	}
+
+	AttemptLogin("127.0.0.1", userInfo, paramsAttemptLogin, nil)
+
+	token_db, _ := schema.Get2FA("SYSOP")
+
 	params0 := &LoginParams{
 		ClientID:     "default_client_id",
 		ClientSecret: "test_client_secret",
-		Username:     "testuserid1",
-		Password:     "testpasswd",
+		Input:        "SYSOP",
+		VerifyCode:   token_db,
 	}
 
-	expected0 := &LoginResult{TokenType: "bearer", UserID: "testuserid1", TokenUser: "testuserid1"}
-	expectedDB0 := []*schema.AccessToken{{UserID: "testuserid1"}}
+	expected0 := &LoginResult{TokenType: "bearer", Username: "SYSOP"}
+	expectedDB0 := []*schema.AccessToken{{UserID: "SYSOP"}}
 
 	type args struct {
 		remoteAddr string
@@ -49,34 +64,37 @@ func TestLogin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			user := &UserInfo{UserID: bbs.UUserID(pttbbsapi.GUEST), IsOver18: true}
-			got, _, err := Login(tt.args.remoteAddr, user, tt.args.params, tt.args.c)
+			got, _, err := Login(tt.args.remoteAddr, userInfo, tt.args.params, tt.args.c)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Login() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			/*
-				query := make(map[string]interface{})
-				query[schema.ACCESS_TOKEN_USER_ID_b] = "testuserid1"
+								query := make(map[string]interface{})
+								query[schema.ACCESS_TOKEN_USER_ID_b] = "testuserid1"
 
-				var ret []*schema.AccessToken
-				err = schema.AccessToken_c.Find(query, 0, &ret, nil, nil)
-				logrus.Infof("api.TestLogin: after Find: query: %v ret: %v e: %v", query, ret, err)
-				if err != nil {
-					t.Errorf("Login(): unable to find: e: %v", err)
-				}
-				for _, each := range ret {
-					each.UpdateNanoTS = 0
-				}
-				if len(ret) < 1 {
-					t.Errorf("Login(): unable to find access-token")
-					return
-				}
-				expected.AccessToken = ret[0].AccessToken
+				s				var ret []*schema.AccessToken
+								err = schema.AccessToken_c.Find(query, 0, &ret, nil, nil)
+								logrus.Infof("api.TestLogin: after Find: query: %v ret: %v e: %v", query, ret, err)
+								if err != nil {
+									t.Errorf("Login(): unable to find: e: %v", err)
+								}
+								for _, each := range ret {
+									each.UpdateNanoTS = 0
+								}
+								if len(ret) < 1 {
+									t.Errorf("Login(): unable to find access-token")
+									return
+								}
+								expected.AccessToken = ret[0].AccessToken
 			*/
 			result := got.(*LoginResult)
 			tt.expected.AccessToken = result.AccessToken
+			tt.expected.RefreshToken = result.RefreshToken
+
+			tt.expected.AccessExpireTS = result.AccessExpireTS
+			tt.expected.RefreshExpireTS = result.RefreshExpireTS
 
 			if !reflect.DeepEqual(result, tt.expected) {
 				t.Errorf("Login() = %v, want %v", got, tt.expected)
@@ -89,11 +107,28 @@ func TestLoginWrapper(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+
+	_ = schema.CreateUserEmail("SYSOP", "root@localhost.dev", false, 123456890000000000)
+
+	paramsAttemptLogin := &AttemptLoginParams{
+		Input: "SYSOP",
+	}
+
+	userInfo := &UserInfo{
+		UserID:   "SYSOP",
+		IsOver18: true,
+	}
+
+	AttemptLogin("127.0.0.1", userInfo, paramsAttemptLogin, nil)
+
+	token_db, _ := schema.Get2FA("SYSOP")
+
 	params0 := &LoginParams{
 		ClientID:     "default_client_id",
 		ClientSecret: "test_client_secret",
-		Username:     "SYSOP",
-		Password:     "123123",
+		Input:        "SYSOP",
+		VerifyCode:   token_db,
 	}
 	type args struct {
 		params *LoginParams

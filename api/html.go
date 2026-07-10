@@ -62,6 +62,24 @@ func RegisterHTMLWrapper(c *gin.Context) {
 	processCSRFContent(filename, maxAge, c)
 }
 
+const INIT_HTML_R = "/init"
+
+func InitHTMLWrapper(c *gin.Context) {
+	filename := filepath.Join(types.STATIC_DIR, "init.html")
+
+	maxAge := htmlMaxAge()
+	processCSRFContent(filename, maxAge, c)
+}
+
+const ERR_HTML_R = "/error"
+
+func ErrorHTMLWrapper(c *gin.Context) {
+	filename := filepath.Join(types.STATIC_DIR, "error.html")
+
+	maxAge := htmlMaxAge()
+	processCSRFContent(filename, maxAge, c)
+}
+
 const USER_HTML_R = "/user/:user_id"
 
 func UserHTMLWrapper(c *gin.Context) {

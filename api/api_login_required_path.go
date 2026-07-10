@@ -65,7 +65,7 @@ func loginRequiredPathProcess(theFunc LoginRequiredPathAPIFunc, params interface
 		_ = schema.UpdateUserVisit(userVisit)
 	}
 
-	user := &UserInfo{IsOver18: isOver18, UserID: bbs.UUserID(pttbbsapi.GUEST)}
+	user := &UserInfo{IsOver18: isOver18, UserID: userID}
 
 	result, statusCode, err := theFunc(remoteAddr, user, params, path, c)
 	processResult(c, result, statusCode, err, userID)

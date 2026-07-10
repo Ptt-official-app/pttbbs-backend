@@ -85,6 +85,17 @@ services:
     mem_reservation: 1G
     ports:
       - "127.0.0.1:6379:6379"
+  postfix:
+    image: chhsiao1981/docker-postfix:v0.2.0
+    ports:
+      - "127.0.0.1:2255:25"
+    volumes:
+      - type: bind
+        source: ../docs/examples/var/mail
+        target: /var/mail
+      - type: bind
+        source: ../docs/examples/etc/postfix-172.18
+        target: /etc/postfix
 
 volumes:
   mongo_data_db:

@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
-	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,30 +22,36 @@ func processStringResult(c *gin.Context, content string, contentType string) {
 	c.String(200, "%v", content)
 }
 
-func processRedirectResult(c *gin.Context, redirectPath string, statusCode int) {
+func processRedirectResult(c *gin.Context, redirectPath string, statusCode int, err error, userID bbs.UUserID) {
 	setHeader(c)
 
-	c.Redirect(statusCode, redirectPath)
+	if statusCode == 303 {
+		c.Redirect(statusCode, redirectPath)
+	} else {
+		c.JSON(statusCode, &errResult{Msg: err.Error(), TokenUser: userID})
+	}
 }
 
 func setHeader(c *gin.Context) {
-	if !types.IS_ALLOW_CROSSDOMAIN {
-		return
-	}
+	/*
+		if !types.IS_ALLOW_CROSSDOMAIN {
+			return
+		}
 
-	origin := c.GetHeader("Origin")
+		origin := c.GetHeader("Origin")
 
-	if origin == "" {
-		return
-	}
+		if origin == "" {
+			return
+		}
 
-	requestHeaders := c.GetHeader("Access-Control-Request-Headers")
+		requestHeaders := c.GetHeader("Access-Control-Request-Headers")
 
-	c.Header("X-Frame-Options", "SAMEORIGIN")
-	c.Header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-	c.Header("Access-Control-Allow-Credentials", "true")
-	c.Header("Access-Control-Allow-Origin", origin)
-	if requestHeaders != "" {
-		c.Header("Access-Control-Allow-Headers", requestHeaders)
-	}
+		c.Header("X-Frame-Options", "SAMEORIGIN")
+		c.Header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Origin", origin)
+		if requestHeaders != "" {
+			c.Header("Access-Control-Allow-Headers", requestHeaders)
+		}
+	*/
 }

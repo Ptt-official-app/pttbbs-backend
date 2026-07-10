@@ -10,22 +10,12 @@ parameters:
       '$id': https://json-schema.org/draft/2019-09/output/schema
       type: object
       properties:
-        client_id:
-          type: string
-        client_secret:
-          type: string
-        username:
-          type: string
         email:
           type: string
 responses:
   200:
-    description: registed
+    description: sent a confirmation link to the email.
     schema:
       '$id': https://json-schema.org/draft/2019-09/output/schema
       type: object
-      properties:
-        username:
-          type: string
-        tokenuser:
-          '$ref': '#/definitions/tokenuser'
+      properties: {}

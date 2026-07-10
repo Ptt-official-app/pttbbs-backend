@@ -13,14 +13,10 @@ func TestAttemptRegisterUser(t *testing.T) {
 	defer teardownTest()
 
 	params0 := &AttemptRegisterUserParams{
-		ClientID:     "default_client_id",
-		ClientSecret: "test_client_secret",
-
-		Username: "SYSOP2",
-		Email:    "test2@ptt.test",
+		Email: "test2@ptt.test",
 	}
 
-	expect0 := &AttemptRegisterUserResult{Username: "SYSOP2"}
+	expect0 := &AttemptRegisterUserResult{}
 
 	type args struct {
 		remoteAddr string
@@ -59,6 +55,6 @@ func TestAttemptRegisterUser(t *testing.T) {
 				t.Errorf("AttemptRegisterUser() gotStatusCode = %v, want %v", gotStatusCode, tt.expectedStatusCode)
 			}
 		})
+		wg.Wait()
 	}
-	wg.Wait()
 }

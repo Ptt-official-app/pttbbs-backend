@@ -8,13 +8,15 @@ import (
 
 type APIFunc func(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error)
 
+type RedirectAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (redirectPath string, statusCode int, err error)
+
 type PathAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error)
 
 type LoginRequiredAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error)
 
 type LoginRequiredPathAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error)
 
-type RedirectPathAPIFunc func(remoteAddr string, params interface{}, path interface{}, c *gin.Context) (redirectPath string, statusCode int)
+type LoginRequiredRedirectPathAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (redirectPath string, statusCode int, err error)
 
 type errResult struct {
 	Msg string
@@ -30,4 +32,10 @@ type ClientInfo struct {
 type UserInfo struct {
 	UserID   bbs.UUserID
 	IsOver18 bool
+}
+
+type JwtClaim struct {
+	ClientInfo string `json:"cli"`
+	UUserID    string `json:"sub"`
+	Expire     int    `json:"exp"`
 }

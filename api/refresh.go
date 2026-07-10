@@ -54,14 +54,12 @@ func Refresh(remoteAddr string, user *UserInfo, params interface{}, c *gin.Conte
 	setTokenToCookie(c, result_b.Jwt)
 
 	result = &RefreshResult{
-		UserID:        result_b.UserID,
-		AccessToken:   result_b.Jwt,
-		TokenType:     result_b.TokenType,
-		RefreshToken:  result_b.Refresh,
-		AccessExpire:  types.Time8(result_b.AccessExpire),
-		RefreshExpire: types.Time8(result_b.RefreshExpire),
-
-		TokenUser: result_b.UserID,
+		Username:        string(result_b.UserID),
+		AccessToken:     result_b.Jwt,
+		TokenType:       result_b.TokenType,
+		RefreshToken:    result_b.Refresh,
+		AccessExpireTS:  types.Time8(result_b.AccessExpire),
+		RefreshExpireTS: types.Time8(result_b.RefreshExpire),
 	}
 
 	return result, 200, nil

@@ -10,7 +10,10 @@ import (
 var (
 	ErrInvalidRemoteAddr = errors.New("invalid remote addr")
 
-	ErrInvalidParams            = errors.New("invalid params")
+	ErrInvalidParams = errors.New("invalid params")
+
+	ErrNoUserID                 = errors.New("no userid")
+	ErrNoUsername               = errors.New("no username")
 	ErrLoginFailed              = errors.New("login failed")
 	ErrNotImplemented           = errors.New("not implemented")
 	ErrInvalidPath              = errors.New("invalid path")
@@ -22,6 +25,7 @@ var (
 	ErrNoArticle                = errors.New("no article")
 	ErrNoUserBoard              = errors.New("no user board")
 	ErrInvalidBoardname         = errors.New("invalid boardname")
+	ErrNoEmail                  = errors.New("no email")
 
 	ErrAlreadyDeleted = errors.New("already deleted")
 	ErrFileNotFound   = errors.New("file not found")

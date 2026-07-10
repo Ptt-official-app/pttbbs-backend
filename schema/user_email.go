@@ -14,8 +14,9 @@ type UserEmail struct {
 	UserID bbs.UUserID `bson:"user_id"`
 	Email  string      `bson:"email"`
 
-	IsSet bool `bson:"is_set,omitempty"`
+	IsDefault bool `bson:"is_default,omitempty"`
 
+	CreateNanoTS types.NanoTS `bson:"create_nano_ts"`
 	UpdateNanoTS types.NanoTS `bson:"update_nano_ts"`
 }
 
@@ -24,27 +25,28 @@ var EMPTY_USER_EMAIL = &UserEmail{}
 var (
 	USER_EMAIL_USER_ID_b        = getBSONName(EMPTY_USER_EMAIL, "UserID")
 	USER_EMAIL_EMAIL_b          = getBSONName(EMPTY_USER_EMAIL, "Email")
-	USER_EMAIL_IS_SET_b         = getBSONName(EMPTY_USER_EMAIL, "IsSet")
+	USER_EMAIL_IS_DEFAULT_b     = getBSONName(EMPTY_USER_EMAIL, "IsDefault")
+	USER_EMAIL_CREATE_NANO_TS_b = getBSONName(EMPTY_USER_EMAIL, "CreateNanoTS")
 	USER_EMAIL_UPDATE_NANO_TS_b = getBSONName(EMPTY_USER_EMAIL, "UpdateNanoTS")
 )
 
-func GetUserEmailByUserID(userID bbs.UUserID, updateNanoTS types.NanoTS) (userEmail *UserEmail, err error) {
+func GetUserEmailByUserID(userID bbs.UUserID) (userEmail *UserEmail, err error) {
 	query := bson.M{
 		USER_EMAIL_USER_ID_b: userID,
 	}
 
-	return getUserEmailCore(query, updateNanoTS)
+	return getUserEmailCore(query)
 }
 
-func GetUserEmailByEmail(email string, updateNanoTS types.NanoTS) (userEmail *UserEmail, err error) {
+func GetUserEmailByEmail(email string) (userEmail *UserEmail, err error) {
 	query := bson.M{
 		USER_EMAIL_EMAIL_b: email,
 	}
 
-	return getUserEmailCore(query, updateNanoTS)
+	return getUserEmailCore(query)
 }
 
-func getUserEmailCore(query bson.M, updateNanoTS types.NanoTS) (userEmail *UserEmail, err error) {
+func getUserEmailCore(query bson.M) (userEmail *UserEmail, err error) {
 	userEmail = &UserEmail{}
 	err = UserEmail_c.FindOne(query, userEmail, nil)
 	if err != nil {
@@ -54,71 +56,35 @@ func getUserEmailCore(query bson.M, updateNanoTS types.NanoTS) (userEmail *UserE
 		return nil, err
 	}
 
-	if userEmail.IsSet {
-		return userEmail, nil
-	}
-
-	if updateNanoTS-userEmail.UpdateNanoTS < types.EXPIRE_USER_EMAIL_IS_NOT_SET_NANO_TS {
-		return userEmail, nil
-	}
-
-	// to remove query.
-	err = UserEmail_c.Remove(query)
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
+	return userEmail, nil
 }
 
-func CreateUserEmail(userID bbs.UUserID, email string, updateNanoTS types.NanoTS) (err error) {
+func CreateUserEmail(userID bbs.UUserID, email string, isDefault bool, updateNanoTS types.NanoTS) (err error) {
+	// only 1 record for each email, but potentially multiple records for some user-ids.
 	query := bson.M{
-		USER_EMAIL_USER_ID_b: userID,
+		USER_EMAIL_EMAIL_b: email,
 	}
 
 	userEmail := &UserEmail{
 		UserID:       userID,
 		Email:        email,
+		IsDefault:    isDefault,
+		CreateNanoTS: updateNanoTS,
 		UpdateNanoTS: updateNanoTS,
 	}
 
-	r, createErr := UserEmail_c.CreateOnly(query, userEmail)
-	if createErr == nil && r.UpsertedCount > 0 {
-		return nil
-	}
-
-	// check duplicate
-	if createErr != nil {
-		return createErr
-	}
-
-	gotUserEmail := &UserEmail{}
-	err = UserEmail_c.FindOne(query, gotUserEmail, nil)
+	ret, err := UserEmail_c.CreateOnly(query, userEmail)
 	if err != nil {
 		return err
 	}
-
-	if gotUserEmail.IsSet && updateNanoTS-gotUserEmail.UpdateNanoTS < types.EXPIRE_USER_EMAIL_IS_SET_NANO_TS {
+	if ret.UpsertedCount != 1 {
 		return ErrNoCreate
-	}
-
-	if updateNanoTS-gotUserEmail.UpdateNanoTS < types.EXPIRE_USER_EMAIL_IS_NOT_SET_NANO_TS {
-		return ErrNoCreate
-	}
-
-	query[USER_EMAIL_UPDATE_NANO_TS_b] = bson.M{
-		"$lt": updateNanoTS,
-	}
-
-	_, err = UserEmail_c.UpdateOneOnly(query, userEmail)
-	if err != nil {
-		return err
 	}
 
 	return nil
 }
 
-func UpdateUserEmailIsSet(userID bbs.UUserID, email string, isSet bool, updateNanoTS types.NanoTS) (err error) {
+func UpdateUserEmailIsDefault(userID bbs.UUserID, email string, isDefault bool, updateNanoTS types.NanoTS) (err error) {
 	query := bson.M{
 		USER_EMAIL_USER_ID_b: userID,
 		USER_EMAIL_EMAIL_b:   email,
@@ -128,7 +94,7 @@ func UpdateUserEmailIsSet(userID bbs.UUserID, email string, isSet bool, updateNa
 	}
 
 	toUpdate := bson.M{
-		USER_EMAIL_IS_SET_b:         isSet,
+		USER_EMAIL_IS_DEFAULT_b:     isDefault,
 		USER_EMAIL_UPDATE_NANO_TS_b: updateNanoTS,
 	}
 

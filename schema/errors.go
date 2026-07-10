@@ -8,7 +8,7 @@ var (
 	ErrNoUpdate             = errors.New("no update")
 	ErrNoCreate             = errors.New("no create")
 	ErrInvalidUserFavorites = errors.New("invalid user favorites")
-	Err2FAAlreadyExists     = errors.New("2fa already exists")
+	ErrRDBAlreadyExists     = errors.New("rdb already exists")
 
 	ErrNotFound = errors.New("not found")
 

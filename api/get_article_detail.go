@@ -91,9 +91,13 @@ func GetArticleDetail(remoteAddr string, user *UserInfo, params interface{}, pat
 
 	url := apitypes.ToURL(thePath.FBoardID, thePath.FArticleID)
 
-	nickname, err := schema.GetUserNickname(articleDetailSummary.Owner)
+	userNameInfo, err := schema.GetUserNameInfo(articleDetailSummary.Owner)
 	if err != nil {
 		return nil, statusCode, err
+	}
+	nickname := ""
+	if userNameInfo != nil {
+		nickname = userNameInfo.Nickname
 	}
 
 	result = &GetArticleDetailResult{

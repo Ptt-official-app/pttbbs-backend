@@ -7,7 +7,7 @@ import (
 const INDEX_R = "/"
 
 type IndexParams struct {
-	In int `form:"in,omitempty"`
+	In int `json:"in,omitempty" form:"in,omitempty" url:"in,omitempty"`
 }
 
 func NewIndexParams() *IndexParams {
@@ -15,7 +15,7 @@ func NewIndexParams() *IndexParams {
 }
 
 type IndexResult struct {
-	Data interface{}
+	Data interface{} `json:"data,omitempty"`
 }
 
 func IndexWrapper(c *gin.Context) {

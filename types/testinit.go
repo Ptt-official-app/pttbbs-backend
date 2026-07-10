@@ -1,6 +1,8 @@
 package types
 
-import "sync"
+import (
+	"sync"
+)
 
 var (
 	origBig5ToUtf8                  = ""
@@ -36,10 +38,12 @@ func SetIsTest(pkgName string) {
 
 		BIG5_TO_UTF8 = "../types/uao250-b2u.big5.txt"
 		UTF8_TO_BIG5 = "../types/uao250-u2b.big5.txt"
+		AMBCJK = "../types/ambcjk.big5.txt"
 
 		EMAILTOKEN_TEMPLATE = "../docs/etc/emailtoken.template"
 		IDEMAILTOKEN_TEMPLATE = "../docs/etc/idemailtoken.template"
 		ATTEMPT_REGISTER_USER_TEMPLATE = "../docs/etc/attemptregister.template"
+		ATTEMPT_LOGIN_TEMPLATE = "../docs/etc/attemptlogin.template"
 
 		initBig5()
 	}

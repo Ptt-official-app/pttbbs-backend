@@ -26,14 +26,20 @@ You can start this project with the following steps:
 
 1. install [docker](https://www.docker.com/)
 2. `./scripts/start-getting-started.sh`
-3. `telnet localhost 8888`
-4. login with SYSOP/123123.
+3. try the api at [http://localhost:8080](http://localhost:8080)
+
+### [Legacy PTTBBS](https://github.com/ptt/pttbbs)
+
+You can go to the legacy PTTBBS with the following steps:
+
+4. `telnet localhost 8888`
+5. login with SYSOP/123123.
 
 ## API
 
 You can try the api at [https://doc.devptt.dev](https://doc.devptt.dev).
 
-You can copy the curl command from the api website if you encounter CORS issue.
+You can copy the `curl` command from the api website if you encounter `CORS` issue.
 
 ## Coding Convention
 
@@ -47,12 +53,11 @@ We use the following libraries for coding convention:
 Besides creating issues, you can do the following
 to discuss / review / question the code:
 
-* `git clone` the repo
-* create a review-[topic] branch
+* `git clone` this repo
+* create a review-\[topic\] branch
 * commenting at the specific code-region.
 * pull-request
 * start discussion.
-* close the pr with comments with only the link of the pr in the code-base.
 
 ## Develop
 
@@ -73,14 +78,13 @@ You can check coverage with:
 You can run swagger with:
 
 * setup python virtualenv.
-* `cd apidoc; pip install . && pip uninstall apidoc -y && python setup.py develop; cd ..`
+* `cd apidoc; pip install .; cd ..`
 * `./scripts/swagger.sh [host]`
-* go to `http://localhost:5000`
-
+* go to [http://localhost:8080](http://localhost:8080)
 
 ## Schema definition
 
-* `https://github.com/Ptt-official-app/pttbbs-backend/tree/main/schema`
+* [https://github.com/Ptt-official-app/pttbbs-backend/tree/main/schema](https://github.com/Ptt-official-app/pttbbs-backend/tree/main/schema)
 
 ## Repository Naming
 

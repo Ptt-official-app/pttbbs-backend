@@ -4,6 +4,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/Ptt-official-app/pttbbs-backend/db"
 )
 
 func TestTryLock(t *testing.T) {
@@ -30,7 +32,7 @@ func TestTryLock(t *testing.T) {
 		{
 			args:        args{key: "test1", expire: expireNanoTS},
 			wantErr:     true,
-			expectedErr: ErrNoLock,
+			expectedErr: db.ErrRDBAlreadyExists,
 		},
 		{
 			args:     args{key: "test1", expire: expireNanoTS},

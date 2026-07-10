@@ -34,10 +34,14 @@ func TestGetUserNickname(t *testing.T) {
 		wg.Add(1)
 		t.Run(tt.name, func(t *testing.T) {
 			defer wg.Done()
-			gotNickname, err := GetUserNickname(tt.args.userID)
+			gotUserNickname, err := GetUserNameInfo(tt.args.userID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetUserNickname() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			gotNickname := ""
+			if gotUserNickname != nil {
+				gotNickname = gotUserNickname.Nickname
 			}
 			if gotNickname != tt.expectedNickname {
 				t.Errorf("GetUserNickname() = %v, want %v", gotNickname, tt.expectedNickname)

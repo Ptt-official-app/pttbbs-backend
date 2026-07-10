@@ -37,6 +37,7 @@ func InitViper(filename string) (err error) {
 	myViper.SetConfigName(filenamePrefix)
 	myViper.SetConfigType(filenamePostfix)
 	myViper.AddConfigPath("/etc/go-pttbbs")
+	myViper.AddConfigPath("/etc/pttbbs-backend")
 	myViper.AddConfigPath(".")
 	err = myViper.ReadInConfig()
 	if err != nil {

@@ -11,11 +11,16 @@ import (
 var User_c *db.Collection
 
 type User struct {
-	Version  int         `bson:"version"`
-	UserID   bbs.UUserID `bson:"user_id"`
-	Username string      `bson:"username"`
-	Realname string      `bson:"realtime"`
-	Nickname string      `bson:"nickname"`
+	Version    int          `bson:"version"`
+	UserID     bbs.UUserID  `bson:"user_id"`
+	Username   string       `bson:"username"`
+	UsernameNS types.NanoTS `bson:"username_ns"`
+
+	Realname string `bson:"realname"`
+	Nickname string `bson:"nickname"`
+
+	IsGovernmentID   bool         `bson:"is_government_id"`
+	IsGovernmentIDNS types.NanoTS `bson:"is_government_id_ns"`
 
 	Uflag        ptttype.UFlag `bson:"flag"`
 	Userlevel    ptttype.PERM  `bson:"perm"`
@@ -92,10 +97,15 @@ type User struct {
 var EMPTY_USER = &User{}
 
 var (
-	USER_USER_ID_b  = getBSONName(EMPTY_USER, "UserID")
-	USER_USERNAME_b = getBSONName(EMPTY_USER, "Username")
+	USER_USER_ID_b     = getBSONName(EMPTY_USER, "UserID")
+	USER_USERNAME_b    = getBSONName(EMPTY_USER, "Username")
+	USER_USERNAME_NS_b = getBSONName(EMPTY_USER, "UsernameNS")
+
 	USER_REALNAME_b = getBSONName(EMPTY_USER, "Realname")
 	USER_NICKNAME_b = getBSONName(EMPTY_USER, "Nickname")
+
+	USER_IS_GOVERNMENT_ID_b    = getBSONName(EMPTY_USER, "IsGovernmentID")
+	USER_IS_GOVERNMENT_ID_NS_b = getBSONName(EMPTY_USER, "IsGovernmentIDNS")
 
 	USER_UFLAG_b           = getBSONName(EMPTY_USER, "Uflag")
 	USER_USER_LEVEL_b      = getBSONName(EMPTY_USER, "Userlevel")
@@ -187,7 +197,7 @@ func assertUserFields() error {
 		return err
 	}
 
-	if err := assertFields(EMPTY_USER, EMPTY_USER_NICKNAME); err != nil {
+	if err := assertFields(EMPTY_USER, EMPTY_USER_NAME_INFO); err != nil {
 		return err
 	}
 
@@ -196,6 +206,10 @@ func assertUserFields() error {
 	}
 
 	if err := assertFields(EMPTY_USER, EMPTY_USER_POSTTIME); err != nil {
+		return err
+	}
+
+	if err := assertFields(EMPTY_USER, EMPTY_USER_USERNAME); err != nil {
 		return err
 	}
 

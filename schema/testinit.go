@@ -24,11 +24,10 @@ func SetIsTest() {
 	if err != nil {
 		logrus.Errorf("schema.Init: unable to init: e: %v", err)
 	}
-
-	testResetDB()
 }
 
 func UnsetIsTest() {
+	testResetDB()
 	Close()
 
 	logrus.Info("schema: UnsetIsTest")

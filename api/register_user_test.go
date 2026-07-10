@@ -9,7 +9,9 @@ import (
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
+	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func TestRegisterUser(t *testing.T) {
@@ -18,20 +20,16 @@ func TestRegisterUser(t *testing.T) {
 
 	defer schema.AccessToken_c.Drop()
 
+	token, err := schema.SetEmailVerification("test@ptt.test", time.Duration(1)*time.Second)
+	logrus.Infof("api.TestRegisterUser: after SetEmailVerification: e: %v", err)
+
 	params0 := &RegisterUserParams{
-		ClientID:        "default_client_id",
-		ClientSecret:    "test_client_secret",
-		Username:        "testuserid1",
-		Password:        "testpasswd",
-		PasswordConfirm: "testpasswd",
-		Email:           "test@ptt.test",
-		TwoFactorToken:  "123123",
+		Token: token,
 	}
 
-	expected0 := &RegisterUserResult{TokenType: "bearer", UserID: "testuserid1", TokenUser: "testuserid1"}
-	expectedDB0 := []*schema.AccessToken{{UserID: "testuserid1"}}
+	expectedDB0 := []*schema.AccessToken{{UserID: "SYSOP"}}
 
-	_ = schema.Set2FA("testuserid1", "test@ptt.test", "123123", time.Duration(1)*time.Second)
+	expected0 := types.INIT_URL
 
 	type args struct {
 		remoteAddr string
@@ -41,7 +39,7 @@ func TestRegisterUser(t *testing.T) {
 	tests := []struct {
 		name               string
 		args               args
-		expectedResult     *RegisterUserResult
+		expectedResult     string
 		expectedStatusCode int
 		expectedDB         []*schema.AccessToken
 		wantErr            bool
@@ -50,7 +48,7 @@ func TestRegisterUser(t *testing.T) {
 		{
 			args:               args{remoteAddr: "localhost", params: params0},
 			expectedResult:     expected0,
-			expectedStatusCode: 200,
+			expectedStatusCode: 303,
 			expectedDB:         expectedDB0,
 		},
 	}
@@ -87,10 +85,7 @@ func TestRegisterUser(t *testing.T) {
 				expected.AccessToken = ret[0].AccessToken
 			*/
 
-			result := gotResult.(*RegisterUserResult)
-			tt.expectedResult.AccessToken = result.AccessToken
-
-			if !reflect.DeepEqual(result, tt.expectedResult) {
+			if !reflect.DeepEqual(gotResult, tt.expectedResult) {
 				t.Errorf("RegisterUser() gotResult = %v, want %v", gotResult, tt.expectedResult)
 			}
 			if gotStatusCode != tt.expectedStatusCode {

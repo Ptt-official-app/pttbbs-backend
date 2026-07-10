@@ -74,7 +74,6 @@ func ChangePasswd(remoteAddr string, user *UserInfo, params interface{}, path in
 
 	// result
 	ret := NewChangePasswdResult(result_b)
-	ret.TokenUser = user.UserID
 
 	setTokenToCookie(c, result_b.Jwt)
 
@@ -83,11 +82,11 @@ func ChangePasswd(remoteAddr string, user *UserInfo, params interface{}, path in
 
 func NewChangePasswdResult(result_b *pttbbsapi.ChangePasswdResult) *ChangePasswdResult {
 	return &ChangePasswdResult{
-		UserID:        result_b.UserID,
-		AccessToken:   result_b.Jwt,
-		TokenType:     "bearer",
-		RefreshToken:  result_b.Refresh,
-		AccessExpire:  types.Time8(result_b.AccessExpire),
-		RefreshExpire: types.Time8(result_b.RefreshExpire),
+		Username:        string(result_b.UserID),
+		AccessToken:     result_b.Jwt,
+		TokenType:       "bearer",
+		RefreshToken:    result_b.Refresh,
+		AccessExpireTS:  types.Time8(result_b.AccessExpire),
+		RefreshExpireTS: types.Time8(result_b.RefreshExpire),
 	}
 }

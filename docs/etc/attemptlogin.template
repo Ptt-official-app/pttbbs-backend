@@ -1,0 +1,30 @@
+<html>
+    <body>
+        Hi 您好,<br />
+        <br />
+        我們收到您想在 __BBSNAME__ 登入<br />
+        <br />
+        如果您並沒有如此要求, 您可以忽略這封信件. <br />
+        <br />
+        如果您的確有如此要求, 請使用以下驗證碼登入:<br />
+        <br />
+        __TOKEN__
+        <br />
+        __BBSNAME__ 站長群.<br />
+        <br />
+        <br />
+        <br />
+        Dear __USER__,<br />
+        <br />
+        We received your request to register in __BBSNAME_EN__.<br />
+        <br />
+        You can ignore this email if you didn't do the request.<br />
+        <br />
+        If you do make such request, you can login with the following verification code:<br />
+        <br />
+        __TOKEN__
+        <br />
+        Best regards,<br />
+        __BBSNAME_EN__ administrators.<br />
+    </body>
+</html>

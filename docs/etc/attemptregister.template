@@ -2,13 +2,13 @@
     <body>
         Hi 您好,<br />
         <br />
-        我們收到您想在 __BBSNAME__ 註冊 __USER__<br />
+        我們收到您想在 __BBSNAME__ 註冊<br />
         <br />
         如果您並沒有如此要求, 您可以忽略這封信件. <br />
         <br />
-        如果您的確有如此要求, 請將以下確認碼填在註冊頁裡:<br />
+        如果您的確有如此要求, 請點擊以下 link, 或是使用您的網頁瀏覽器至以下 link:<br />
         <br />
-        __TOKEN__
+        <a href="__URL__">__URL__</a>
         <br />
         __BBSNAME__ 站長群.<br />
         <br />
@@ -16,17 +16,15 @@
         <br />
         Dear __USER__,<br />
         <br />
-        We received your request<br />
-        to register as __USER__ in __BBSENAME__.<br />
+        We received your request to register in __BBSNAME_EN__.<br />
         <br />
-        You can ignore this email if you didn't<br />
-        do the request.<br />
+        You can ignore this email if you didn't do the request.<br />
         <br />
-        Or you can copy the following token on the Registration page:<br />
+        If you do make such request, you can click the following link on, or use your web browser to browse the link:<br />
         <br />
-        __TOKEN__<br />
+        <a href="__URL__">__URL__</a>
         <br />
         Best regards,<br />
-        __BBSENAME__ administrators.<br />
+        __BBSNAME_EN__ administrators.<br />
     </body>
 </html>

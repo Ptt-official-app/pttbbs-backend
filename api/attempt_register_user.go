@@ -1,26 +1,17 @@
 package api
 
 import (
-	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
-	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
-	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/gin-gonic/gin"
 )
 
 const ATTEMPT_REGISTER_USER_R = "/account/attemptregister"
 
 type AttemptRegisterUserParams struct {
-	ClientID     string `json:"client_id" form:"client_id"`
-	ClientSecret string `json:"client_secret" form:"client_secret"`
-
-	Username string `json:"username" form:"username"`
-	Email    string `json:"email" form:"email"`
+	Email string `json:"email" form:"email"`
 }
 
-type AttemptRegisterUserResult struct {
-	Username string `json:"user_id"`
-}
+type AttemptRegisterUserResult struct{}
 
 func AttemptRegisterUserWrapper(c *gin.Context) {
 	params := &AttemptRegisterUserParams{}
@@ -33,36 +24,10 @@ func AttemptRegisterUser(remoteAddr string, user *UserInfo, params interface{}, 
 		return nil, 400, ErrInvalidParams
 	}
 
-	err = checkUniqueEmail(theParams.Email)
+	err = genEmailVerificationTokenAndSendEmail(theParams.Email, types.ATTEMPT_REGISTER_USER_TITLE, types.REGISTER_USER_URL, types.ATTEMPT_REGISTER_USER_TEMPLATE_CONTENT)
 	if err != nil {
-		return nil, 403, err
+		return nil, 500, err
 	}
 
-	isValidClient, _ := checkClient(theParams.ClientID, theParams.ClientSecret)
-
-	if !isValidClient {
-		return nil, 400, ErrInvalidParams
-	}
-
-	// check existing user
-	theParams_b := &pttbbsapi.CheckExistsUserParams{
-		Username: theParams.Username,
-	}
-	var result_b *pttbbsapi.CheckExistsUserResult
-
-	url := pttbbsapi.CHECK_EXISTS_USER_R
-	statusCode, err = utils.BackendPost(c, url, theParams_b, nil, &result_b)
-	if err != nil || statusCode != 200 {
-		return nil, statusCode, err
-	}
-	if result_b.IsExists {
-		return nil, 400, ErrAlreadyExists
-	}
-
-	err = gen2FATokenAndSendEmail(bbs.UUserID(theParams.Username), theParams.Email, types.ATTEMPT_REGISTER_USER_TITLE, types.ATTEMPT_REGISTER_USER_TEMPLATE_CONTENT)
-	if err != nil {
-		return nil, 400, err
-	}
-
-	return &AttemptRegisterUserResult{Username: theParams.Username}, 200, nil
+	return &AttemptRegisterUserResult{}, 200, nil
 }

@@ -77,7 +77,7 @@ func AttemptChangeEmail(remoteAddr string, user *UserInfo, params interface{}, p
 		return nil, statusCode, err
 	}
 
-	err = deserializeEmailTokenAndEmail(theParams.Email, types.EMAILTOKEN_TITLE, result_b.UserID, result_b.Jwt, USER_CHANGE_EMAIL_HTML_R, types.EMAILTOKEN_TEMPLATE_CONTENT)
+	err = serializeEmailTokenAndEmail(theParams.Email, types.EMAILTOKEN_TITLE, result_b.UserID, result_b.Jwt, USER_CHANGE_EMAIL_HTML_R, types.EMAILTOKEN_TEMPLATE_CONTENT)
 	if err != nil {
 		return nil, 500, err
 	}

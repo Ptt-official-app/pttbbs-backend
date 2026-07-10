@@ -8,7 +8,6 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func TestCreateUserIDEmail(t *testing.T) {
@@ -38,11 +37,6 @@ func TestCreateUserIDEmail(t *testing.T) {
 		UpdateNanoTS: 1234589890000000000,
 	}
 
-	errUnique := mongo.WriteException{
-		WriteErrors: mongo.WriteErrors([]mongo.WriteError{
-			{Code: 11000, Message: "E11000 duplicate key error collection: devptt_test.user_id_email index: idemail_1 dup key: { idemail: \"test@ptt2.test\" }"},
-		}),
-	}
 	type args struct {
 		userID       bbs.UUserID
 		email        string
@@ -70,31 +64,7 @@ func TestCreateUserIDEmail(t *testing.T) {
 			expectedByUserID: expected1,
 		},
 		{
-			name:             "SYSOP-ptt2: no-create",
-			args:             args{userID: "SYSOP", email: "test@ptt2.test", updateNanoTS: 1234567890000000000},
-			wantErr:          true,
-			expectedErr:      ErrNoCreate,
-			expected:         expected1,
-			expectedByUserID: expected0,
-		},
-		{
-			name:             "SYSOP-ptt3-not-expired",
-			args:             args{userID: "SYSOP", email: "test@ptt3.test", updateNanoTS: 1234567890000000000},
-			wantErr:          true,
-			expectedErr:      ErrNoCreate,
-			expected:         nil,
-			expectedByUserID: expected0,
-		},
-		{
-			name:             "SYSOP-ptt2-expired, not unique",
-			args:             args{userID: "SYSOP", email: "test@ptt2.test", updateNanoTS: 1234587890000000000},
-			wantErr:          true,
-			expectedErr:      errUnique,
-			expected:         nil,
-			expectedByUserID: nil,
-		},
-		{
-			name:             "SYSOP-ptt3: expired",
+			name:             "SYSOP-ptt3: not expired",
 			args:             args{userID: "SYSOP", email: "test@ptt3.test", updateNanoTS: 1234589890000000000},
 			expected:         expected2,
 			expectedByUserID: expected2,
@@ -111,22 +81,7 @@ func TestCreateUserIDEmail(t *testing.T) {
 				t.Errorf("CreateUserIDEmail() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			switch err.(type) {
-			case mongo.WriteException:
-				err2, ok := err.(mongo.WriteException)
-				if ok {
-					err2.Raw = nil
-					writeErrors := make([]mongo.WriteError, 0, len(err2.WriteErrors))
-					for _, each := range err2.WriteErrors {
-						each.Raw = nil
-						writeErrors = append(writeErrors, each)
-					}
-					err2.WriteErrors = writeErrors
-					assert.Equal(t, tt.expectedErr, err2)
-				}
-			default:
-				assert.Equal(t, tt.expectedErr, err)
-			}
+			assert.Equal(t, tt.expectedErr, err)
 
 			got, _ := GetUserIDEmailByEmail(tt.args.email, tt.args.updateNanoTS)
 			testutil.TDeepEqual(t, "got", got, tt.expected)

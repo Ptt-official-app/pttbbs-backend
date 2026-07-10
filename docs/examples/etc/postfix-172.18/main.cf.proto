@@ -1,0 +1,72 @@
+# See /usr/share/postfix/main.cf.dist for a commented, more complete version
+
+# See http://www.postfix.org/COMPATIBILITY_README.html
+compatibility_level = 3.9
+
+# Which domain that locally-originated mail appears to come from.
+# Debian policy suggests to read this value from /etc/mailname.
+#XX needs a review in postinst&config
+#myorigin = /etc/mailname
+#myorigin = $mydomain
+myorigin = $myhostname
+
+# Text that follows the 220 code in the SMTP server's greeting banner.
+# You MUST specify $myhostname at the start due to an RFC requirement.
+smtpd_banner = $myhostname ESMTP $mail_name (Debian)
+
+# IP protocols to use: ipv4, ipv6, or all
+# (set this explicitly so `post-install upgrade-configuration' wont complain)
+inet_protocols = all
+
+# List of "trusted" SMTP clients (maptype:mapname allowed) that have more
+# privileges than "strangers".  If mynetworks is not specified (the default),
+# mynetworks_style is used to compute its value.
+#mynetworks_style = class
+#mynetworks_style = subnet
+mynetworks_style = host
+#
+mynetworks = 127.0.0.0/8
+
+# Uncomment the next line to generate "delayed mail" warnings
+#delay_warning_time = 4h
+
+# List of domains (maptype:mapname allowed) that this machine considers
+# itself the final destination for.
+mydestination = $myhostname, localhost.$mydomain, localhost
+
+# Maximum size of a user mailbox
+mailbox_size_limit = 51200000
+
+# Optional external command to use instead of mailbox delivery.  If set,
+# you must set up an alias to forward root mail to a real user.
+#mailbox_command = /usr/bin/procmail
+#mailbox_command = /usr/bin/procmail -a "$EXTENSION"
+mailbox_command =
+
+# List of alias maps to use to lookup local addresses.
+# Per Debian Policy it should be /etc/aliases.
+alias_maps = $alias_database, nis:mail.aliases
+
+# List of alias maps to make indexes on, when running newaliases.
+alias_database = hash:/etc/aliases
+
+# Notify (or not) local biff service when new mail arrives.
+# Rarely used these days.
+biff = no
+
+# Separator between user name and address extension (user+foo@domain)
+#recipient_delimiter = +
+recipient_delimiter =
+
+# A host to send "other" mail to
+#relayhost = $mydomain
+#relayhost = [gateway.example.com]
+#relayhost = [ip.add.re.ss]:port
+#relayhost = uucphost
+relayhost =
+
+# Where to look for Cyrus SASL configuration files.  Upstream default is unset
+# (use compiled-in SASL library default), Debian Policy says it should be
+# /etc/postfix/sasl.
+cyrus_sasl_config_path = /etc/postfix/sasl
+

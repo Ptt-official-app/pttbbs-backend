@@ -1,6 +1,8 @@
 package apitypes
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	ErrInvalidIdx            = errors.New("invalid idx")
