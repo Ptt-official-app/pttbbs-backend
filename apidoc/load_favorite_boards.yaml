@@ -6,7 +6,7 @@ tags:
 parameters:
   - '$ref': '#/definitions/ParamsAuthorization'
   - '$ref': '#/definitions/ParamsOver18'
-  - name: 'user_id'
+  - name: 'username'
     in: 'path'
     required: true
     type: string

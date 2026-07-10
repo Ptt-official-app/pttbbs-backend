@@ -171,3 +171,7 @@ idemail_set:
 idemail_ts:
   type: number
   description: update 認證 email 的時間.
+
+is_government_id:
+  type: boolean
+  description: 是否有政府 ID 認證.
