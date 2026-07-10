@@ -180,7 +180,7 @@ func initGinCore() (*gin.Engine, error) {
 func initGinCORS(router *gin.Engine) {
 	router.Use(cors.New(cors.Config{
 		AllowAllOrigins:  false,
-		AllowOrigins:     []string{"https://staging.devptt.dev", "https://openac-staging.devptt.dev"},
+		AllowOrigins:     types.ALLOW_ORIGINS,
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"x-csrftoken", "Content-Type", "Authorization", "Content-Length", "Origin"},
 		AllowCredentials: true,
