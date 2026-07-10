@@ -98,8 +98,8 @@ def _load_popular_articles():
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/favorites'))
-def _load_favorite_boards(user_id):
+@app.route(_with_app_prefix('/user/<username>/favorites'))
+def _load_favorite_boards(username):
     """
     swagger_from_file: apidoc/load_favorite_boards.yaml
 
@@ -107,8 +107,8 @@ def _load_favorite_boards(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/favorites/addboard'), methods=['POST'])
-def _add_favorite_board(user_id):
+@app.route(_with_app_prefix('/user/<username>/favorites/addboard'), methods=['POST'])
+def _add_favorite_board(username):
     """
     swagger_from_file: apidoc/add_favorite_board.yaml
 
@@ -116,8 +116,8 @@ def _add_favorite_board(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/favorites/addfolder'), methods=['POST'])
-def _add_favorite_folder(user_id):
+@app.route(_with_app_prefix('/user/<username>/favorites/addfolder'), methods=['POST'])
+def _add_favorite_folder(username):
     """
     swagger_from_file: apidoc/add_favorite_folder.yaml
 
@@ -125,8 +125,8 @@ def _add_favorite_folder(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/favorites/addline'), methods=['POST'])
-def _add_favorite_line(user_id):
+@app.route(_with_app_prefix('/user/<username>/favorites/addline'), methods=['POST'])
+def _add_favorite_line(username):
     """
     swagger_from_file: apidoc/add_favorite_line.yaml
 
@@ -134,8 +134,8 @@ def _add_favorite_line(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/favorites/delete'), methods=['POST'])
-def _delete_favorite(user_id):
+@app.route(_with_app_prefix('/user/<username>/favorites/delete'), methods=['POST'])
+def _delete_favorite(username):
     """
     swagger_from_file: apidoc/delete_favorite.yaml
 
@@ -185,8 +185,8 @@ def _load_class_boards():
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>'))
-def _get_user_info(user_id):
+@app.route(_with_app_prefix('/user/<username>'))
+def _get_user_info(username):
     """
     swagger_from_file: apidoc/get_user_info.yaml
 
@@ -194,17 +194,8 @@ def _get_user_info(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/userid'))
-def _get_user_id():
-    """
-    swagger_from_file: apidoc/get_user_id.yaml
-
-    """
-    return ''
-
-
-@app.route(_with_app_prefix('/user/<user_id>/summary'))
-def _get_user_summary(user_id):
+@app.route(_with_app_prefix('/user/<username>/summary'))
+def _get_user_summary(username):
     """
     swagger_from_file: apidoc/get_user_summary.yaml
 
@@ -212,8 +203,8 @@ def _get_user_summary(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/updatepasswd'), methods=['POST'])
-def _change_passwd(user_id):
+@app.route(_with_app_prefix('/user/<username>/updatepasswd'), methods=['POST'])
+def _change_passwd(username):
     """
     swagger_from_file: apidoc/change_passwd.yaml
 
@@ -221,8 +212,8 @@ def _change_passwd(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/articles'))
-def _load_user_articles(user_id):
+@app.route(_with_app_prefix('/user/<username>/articles'))
+def _load_user_articles(username):
     """
     swagger_from_file: apidoc/load_user_articles.yaml
 
@@ -235,8 +226,8 @@ def _load_user_articles(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/comments'))
-def _load_user_comments(user_id):
+@app.route(_with_app_prefix('/user/<username>/comments'))
+def _load_user_comments(username):
     """
     swagger_from_file: apidoc/load_user_comments.yaml
 
@@ -244,8 +235,8 @@ def _load_user_comments(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/attemptchangeemail'), methods=['POST'])
-def _attempt_change_email(user_id):
+@app.route(_with_app_prefix('/user/<username>/attemptchangeemail'), methods=['POST'])
+def _attempt_change_email(username):
     """
     swagger_from_file: apidoc/attempt_change_email.yaml
 
@@ -253,8 +244,8 @@ def _attempt_change_email(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/changeemail'), methods=['POST'])
-def _change_email(user_id):
+@app.route(_with_app_prefix('/user/<username>/changeemail'), methods=['POST'])
+def _change_email(username):
     """
     swagger_from_file: apidoc/change_email.yaml
 
@@ -262,8 +253,8 @@ def _change_email(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/attemptsetidemail'), methods=['POST'])
-def _attempt_set_id_email(user_id):
+@app.route(_with_app_prefix('/user/<username>/attemptsetidemail'), methods=['POST'])
+def _attempt_set_id_email(username):
     """
     swagger_from_file: apidoc/attempt_set_id_email.yaml
 
@@ -271,8 +262,8 @@ def _attempt_set_id_email(user_id):
     return ''
 
 
-@app.route(_with_app_prefix('/user/<user_id>/setidemail'), methods=['POST'])
-def _set_id_email(user_id):
+@app.route(_with_app_prefix('/user/<username>/setidemail'), methods=['POST'])
+def _set_id_email(username):
     """
     swagger_from_file: apidoc/set_id_email.yaml
 

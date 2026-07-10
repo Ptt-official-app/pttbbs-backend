@@ -4,7 +4,7 @@ tags:
   - user
 parameters:
   - '$ref': '#/definitions/ParamsAuthorization'
-  - name: 'user_id'
+  - name: 'username'
     in: 'path'
     required: true
     type: string

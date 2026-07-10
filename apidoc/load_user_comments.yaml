@@ -7,7 +7,7 @@ description: 列出使用者的所有 comments. 從最新開始往前拉. 拉回
 parameters:
   - '$ref': '#/definitions/ParamsAuthorization'
   - '$ref': '#/definitions/ParamsOver18'
-  - name: 'user_id'
+  - name: 'username'
     in: 'path'
     type: string
     required: true

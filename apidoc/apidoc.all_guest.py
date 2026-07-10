@@ -62,15 +62,6 @@ def _refresh_black_list():
     return ''
 
 
-@app.route(_with_app_prefix('/userid'))
-def _get_user_id():
-    """
-    swagger_from_file: apidoc/get_user_id.yaml
-
-    """
-    return ''
-
-
 @app.route(_with_app_prefix('/board/<bid>/articles'))
 def _load_general_articles(bid):
     """
