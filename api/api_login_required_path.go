@@ -45,10 +45,6 @@ func loginRequiredPathProcess(theFunc LoginRequiredPathAPIFunc, params interface
 		return
 	}
 
-	if !isValidOriginReferer(c) {
-		processResult(c, nil, 403, ErrInvalidOrigin, "")
-		return
-	}
 	userID, err := verifyJwt(c)
 	if err != nil {
 		userID = bbs.UUserID(pttbbsapi.GUEST)

@@ -29,10 +29,8 @@ var (
 
 	// web
 	STATIC_DIR           = "docs/examples"
-	ALLOW_ORIGINS        = []string{}
-	ALLOW_ORIGINS_MAP    = map[string]bool{}
+	ALLOW_ORIGINS        = []string{"*"}
 	BLOCKED_REFERERS     = []string{}
-	BLOCKED_REFERERS_MAP = map[string]bool{}
 	IS_ALLOW_CROSSDOMAIN = true
 
 	COOKIE_DOMAIN       = "localhost"

@@ -186,13 +186,6 @@ func setAllowOrigins(allowOrigins []string) (origAllowOrigins []string, err erro
 	origAllowOrigins = ALLOW_ORIGINS
 
 	ALLOW_ORIGINS = allowOrigins
-	newAllowOriginsMap := map[string]bool{}
-
-	for _, each := range allowOrigins {
-		newAllowOriginsMap[each] = true
-	}
-
-	ALLOW_ORIGINS_MAP = newAllowOriginsMap
 
 	return origAllowOrigins, nil
 }
@@ -201,13 +194,6 @@ func setBlockedReferers(blockedReferers []string) (origBlockedReferers []string,
 	origBlockedReferers = BLOCKED_REFERERS
 
 	BLOCKED_REFERERS = blockedReferers
-	newBlockedReferersMap := map[string]bool{}
-
-	for _, each := range blockedReferers {
-		newBlockedReferersMap[each] = true
-	}
-
-	BLOCKED_REFERERS_MAP = newBlockedReferersMap
 
 	return origBlockedReferers, nil
 }

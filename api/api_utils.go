@@ -100,11 +100,6 @@ func isValidCSRFToken(raw string) bool {
 }
 
 func processCSRFContent(filename string, cacheControlMaxAge int, c *gin.Context) {
-	if !isValidOriginReferer(c) {
-		processResult(c, nil, 403, ErrInvalidOrigin, "")
-		return
-	}
-
 	file, err := os.Open(filename)
 	if err != nil {
 		processResult(c, nil, 404, ErrFileNotFound, "")
