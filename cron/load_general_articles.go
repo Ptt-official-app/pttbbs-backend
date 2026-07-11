@@ -8,7 +8,6 @@ import (
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/api"
-	"github.com/Ptt-official-app/pttbbs-backend/boardd"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/Ptt-official-app/pttbbs-backend/utils"
@@ -55,11 +54,7 @@ func LoadGeneralArticles() (err error) {
 		}
 
 		for _, each := range boardIDs {
-			if !types.IS_ALL_GUEST {
-				err = loadGeneralArticlesBoardd(each.BBoardID)
-			} else {
-				err = loadGeneralArticlesPtt(each.BBoardID)
-			}
+			err = loadGeneralArticlesPtt(each.BBoardID)
 
 			if err == nil {
 				count++
@@ -74,98 +69,6 @@ func LoadGeneralArticles() (err error) {
 
 		nextBrdname = newNextBrdname
 	}
-}
-
-func loadGeneralArticlesBoardd(boardID bbs.BBoardID) (err error) {
-	nextIdx := int32(0)
-	count := 0
-
-	for {
-		articleSummaries, newNextIdx, err := loadGeneralArticlesCoreBoardd(boardID, nextIdx)
-		if err != nil {
-			logrus.Errorf("cron.LoadGeneralArticles: unable to loadGeneralArticles: nextIdx: %v e: %v", nextIdx, err)
-			return err
-		}
-		count += len(articleSummaries)
-
-		if newNextIdx == INVALID_LOAD_GENERAL_ARTICLES_NEXT_IDX_BOARDD {
-			break
-		}
-
-		nextIdx = newNextIdx
-	}
-
-	err = loadBottomArticlesBoardd(boardID)
-	if err != nil {
-		logrus.Errorf("loadGeneralArticles: unable to loadBottomArticles: e: %v", err)
-		return err
-	}
-
-	return nil
-}
-
-func loadGeneralArticlesCoreBoardd(boardID bbs.BBoardID, startIdx int32) (articleSummaries []*schema.ArticleSummaryWithRegex, nextIdx int32, err error) {
-	nextIdx = INVALID_LOAD_GENERAL_ARTICLES_NEXT_IDX_BOARDD
-	brdnameStr := boardID.ToBrdname()
-	// backend load-general-articles
-	ctx := context.Background()
-	brdname := &boardd.BoardRef_Name{Name: brdnameStr}
-	req := &boardd.ListRequest{
-		Ref:          &boardd.BoardRef{Ref: brdname},
-		IncludePosts: true,
-		Offset:       startIdx,
-		Length:       N_ARTICLES + 1,
-	}
-	resp, err := boardd.Cli.List(ctx, req)
-	if err != nil {
-		return nil, INVALID_LOAD_GENERAL_ARTICLES_NEXT_IDX_BOARDD, err
-	}
-
-	posts := resp.Posts
-	if len(posts) == N_ARTICLES+1 {
-		nextIdx = startIdx + N_ARTICLES
-		posts = posts[:N_ARTICLES]
-	}
-
-	// update to db
-	updateNanoTS := types.NowNanoTS()
-	articleSummaries, err = api.DeserializePBArticlesAndUpdateDB(boardID, posts, updateNanoTS, false)
-	if err != nil {
-		return nil, INVALID_LOAD_GENERAL_ARTICLES_NEXT_IDX_BOARDD, err
-	}
-
-	return articleSummaries, nextIdx, nil
-}
-
-func loadBottomArticlesBoardd(boardID bbs.BBoardID) (err error) {
-	brdnameStr := boardID.ToBrdname()
-	// backend load-general-articles
-
-	ctx := context.Background()
-	brdname := &boardd.BoardRef_Name{Name: brdnameStr}
-	req := &boardd.ListRequest{
-		Ref:            &boardd.BoardRef{Ref: brdname},
-		IncludeBottoms: true,
-		Offset:         0,
-		Length:         N_ARTICLES + 1,
-	}
-	resp, err := boardd.Cli.List(ctx, req)
-	if err != nil {
-		return err
-	}
-
-	err = schema.ResetArticleIsBottom(boardID)
-	if err != nil {
-		return err
-	}
-
-	updateNanoTS := types.NowNanoTS()
-	_, err = api.DeserializePBArticlesAndUpdateDB(boardID, resp.Bottoms, updateNanoTS, true)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func loadGeneralArticlesPtt(boardID bbs.BBoardID) (err error) {
