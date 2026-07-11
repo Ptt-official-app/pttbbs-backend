@@ -32,6 +32,7 @@ func loginRequiredProcess(theFunc LoginRequiredAPIFunc, params interface{}, c *g
 	remoteAddr, user, err := loginRequiredCore(c)
 	if err != nil {
 		processResult(c, nil, 403, ErrInvalidRemoteAddr, "")
+		return
 	}
 
 	result, statusCode, err := theFunc(remoteAddr, user, params, c)
@@ -42,10 +43,6 @@ func loginRequiredCore(c *gin.Context) (remoteAddr string, user *UserInfo, err e
 	remoteAddr = strings.TrimSpace(c.ClientIP())
 	if !isValidRemoteAddr(remoteAddr) {
 		return "", nil, ErrInvalidRemoteAddr
-	}
-
-	if !isValidOriginReferer(c) {
-		return "", nil, ErrInvalidOrigin
 	}
 
 	userID, err := verifyJwt(c)

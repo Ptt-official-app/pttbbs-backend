@@ -178,8 +178,9 @@ func initGinCore() (*gin.Engine, error) {
 }
 
 func initGinCORS(router *gin.Engine) {
+	isAllowAllOrigins := len(types.ALLOW_ORIGINS) == 1 && types.ALLOW_ORIGINS[0] == "*"
 	router.Use(cors.New(cors.Config{
-		AllowAllOrigins:  false,
+		AllowAllOrigins:  isAllowAllOrigins,
 		AllowOrigins:     types.ALLOW_ORIGINS,
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"x-csrftoken", "Content-Type", "Authorization", "Content-Length", "Origin"},

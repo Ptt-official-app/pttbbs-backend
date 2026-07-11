@@ -31,11 +31,6 @@ func pathProcess(theFunc PathAPIFunc, params interface{}, path interface{}, c *g
 		return
 	}
 
-	if !isValidOriginReferer(c) {
-		processResult(c, nil, 403, ErrInvalidOrigin, "")
-		return
-	}
-
 	isOver18 := verifyIsOver18(c)
 
 	user := &UserInfo{IsOver18: isOver18, UserID: bbs.UUserID(pttbbsapi.GUEST)}

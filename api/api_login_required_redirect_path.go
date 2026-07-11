@@ -31,11 +31,6 @@ func loginRequiredRedirectPathProcess(theFunc LoginRequiredRedirectPathAPIFunc, 
 		return
 	}
 
-	if !isValidOriginReferer(c) {
-		processResult(c, nil, 403, ErrInvalidOrigin, "")
-		return
-	}
-
 	userID, err := verifyJwt(c)
 	if err != nil {
 		userID = bbs.UUserID(pttbbsapi.GUEST)

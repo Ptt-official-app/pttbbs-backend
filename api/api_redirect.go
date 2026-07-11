@@ -39,11 +39,6 @@ func redirectProcess(theFunc RedirectAPIFunc, params interface{}, c *gin.Context
 		return
 	}
 
-	if !isValidOriginReferer(c) {
-		processResult(c, nil, 403, ErrInvalidOrigin, "")
-		return
-	}
-
 	isOver18 := verifyIsOver18(c)
 
 	userID := bbs.UUserID(pttbbsapi.GUEST)

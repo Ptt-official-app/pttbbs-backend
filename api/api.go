@@ -64,11 +64,6 @@ func process(theFunc APIFunc, params interface{}, c *gin.Context) {
 		return
 	}
 
-	if !isValidOriginReferer(c) {
-		processResult(c, nil, 403, ErrInvalidOrigin, "")
-		return
-	}
-
 	isOver18 := verifyIsOver18(c)
 
 	user := &UserInfo{IsOver18: isOver18, UserID: bbs.UUserID(pttbbsapi.GUEST)}
@@ -81,11 +76,6 @@ func processLogout(theFunc APIFunc, params interface{}, c *gin.Context) {
 	remoteAddr := strings.TrimSpace(c.ClientIP())
 	if !isValidRemoteAddr(remoteAddr) {
 		processResult(c, nil, 400, ErrInvalidRemoteAddr, "")
-		return
-	}
-
-	if !isValidOriginReferer(c) {
-		processResult(c, nil, 403, ErrInvalidOrigin, "")
 		return
 	}
 
