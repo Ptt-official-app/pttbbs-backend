@@ -68,7 +68,7 @@ func GetManArticleBlocks(remoteAddr string, user *UserInfo, params interface{}, 
 	articleID := farticleID.ToManArticleID()
 
 	// validate user
-	_, statusCode, err = isBoardValidUser(boardID, c)
+	_, statusCode, err = isBoardValidUser(boardID, userID)
 	if err != nil {
 		return nil, statusCode, err
 	}

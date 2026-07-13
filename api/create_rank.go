@@ -61,7 +61,7 @@ func CreateRank(remoteAddr string, user *UserInfo, params interface{}, path inte
 		return nil, 403, ErrInvalidUser
 	}
 
-	isValid, statusCode, err := isBoardValidUser(boardID, c)
+	isValid, statusCode, err := isBoardValidUser(boardID, userID)
 	if err != nil {
 		return nil, statusCode, err
 	}

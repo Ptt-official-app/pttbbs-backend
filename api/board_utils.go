@@ -198,50 +198,30 @@ func DeserializeBoardDetailsAndUpdateDB(boardDetails_b []*bbs.BoardDetail, updat
 	return boardDetails, nil
 }
 
-func isBoardValidUser(boardID bbs.BBoardID, c *gin.Context) (isValid bool, statusCode int, err error) {
+//nolint:unused // boardID and userID will be used in the future.
+func isBoardValidUser(boardID bbs.BBoardID, userID bbs.UUserID) (isValid bool, statusCode int, err error) {
 	if types.IS_ALL_GUEST {
 		return true, 200, nil
-	}
-
-	var result_b *pttbbsapi.IsBoardValidUserResult
-
-	urlMap := map[string]string{
-		"bid": string(boardID),
-	}
-	url := utils.MergeURL(urlMap, pttbbsapi.IS_BOARD_VALID_USER_R)
-	statusCode, err = utils.BackendGet(c, url, nil, nil, &result_b)
-	if err != nil || statusCode != 200 {
-		return false, statusCode, err
-	}
-	if !result_b.IsValid {
-		return false, 403, ErrInvalidUser
 	}
 
 	return true, 200, nil
 }
 
-//nolint:unused
-func isBoardSummariesValidUser(boardSummaries []*schema.BoardSummary, c *gin.Context) (validBoardSummaries []*schema.BoardSummary, err error) {
+//nolint:unused // userID will be used in the future.
+func isBoardSummariesValidUser(boardSummaries []*schema.BoardSummary, userID bbs.UUserID) (validBoardSummaries []*schema.BoardSummary, err error) {
 	boardIDs := make([]bbs.BBoardID, len(boardSummaries))
 	for idx, each := range boardSummaries {
 		boardIDs[idx] = each.BBoardID
 	}
 
-	var result_b *pttbbsapi.IsBoardsValidUserResult
-
-	params := &pttbbsapi.IsBoardsValidUserParams{
-		BoardIDs: boardIDs,
-	}
-
-	url := pttbbsapi.IS_BOARDS_VALID_USER_R
-	statusCode, err := utils.BackendGet(c, url, params, nil, &result_b)
-	if err != nil || statusCode != 200 {
-		return nil, err
+	isValidMap := map[bbs.BBoardID]bool{}
+	for _, each := range boardSummaries {
+		isValidMap[each.BBoardID] = true
 	}
 
 	validBoardSummaries = make([]*schema.BoardSummary, 0, len(boardSummaries))
 	for _, each := range boardSummaries {
-		isValid, ok := result_b.IsValid[each.BBoardID]
+		isValid, ok := isValidMap[each.BBoardID]
 		if !ok || !isValid {
 			continue
 		}

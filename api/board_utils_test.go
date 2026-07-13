@@ -80,7 +80,7 @@ func Test_isBoardSummariesValidUser(t *testing.T) {
 		wg.Add(1)
 		t.Run(tt.name, func(t *testing.T) {
 			defer wg.Done()
-			gotValidBoardSummaries, err := isBoardSummariesValidUser(tt.args.boardSummaries, tt.args.c)
+			gotValidBoardSummaries, err := isBoardSummariesValidUser(tt.args.boardSummaries, "SYSOP")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("isBoardSummariesValidUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
