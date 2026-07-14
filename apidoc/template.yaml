@@ -1,5 +1,5 @@
 info:
-  version: '0.43.3'
+  version: '0.43.4'
   title: pttbbs-backend
 definitions:
   !include defs/access_token.yaml
