@@ -7,6 +7,9 @@ const (
 	DEV ServiceMode = "DEV"
 
 	// in PRODUCTION mode, log set to WARN
+	STAGING ServiceMode = "STAGING"
+
+	// in PRODUCTION mode, log set to WARN
 	PRODUCTION ServiceMode = "PRODUCTION"
 
 	// in INFO mode, log set to INFO

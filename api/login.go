@@ -2,7 +2,10 @@ package api
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/Ptt-official-app/pttbbs-backend/oidcop"
+	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -25,12 +28,13 @@ func NewLoginParams() *LoginParams {
 }
 
 type LoginResult struct {
-	Username        string      `json:"username"`
-	AccessToken     string      `json:"access_token"`
-	TokenType       string      `json:"token_type"`
-	RefreshToken    string      `json:"refresh_token"`
-	AccessExpireTS  types.Time8 `json:"access_expire"`
-	RefreshExpireTS types.Time8 `json:"refresh_expire"`
+	Username        string `json:"username"`
+	AccessToken     string `json:"access_token"`
+	TokenType       string `json:"token_type"`
+	RefreshToken    string `json:"refresh_token"`
+	AccessExpireTS  uint64 `json:"access_expire"`
+	RefreshExpireTS uint64 `json:"refresh_expire"`
+	RedirectURI     string `json:"redirect_uri"`
 }
 
 // LoginLog record user login info, no matter success or not
@@ -86,25 +90,32 @@ func Login(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context
 
 		clientInfo := getClientInfo(client)
 	*/
-	clientInfo := ""
-
 	userID, username, _, err := loginInputToUsernameEmail(theParams.Input)
 	if err != nil {
 		return nil, 401, err
 	}
 
-	err = check2FAToken(userID, theParams.VerifyCode)
+	oidcID, err := check2FAToken(userID, theParams.VerifyCode)
 	if err != nil {
 		return nil, 401, err
 	}
 
-	// gen tokens
-	accessToken, accessExpireTS, err := genAccessToken(userID, clientInfo)
-	if err != nil {
-		return nil, 500, err
+	if oidcID != "" {
+		err = schema.SetAuthRequestIsAuth(oidcID, username)
+		if err != nil {
+			return nil, 500, err
+		}
+
+		redirectURI := oidcop.AUTH_CALLBACK_URL(c, oidcID)
+		loginLog.IsSuccess = true
+
+		result = NewLoginResult(username, "", "", 0, redirectURI)
+
+		return result, 200, nil
 	}
 
-	refreshToken, refresExpireTS, err := genRefreshToken(userID, clientInfo)
+	// gen tokens
+	accessToken, refreshToken, expireTS, err := genAccessAndRefreshTokens(c, username, types.WEB_CLIENT_ID, "")
 	if err != nil {
 		return nil, 500, err
 	}
@@ -113,20 +124,22 @@ func Login(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context
 	loginLog.IsSuccess = true
 
 	// result
-	result = NewLoginResult(username, accessToken, accessExpireTS, refreshToken, refresExpireTS)
+	result = NewLoginResult(username, accessToken, refreshToken, expireTS, "")
 
-	setTokenToCookie(c, accessToken)
+	setTokenToCookie(c, accessToken, refreshToken)
 
 	return result, 200, nil
 }
 
-func NewLoginResult(username string, accessToken string, accessExpireTS types.Time8, refreshToken string, refreshExpireTS types.Time8) *LoginResult {
+func NewLoginResult(username string, accessToken string, refreshToken string, expireTS time.Duration, redirectURI string) *LoginResult {
+	expireTS_u64 := uint64(expireTS.Seconds())
 	return &LoginResult{
 		Username:        username,
 		TokenType:       "bearer",
 		AccessToken:     accessToken,
-		AccessExpireTS:  accessExpireTS,
+		AccessExpireTS:  expireTS_u64,
 		RefreshToken:    refreshToken,
-		RefreshExpireTS: refreshExpireTS,
+		RefreshExpireTS: expireTS_u64,
+		RedirectURI:     redirectURI,
 	}
 }

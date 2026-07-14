@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/Ptt-official-app/pttbbs-backend/db"
+	"github.com/Ptt-official-app/pttbbs-backend/types"
 	redis "github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -358,6 +359,13 @@ func Init() (err error) {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
+
+	// init webClient
+	webClient := NewClient(types.WEB_CLIENT_ID, types.CLIENT_TYPE_WEB, []string{}, "")
+	err = UpdateClient(webClient)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

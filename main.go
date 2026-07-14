@@ -8,6 +8,7 @@ import (
 
 	"github.com/Ptt-official-app/pttbbs-backend/api"
 	"github.com/Ptt-official-app/pttbbs-backend/cron"
+	"github.com/Ptt-official-app/pttbbs-backend/oidcop"
 	"github.com/Ptt-official-app/pttbbs-backend/queue"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/Ptt-official-app/pttbbs-backend/zk"
@@ -78,6 +79,11 @@ func initGinCore() (*gin.Engine, error) {
 	router := gin.Default()
 
 	initGinCORS(router)
+
+	err := oidcop.InitGinRouter(router)
+	if err != nil {
+		return nil, err
+	}
 
 	// options
 	router.OPTIONS("/*path", api.OptionsWrapper)
@@ -179,9 +185,13 @@ func initGinCore() (*gin.Engine, error) {
 
 func initGinCORS(router *gin.Engine) {
 	isAllowAllOrigins := len(types.ALLOW_ORIGINS) == 1 && types.ALLOW_ORIGINS[0] == "*"
+	var allowOrigins []string
+	if !isAllowAllOrigins {
+		allowOrigins = types.ALLOW_ORIGINS
+	}
 	router.Use(cors.New(cors.Config{
 		AllowAllOrigins:  isAllowAllOrigins,
-		AllowOrigins:     types.ALLOW_ORIGINS,
+		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
 		AllowHeaders:     []string{"x-csrftoken", "Content-Type", "Authorization", "Content-Length", "Origin"},
 		AllowCredentials: true,

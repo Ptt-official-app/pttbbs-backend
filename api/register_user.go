@@ -23,32 +23,32 @@ func RegisterUserWrapper(c *gin.Context) {
 func RegisterUser(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result string, statusCode int, err error) {
 	theParams, ok := params.(*RegisterUserParams)
 	if !ok {
-		return types.ERR_URL, 303, ErrInvalidParams
+		return types.FRONTEND_ERR_URL, 303, ErrInvalidParams
 	}
 
 	email, err := getEmailFromEmailVerificationToken(theParams.Token)
 	if err != nil {
-		return types.ERR_URL, 303, err
+		return types.FRONTEND_ERR_URL, 303, err
 	}
 
 	// create db-record first to avoid race-condition
 	userID, err := genUserID(email)
 	if err != nil {
-		return types.ERR_URL, 303, err
+		return types.FRONTEND_ERR_URL, 303, err
 	}
 
-	_, err = genUsername(userID)
+	username, err := genUsername(userID)
 	if err != nil {
-		return types.ERR_URL, 303, err
+		return types.FRONTEND_ERR_URL, 303, err
 	}
 
-	token, _, err := genAccessToken(userID, "")
+	accessToken, refreshToken, _, err := genAccessAndRefreshTokens(c, username, types.WEB_CLIENT_ID, "")
 	if err != nil {
-		return types.ERR_URL, 303, err
+		return types.FRONTEND_ERR_URL, 303, err
 	}
 
 	// result
-	setTokenToCookie(c, token)
+	setTokenToCookie(c, accessToken, refreshToken)
 
-	return types.INIT_URL, 303, nil
+	return types.FRONTEND_INIT_URL, 303, nil
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 const GET_USERNAME_R = "/username"
@@ -33,8 +32,6 @@ func GetUsername(remoteAddr string, user *UserInfo, params interface{}, c *gin.C
 	if userNameInfo != nil {
 		username = userNameInfo.Username
 	}
-
-	logrus.Infof("api.GetUsername: userNameInfo: %v userID: %v username: %v", userNameInfo, userID, username)
 
 	return &GetUsernameResult{
 		Username: username,

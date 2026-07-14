@@ -1,37 +1,41 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
+	"github.com/Ptt-official-app/pttbbs-backend/oidcop"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
+	"github.com/zitadel/oidc/v3/pkg/op"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func setTokenToCookie(c *gin.Context, accessToken string) {
-	setCookie(c, types.ACCESS_TOKEN_NAME, accessToken, types.ACCESS_TOKEN_EXPIRE_TS_DURATION, true)
+func setTokenToCookie(c *gin.Context, accessToken string, refreshToken string) {
+	setCookie(c, types.ACCESS_TOKEN_NAME, accessToken, types.ACCESS_TOKEN_EXPIRE_TS_DURATION, true, "")
+	setCookie(c, types.REFRESH_TOKEN_NAME, refreshToken, types.REFRESH_TOKEN_EXPIRE_TS_DURATION, true, "")
 }
 
 func removeTokenFromCookie(c *gin.Context) {
 	removeCookie(c, types.ACCESS_TOKEN_NAME, true)
+	removeCookie(c, types.REFRESH_TOKEN_NAME, true)
 }
 
-func gen2FATokenAndSendEmail(userID bbs.UUserID, username string, email string, title string, template string, expireTS time.Duration) (err error) {
+func gen2FATokenAndSendEmail(userID bbs.UUserID, username string, email string, oidcID string, title string, template string, expireTS time.Duration) (err error) {
 	token := gen2FAToken()
 
-	err = schema.Set2FA(userID, email, token, expireTS)
+	err = schema.Set2FA(userID, email, token, oidcID, expireTS)
 	if err != nil {
 		return err
 	}
-
-	logrus.Infof("gen2FATokenAndSendEmail: userID: %v username %v email: %v", userID, username, email)
 
 	content := strings.ReplaceAll(
 		strings.ReplaceAll(
@@ -47,17 +51,17 @@ func gen2FAToken() string {
 	return fmt.Sprintf(types.MAX_2FA_TOKEN_STR_PROMPT, randInt)
 }
 
-func check2FAToken(userID bbs.UUserID, token string) (err error) {
-	token_db, err := schema.Get2FA(userID)
+func check2FAToken(userID bbs.UUserID, token string) (oidcID string, err error) {
+	twoFA_db, err := schema.Get2FA(userID)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	if token != token_db {
-		return ErrInvalidToken
+	if token != twoFA_db.Token {
+		return "", ErrInvalidToken
 	}
 
-	return nil
+	return twoFA_db.OIDCID, nil
 }
 
 func genEmailVerificationTokenAndSendEmail(email string, title string, url string, template string) (err error) {
@@ -131,40 +135,24 @@ func genUsername(userID bbs.UUserID) (username string, err error) {
 	return "", ErrNoUsername
 }
 
-func genAccessToken(userID bbs.UUserID, clientInfo string) (token string, tokenExpireTS types.Time8, err error) {
-	return genToken(userID, clientInfo, types.ACCESS_TOKEN_EXPIRE_TS, types.ACCESS_TOKEN_SECRET)
-}
-
-func genRefreshToken(userID bbs.UUserID, clientInfo string) (token string, tokenExpireTS types.Time8, err error) {
-	return genToken(userID, clientInfo, types.REFRESH_TOKEN_EXPIRE_TS, types.REFRESH_TOKEN_SECRET)
-}
-
-func genToken(userID bbs.UUserID, clientInfo string, expireTS int, secret []byte) (token string, tokenExpireTS types.Time8, err error) {
-	defer func() {
-		err2 := recover()
-		if err2 == nil {
-			return
-		}
-
-		err = types.ErrRecover(err2)
-	}()
-
-	tokenExpireTS = types.NowTS() + types.Time8(expireTS)
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"cli": clientInfo,
-		"sub": userID,
-		"exp": int(tokenExpireTS),
-	})
-
-	token, err = jwtToken.SignedString(secret)
+func genAccessAndRefreshTokens(ctx context.Context, username string, clientID string, refreshToken string) (accessToken string, newRefreshToken string, validity time.Duration, err error) {
+	client, err := schema.GetClient(clientID)
 	if err != nil {
-		return "", 0, err
+		logrus.Warnf("api.genAccessAndRefreshTokens: unable to GetClient: clientID: %v e: %v", clientID, err)
+		return "", "", 0, err
+	}
+	if client == nil {
+		logrus.Warnf("api.genAccessAndRefreshTokens: no client: clientID: %v", clientID)
+		return "", "", 0, mongo.ErrNoDocuments
 	}
 
-	return token, tokenExpireTS, nil
+	authRequest := schema.NewAuthRequestByUsername(username, clientID)
+	ctx = op.ContextWithIssuer(ctx, types.OIDC_OP_ISSUER)
+
+	return op.CreateAccessToken(ctx, authRequest, op.AccessTokenTypeJWT, oidcop.PROVIDER, client, refreshToken)
 }
 
-func verifyAccessToken(token string) (userID bbs.UUserID, expireTS int, clientInfo string, err error) {
+func verifyAccessToken(token string) (userID bbs.UUserID, expireTS int, newClientID string, clientType types.ClientType, isOver18 bool, err error) {
 	defer func() {
 		err2 := recover()
 		if err2 == nil {
@@ -175,53 +163,31 @@ func verifyAccessToken(token string) (userID bbs.UUserID, expireTS int, clientIn
 	}()
 
 	if token == "" {
-		return bbs.UUserID(pttbbsapi.GUEST), 0, "", nil
+		return bbs.UUserID(pttbbsapi.GUEST), 0, "", types.CLIENT_TYPE_WEB, false, nil
 	}
 
-	claim, err := parseJwtClaim(token, types.ACCESS_TOKEN_SECRET)
+	ctxTodo := context.TODO()
+	ctx := op.ContextWithIssuer(ctxTodo, types.OIDC_OP_ISSUER)
+
+	claim, err := op.VerifyAccessToken[*oidc.AccessTokenClaims](ctx, token, oidcop.PROVIDER.AccessTokenVerifier(ctx))
 	if err != nil {
-		return "", 0, "", ErrInvalidToken
+		return "", 0, "", types.CLIENT_TYPE_WEB, false, ErrInvalidToken
 	}
 
-	currentTS := int(types.NowTS())
-	if currentTS > claim.Expire {
-		return "", 0, "", ErrInvalidToken
-	}
-
-	return bbs.UUserID(claim.UUserID), claim.Expire, claim.ClientInfo, nil
-}
-
-func parseJwtClaim(token string, secret []byte) (cl *JwtClaim, err error) {
-	tok, err := ParseJwt(token, secret)
+	username := claim.Subject
+	userUsernameOver18, err := schema.GetUserUsernameOver18ByUsername(username)
 	if err != nil {
-		return nil, err
+		return "", 0, "", types.CLIENT_TYPE_WEB, false, err
 	}
 
-	claim, ok := tok.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, ErrInvalidToken
+	expireTS = int(claim.Expiration.AsTime().Unix())
+
+	clientType = types.CLIENT_TYPE_APP
+	if claim.ClientID == types.WEB_CLIENT_ID {
+		clientType = types.CLIENT_TYPE_WEB
 	}
 
-	cli, err := ParseClaimString(claim, "cli")
-	if err != nil {
-		return nil, err
-	}
-	sub, err := ParseClaimString(claim, "sub")
-	if err != nil {
-		return nil, err
-	}
-	exp, err := ParseClaimInt(claim, "exp")
-	if err != nil {
-		return nil, err
-	}
-
-	cl = &JwtClaim{
-		ClientInfo: cli,
-		UUserID:    sub,
-		Expire:     exp,
-	}
-
-	return cl, nil
+	return userUsernameOver18.UserID, expireTS, claim.ClientID, clientType, userUsernameOver18.Over18, nil
 }
 
 func loginInputToUsernameEmail(input string) (userID bbs.UUserID, username string, email string, err error) {
@@ -254,6 +220,7 @@ func loginInputToUsernameEmail(input string) (userID bbs.UUserID, username strin
 func loginGetEmailByUsername(username string) (email string, userEmail *schema.UserEmail, err error) {
 	userUsername, err := schema.GetUserUsernameByUsername(username)
 	if err != nil {
+		logrus.Errorf("loginGetEmailByUsername: unable to get userUsername: username: %v e: %v", username, err)
 		return "", nil, err
 	}
 	if userUsername == nil {
@@ -262,6 +229,7 @@ func loginGetEmailByUsername(username string) (email string, userEmail *schema.U
 	}
 	userEmail, err = schema.GetUserEmailByUserID(userUsername.UserID)
 	if err != nil {
+		logrus.Errorf("loginGetEmailByUsername: unable to get userEmail: username: %v userID: %v e: %v", username, userUsername.UserID, err)
 		return "", nil, err
 	}
 	if userEmail == nil {

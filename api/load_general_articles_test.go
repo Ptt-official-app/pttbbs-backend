@@ -66,7 +66,7 @@ func TestLoadGeneralArticles(t *testing.T) {
 				Class:      "閒聊",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1608388506.A.85D",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1608388506.A.85D",
 				Read:       false,
 				Idx:        "1608388506@1VtW-QXT",
 
@@ -86,7 +86,7 @@ func TestLoadGeneralArticles(t *testing.T) {
 				Class:      "心得",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1608386280.A.BC9",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1608386280.A.BC9",
 				Read:       true,
 				Idx:        "1608386280@1VtWRel9",
 
@@ -106,7 +106,7 @@ func TestLoadGeneralArticles(t *testing.T) {
 				Class:      "閒聊",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1607937174.A.081",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1607937174.A.081",
 				Read:       false,
 				Idx:        "1607937174@1VrooM21",
 
@@ -126,7 +126,7 @@ func TestLoadGeneralArticles(t *testing.T) {
 				Class:      "新聞",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1607202240.A.30D",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1607202240.A.30D",
 				Read:       false,
 				Idx:        "1607202240@1Vo_N0CD",
 
@@ -146,7 +146,7 @@ func TestLoadGeneralArticles(t *testing.T) {
 				Class:      "問卦",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1584665022.A.ED0",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1584665022.A.ED0",
 				Read:       false,
 				Idx:        "1584665022@1UT16-xG",
 
@@ -166,7 +166,7 @@ func TestLoadGeneralArticles(t *testing.T) {
 				Class:      "問題",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1234567890.A.123",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1234567890.A.123",
 				Read:       true,
 				Idx:        "1234567890@19bWBI4Z",
 
@@ -186,7 +186,7 @@ func TestLoadGeneralArticles(t *testing.T) {
 				Class:      "問題",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1234560000.A.081",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1234560000.A.081",
 				Read:       false,
 				Idx:        "1234560000@19bUG021",
 
@@ -219,7 +219,7 @@ func TestLoadGeneralArticles(t *testing.T) {
 				Class:      "問題",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1234567890.A.123",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1234567890.A.123",
 				Read:       true,
 				Idx:        "1234567890@19bWBI4Z",
 

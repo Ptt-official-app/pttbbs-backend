@@ -45,12 +45,11 @@ func loginRequiredCore(c *gin.Context) (remoteAddr string, user *UserInfo, err e
 		return "", nil, ErrInvalidRemoteAddr
 	}
 
-	userID, err := verifyJwt(c)
+	userID, isOver18, err := verifyJwt(c)
 	if err != nil {
 		userID = bbs.UUserID(pttbbsapi.GUEST)
 	}
 
-	isOver18 := verifyIsOver18(c)
 	user = &UserInfo{IsOver18: isOver18, UserID: userID}
 
 	return remoteAddr, user, nil

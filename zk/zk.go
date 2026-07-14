@@ -95,8 +95,6 @@ type SmtRootIssuerID int
 
 func NewZKProxy() *httputil.ReverseProxy {
 	theURL, _ := url.Parse(types.ZK_PREFIX)
-	logrus.Infof("NewZKProxy: ZK_PREFIX: %v theURL: %v", types.ZK_PREFIX, theURL)
-
 	proxy := httputil.NewSingleHostReverseProxy(theURL)
 
 	proxy.ModifyResponse = func(resp *http.Response) error {

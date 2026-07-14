@@ -10,13 +10,12 @@ import (
 const REGISTER_CLIENT_R = "/client/register"
 
 type RegisterClientParams struct {
-	ClientID   string           `json:"client_id"`
-	ClientType types.ClientType `json:"client_type"`
+	ClientID     string           `json:"client_id"`
+	ClientType   types.ClientType `json:"client_type"`
+	RedirectURIs []string         `json:"redirect_uris"`
 }
 
 type RegisterClientResult struct {
-	ClientSecret string `json:"client_secret"`
-
 	TokenUser bbs.UUserID `json:"tokenuser,omitempty"`
 }
 
@@ -51,7 +50,7 @@ func RegisterClient(remoteAddr string, user *UserInfo, params interface{}, c *gi
 }
 
 func deserializeClientAndUpdateDB(registerClientParams *RegisterClientParams, remoteAddr string) (client *schema.Client, err error) {
-	client = schema.NewClient(registerClientParams.ClientID, registerClientParams.ClientType, remoteAddr)
+	client = schema.NewClient(registerClientParams.ClientID, registerClientParams.ClientType, registerClientParams.RedirectURIs, remoteAddr)
 
 	err = schema.UpdateClient(client)
 	if err != nil {
@@ -63,8 +62,7 @@ func deserializeClientAndUpdateDB(registerClientParams *RegisterClientParams, re
 
 func NewRegisterClientResult(client *schema.Client, userID bbs.UUserID) *RegisterClientResult {
 	return &RegisterClientResult{
-		ClientSecret: client.ClientSecret,
-		TokenUser:    userID,
+		TokenUser: userID,
 	}
 }
 

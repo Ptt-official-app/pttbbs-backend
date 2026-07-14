@@ -13,56 +13,47 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/sirupsen/logrus"
 )
 
 func verifyIsOver18(c *gin.Context) bool {
 	return utils.GetCookie(c, types.IS_OVER_18_NAME) == types.IS_OVER_18_VALUE
 }
 
-func verifyJwt(c *gin.Context) (userID bbs.UUserID, err error) {
-	token := utils.GetCookie(c, types.ACCESS_TOKEN_NAME)
+func verifyJwt(c *gin.Context) (userID bbs.UUserID, isOver18 bool, err error) {
+	token := utils.GetAccessToken(c)
 
-	userID, _, _, err = verifyAccessToken(token)
-	logrus.Infof("api.verifyJwt: after verifyAccessToken: userID: %v e: %v", userID, err)
+	userID, _, _, clientType, isOver18, err := verifyAccessToken(token)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
-	// XXX skip client-info for now.
-	clientInfo := &ClientInfo{
-		ClientType: types.CLIENT_TYPE_APP,
+	if clientType == types.CLIENT_TYPE_APP {
+		return userID, isOver18, nil
 	}
-	/*
-		err = json.Unmarshal([]byte(clientInfoStr), clientInfo)
-		if err != nil {
-			return "", err
-		}
-	*/
 
-	if clientInfo.ClientType == types.CLIENT_TYPE_APP {
-		return userID, nil
+	if types.SERVICE_MODE == types.DEV { // no checking X-CSRFToken in dev mode.
+		return userID, isOver18, nil
 	}
 
 	csrfToken := c.GetHeader("X-CSRFToken")
 	if len(csrfToken) == 0 {
-		return "", ErrInvalidToken
+		return "", false, ErrInvalidToken
 	}
 
 	cookieCSRFToken := utils.GetCookie(c, types.CSRF_TOKEN)
 	if cookieCSRFToken == "" {
-		return "", ErrInvalidToken
+		return "", false, ErrInvalidToken
 	}
 
 	if csrfToken != cookieCSRFToken {
-		return "", ErrInvalidToken
+		return "", false, ErrInvalidToken
 	}
 
 	if !isValidCSRFToken(csrfToken) {
-		return "", ErrInvalidToken
+		return "", false, ErrInvalidToken
 	}
 
-	return userID, nil
+	return userID, isOver18, nil
 }
 
 func createCSRFToken() (raw string, err error) {
@@ -121,7 +112,7 @@ func processCSRFContent(filename string, cacheControlMaxAge int, c *gin.Context)
 	csrfToken := utils.GetCookie(c, types.CSRF_TOKEN)
 	if csrfToken == "" {
 		csrfToken, _ = createCSRFToken()
-		setCookie(c, types.CSRF_TOKEN, csrfToken, types.CSRF_TOKEN_TS_DURATION, true)
+		setCookie(c, types.CSRF_TOKEN, csrfToken, types.CSRF_TOKEN_TS_DURATION, true, types.CSRF_COOKIE_DOMAIN)
 	}
 	content = strings.Replace(content, "__CSRFTOKEN__", csrfToken, 1)
 
@@ -130,29 +121,18 @@ func processCSRFContent(filename string, cacheControlMaxAge int, c *gin.Context)
 	processStringResult(c, content, mimeType)
 }
 
-func setCookie(c *gin.Context, name string, value string, expireDuration time.Duration, isHTTPOnly bool) {
+func setCookie(c *gin.Context, name string, value string, expireDuration time.Duration, isHTTPOnly bool, cookieDomain string) {
 	if c == nil || IsTest {
 		return
 	}
 
-	setCookie := name + "=" + value + ";Domain=" + types.COOKIE_DOMAIN + ";Path=/;"
-	if expireDuration != 0 {
-		expires := time.Now().Add(expireDuration)
-		expiresStr := expires.Format("Mon, Jan 2 2006 15:04:05 MST")
-		setCookie += "Expires=" + expiresStr + ";"
-	}
-	if isHTTPOnly {
-		setCookie += "HttpOnly;"
+	if cookieDomain == "" {
+		cookieDomain = types.COOKIE_DOMAIN
 	}
 
-	setCookie += "SameSite=Lax;" + types.TOKEN_COOKIE_SUFFIX
-	c.Header("Set-Cookie", setCookie)
+	c.SetCookie(name, value, int(expireDuration.Seconds()), "/", cookieDomain, true, isHTTPOnly)
 }
 
 func removeCookie(c *gin.Context, name string, isHTTPOnly bool) {
-	setCookie := name + "=" + ";Domain=" + types.COOKIE_DOMAIN + ";Path=/;"
-	if isHTTPOnly {
-		setCookie += "HttpOnly;"
-	}
-	c.Header("Set-Cookie", setCookie)
+	c.SetCookie(name, "", -1, "/", types.COOKIE_DOMAIN, true, false)
 }

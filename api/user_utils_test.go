@@ -11,13 +11,13 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 )
 
-func Test_deserializeEmailToken(t *testing.T) {
+func Test_serializeEmailToken(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
 	jwt0, _ := pttbbsapi.CreateEmailToken("SYSOP", "", "test@ptt.test", pttbbsapi.CONTEXT_CHANGE_EMAIL)
 
-	content0 := fmt.Sprintf("test@ptt.test, SYSOP, http://localhost:3457/user/SYSOP/changeemail?%v=%v", types.EMAIL_TOKEN_NAME, jwt0)
+	content0 := fmt.Sprintf("test@ptt.test, SYSOP, http://localhost:3457/bbs/user/SYSOP/changeemail?%v=%v", types.EMAIL_TOKEN_NAME, jwt0)
 
 	type args struct {
 		email           string
@@ -43,7 +43,7 @@ func Test_deserializeEmailToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer wg.Done()
 			if gotContent := serializeEmailToken(tt.args.email, tt.args.userID, tt.args.token, tt.args.urlTemplate, tt.args.contentTemplate); gotContent != tt.expectedContent {
-				t.Errorf("deserializeEmailToken() = %v, want %v", gotContent, tt.expectedContent)
+				t.Errorf("serializeEmailToken() = %v, want %v", gotContent, tt.expectedContent)
 			}
 		})
 	}

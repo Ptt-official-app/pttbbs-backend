@@ -46,7 +46,7 @@ func serializeEmailToken(email string, userID bbs.UUserID, token string, urlTemp
 	urlMap := map[string]string{
 		"user_id": userIDStr,
 	}
-	url := types.HTTP_SCHEME + types.HTTP_HOST + utils.MergeURL(urlMap, urlTemplate)
+	url := types.URL_PREFIX + utils.MergeURL(urlMap, urlTemplate)
 
 	url += fmt.Sprintf("?%v=%v", types.EMAIL_TOKEN_NAME, token)
 

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"net/http/httptest"
 	"reflect"
 	"sync"
 	"testing"
@@ -8,6 +9,7 @@ import (
 
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
+	"github.com/Ptt-official-app/pttbbs-backend/oidcop"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
@@ -20,8 +22,19 @@ func TestRegisterUser(t *testing.T) {
 
 	defer schema.AccessToken_c.Drop()
 
+	_, err := oidcop.NewProvider()
+	if err != nil {
+		logrus.Errorf("TestLogin: unable to oidcop.NewProvider: e: %v", err)
+	}
+	defer func() {
+		oidcop.PROVIDER = nil
+	}()
+
 	token, err := schema.SetEmailVerification("test@ptt.test", time.Duration(1)*time.Second)
 	logrus.Infof("api.TestRegisterUser: after SetEmailVerification: e: %v", err)
+
+	client := schema.NewClient(types.WEB_CLIENT_ID, types.CLIENT_TYPE_APP, nil, "localhost")
+	_ = schema.UpdateClient(client)
 
 	params0 := &RegisterUserParams{
 		Token: token,
@@ -29,7 +42,11 @@ func TestRegisterUser(t *testing.T) {
 
 	expectedDB0 := []*schema.AccessToken{{UserID: "SYSOP"}}
 
-	expected0 := types.INIT_URL
+	expected0 := types.FRONTEND_INIT_URL
+
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(w)
 
 	type args struct {
 		remoteAddr string
@@ -46,7 +63,7 @@ func TestRegisterUser(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{
-			args:               args{remoteAddr: "localhost", params: params0},
+			args:               args{remoteAddr: "localhost", params: params0, c: ctx},
 			expectedResult:     expected0,
 			expectedStatusCode: 303,
 			expectedDB:         expectedDB0,

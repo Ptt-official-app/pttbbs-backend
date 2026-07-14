@@ -8,5 +8,5 @@ func ToURL(fbboardID FBoardID, farticleID FArticleID) string {
 	if fbboardID == "" || farticleID == "" {
 		return ""
 	}
-	return types.URL_PREFIX + "/" + "board" + "/" + string(fbboardID) + "/" + "article" + "/" + string(farticleID)
+	return types.FRONTEND_PREFIX + "/" + "board" + "/" + string(fbboardID) + "/" + "article" + "/" + string(farticleID)
 }

@@ -7,19 +7,28 @@ import (
 )
 
 var (
-	SERVICE_MODE = DEV // can be DEV, PRODUCTION, INFO, DEBUG
+	SERVICE_MODE = DEV // can be DEV, PRODUCTION, STAGING, INFO, DEBUG
 
-	HTTP_SCHEME       = "http://"
-	HTTP_HOST         = "localhost:3457"            // serving http-host
-	URL_PREFIX        = "http://localhost:3457/bbs" // advertising url-prefix (for constructing article url)
-	BACKEND_PREFIX    = "http://localhost:3456/v1"  // backend url-prefix
-	FRONTEND_PREFIX   = "http://localhost:5173"     // frontend-prefix, email
-	API_PREFIX        = "/api"                      // api-prefix
+	HTTP_SCHEME      = "http://"
+	HTTP_HOST        = "localhost:3457"            // serving http-host
+	URL_PREFIX       = "http://localhost:3457/bbs" // advertising url-prefix (for constructing article url)
+	GO_PTTBBS_PREFIX = "http://localhost:3456/v1"  // backend url-prefix
+
+	FRONTEND_PREFIX    = "http://localhost:5173" // frontend-prefix, email
+	FRONTEND_LOGIN_URL = "http://localhost:5173/login"
+	FRONTEND_INIT_URL  = "http://localhost:5173/init"
+	FRONTEND_ERR_URL   = "http://localhost:5173/error"
+
+	API_PREFIX        = "/api" // api-prefix
 	REGISTER_USER_URL = "http://localhost:3457/api/account/register"
-	INIT_URL          = "http://localhost:5173/init"
-	ERR_URL           = "http://localhost:5173/error"
 	ZK_PREFIX         = "http://localhost:3458"
 	EMAIL_URL         = "http://localhost:3457" // for email url
+
+	OIDC_OP_KEY             = "oidc-op-key"
+	OIDC_OP_KEY_ID          = "oidc-op-key-id"
+	OIDC_OP_POST_LOGOUT_URL = "http://localhost:5173"
+	OIDC_OP_ISSUER          = "http://localhost:3457"
+	OIDC_OP_IS_ALLOW_HTTP   = true
 
 	PTTSYSOP = bbs.UUserID("SYSOP")
 
@@ -28,24 +37,27 @@ var (
 	SENDER_SUFFIX = "管理員"    // for utils.SendEmail
 
 	// web
-	STATIC_DIR           = "docs/examples"
+	STATIC_DIR = "docs/examples"
+
 	ALLOW_ORIGINS        = []string{"*"}
 	BLOCKED_REFERERS     = []string{}
 	IS_ALLOW_CROSSDOMAIN = true
 
 	COOKIE_DOMAIN       = "localhost"
-	TOKEN_COOKIE_SUFFIX = "Secure;"
+	TOKEN_COOKIE_SUFFIX = ""
 
 	CSRF_SECRET            = []byte("test_csrf_secret")
 	CSRF_TOKEN             = "csrftoken"
 	CSRF_TOKEN_TS          = 3600 // csrf-token expires in 1 hour.
 	CSRF_TOKEN_TS_DURATION = time.Duration(CSRF_TOKEN_TS) * time.Second
+	CSRF_COOKIE_DOMAIN     = "localhost"
 
 	ACCESS_TOKEN_NAME               = "token" // access-token-name in cookie
 	ACCESS_TOKEN_EXPIRE_TS          = 86400
 	ACCESS_TOKEN_EXPIRE_TS_DURATION = time.Duration(ACCESS_TOKEN_EXPIRE_TS) * time.Second
 	ACCESS_TOKEN_SECRET             = []byte("access_token_secret")
 
+	REFRESH_TOKEN_NAME               = "refresh_token" // refresh-token-name in cookie
 	REFRESH_TOKEN_EXPIRE_TS          = 86400
 	REFRESH_TOKEN_EXPIRE_TS_DURATION = time.Duration(REFRESH_TOKEN_EXPIRE_TS) * time.Second
 	REFRESH_TOKEN_SECRET             = []byte("refresh_token_secret")
@@ -88,6 +100,9 @@ var (
 
 	EXPIRE_USER_ID_EMAIL_IS_NOT_SET_NANO_TS = NanoTS(300 * 1000000000) // 5 mins
 	EXPIRE_USER_EMAIL_IS_NOT_SET_NANO_TS    = NanoTS(300 * 1000000000) // 5 mins
+
+	EXPIRE_OIDC_AUTH_REQUEST_TS          = 300
+	EXPIRE_OIDC_AUTH_REQUEST_TS_DURATION = time.Duration(EXPIRE_OIDC_AUTH_REQUEST_TS) * time.Second
 
 	// 2fa
 	IS_2FA                         = true

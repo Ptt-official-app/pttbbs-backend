@@ -37,7 +37,7 @@ func TestCrossPost(t *testing.T) {
 			Owner:       "SYSOP",
 			Title:       "this is a test",
 			Class:       "轉",
-			URL:         "http://localhost:3457/bbs/board/WhoAmI/article/M.1607937174.A.081",
+			URL:         "http://localhost:5173/board/WhoAmI/article/M.1607937174.A.081",
 			SubjectType: ptttype.SUBJECT_FORWARD,
 		},
 

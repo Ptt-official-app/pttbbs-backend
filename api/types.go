@@ -1,6 +1,8 @@
 package api
 
 import (
+	"time"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
@@ -31,11 +33,14 @@ type ClientInfo struct {
 
 type UserInfo struct {
 	UserID   bbs.UUserID
+	Username string
 	IsOver18 bool
 }
 
 type JwtClaim struct {
-	ClientInfo string `json:"cli"`
-	UUserID    string `json:"sub"`
-	Expire     int    `json:"exp"`
+	ClientID   string           `json:"cli"`
+	ClientType types.ClientType `json:"typ"`
+	UUserID    string           `json:"sub"`
+	Over18     bool             `json:"over18"`
+	Expire     time.Time        `json:"exp"`
 }

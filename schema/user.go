@@ -16,6 +16,10 @@ type User struct {
 	Username   string       `bson:"username"`
 	UsernameNS types.NanoTS `bson:"username_ns"`
 
+	FamilyName string `bson:"familyname"`
+	GivenName  string `bson:"givenname"`
+	Locale     string `bson:"locale"`
+
 	Realname string `bson:"realname"`
 	Nickname string `bson:"nickname"`
 
@@ -218,6 +222,10 @@ func assertUserFields() error {
 	}
 
 	if err := assertFields(EMPTY_USER, EMPTY_USER_IS_GOVERNMENT_ID_OVER18); err != nil {
+		return err
+	}
+
+	if err := assertFields(EMPTY_USER, EMPTY_USER_PROFILE); err != nil {
 		return err
 	}
 
