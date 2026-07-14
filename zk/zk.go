@@ -156,12 +156,13 @@ func NewZKLinkVerifyProxy() *httputil.ReverseProxy {
 		}
 
 		nowNS := types.NowNanoTS()
-		err = schema.UpdateUserIsGovernmentID(userID, verifyResponse.Verified, nowNS)
+		err = schema.SetUserIsGovernmentIDOver18(userID, nowNS)
 		if err != nil {
 			return err
 		}
 
 		return nil
 	}
+
 	return proxy
 }
