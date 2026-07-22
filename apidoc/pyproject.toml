@@ -6,7 +6,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'pttbbs-backend'
-version = '0.43.4'
+version = 'v0.44.0'
 description = ''
 readme = 'README.md'
 authors = [
