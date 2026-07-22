@@ -15,10 +15,6 @@ func checkClient(clientID string, clientSecret string) (isValid bool, client *sc
 		return false, nil
 	}
 
-	if client.ClientSecret != clientSecret {
-		return false, nil
-	}
-
 	return true, client
 }
 

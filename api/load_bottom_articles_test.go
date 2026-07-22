@@ -65,7 +65,7 @@ func TestLoadBottomArticles(t *testing.T) {
 				Class:      "問題",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1234560000.A.081",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1234560000.A.081",
 				Read:       false,
 
 				Idx: "1234560000@19bUG021",
@@ -85,7 +85,7 @@ func TestLoadBottomArticles(t *testing.T) {
 				Class:      "問題",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1234567890.A.123",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1234567890.A.123",
 				Read:       true,
 
 				Idx:       "1234567890@19bWBI4Z",
@@ -103,7 +103,7 @@ func TestLoadBottomArticles(t *testing.T) {
 				Class:      "閒聊",
 				Money:      0,
 				Filemode:   0,
-				URL:        "http://localhost:3457/bbs/board/WhoAmI/article/M.1607937174.A.081",
+				URL:        "http://localhost:5173/board/WhoAmI/article/M.1607937174.A.081",
 				Read:       false,
 
 				Idx:       "1607937174@1VrooM21",

@@ -26,4 +26,6 @@ var (
 	TEMPLATE_BBSNAME_EN = "__BBSNAME_EN__"
 
 	ZK_USER_ID_KEY = "PTTBBS_USER_ID"
+
+	WEB_CLIENT_ID = "web"
 )

@@ -25,6 +25,8 @@ const (
 
 	INIT_USERNAME_PREFIX     = "friend"
 	INIT_USERNAME_RANDOM_LEN = 6
+
+	CTX_ISSUER_KEY = 0
 )
 
 var (

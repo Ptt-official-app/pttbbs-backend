@@ -10,9 +10,21 @@ func processResult(c *gin.Context, result interface{}, statusCode int, err error
 
 	if statusCode == 200 {
 		c.JSON(200, result)
-	} else {
-		c.JSON(statusCode, &errResult{Msg: err.Error(), TokenUser: userID})
+		return
 	}
+
+	if statusCode == 303 {
+		redirectURL, ok := result.(string)
+		if !ok {
+			c.JSON(500, &errResult{Msg: ErrInvalidRedirect.Error(), TokenUser: userID})
+			return
+		}
+
+		c.Redirect(statusCode, redirectURL)
+		return
+	}
+
+	c.JSON(statusCode, &errResult{Msg: err.Error(), TokenUser: userID})
 }
 
 func processStringResult(c *gin.Context, content string, contentType string) {

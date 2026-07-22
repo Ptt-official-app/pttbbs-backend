@@ -14,7 +14,7 @@ func TestUpdateClient(t *testing.T) {
 
 	defer Client_c.Drop()
 
-	client := NewClient("test_client_id2", types.CLIENT_TYPE_APP, "localhost")
+	client := NewClient("test_client_id2", types.CLIENT_TYPE_APP, nil, "localhost")
 
 	type args struct {
 		c *Client

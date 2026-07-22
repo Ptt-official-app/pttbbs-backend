@@ -19,7 +19,7 @@ func TestToURL(t *testing.T) {
 		{
 			name: "should be {URL}/board/Baseball/article/M.1629685889.A.AEB",
 			args: args{fbboardID: "Baseball", farticleID: "M.1629685889.A.AEB"},
-			want: types.URL_PREFIX + "/board/Baseball/article/M.1629685889.A.AEB",
+			want: types.FRONTEND_PREFIX + "/board/Baseball/article/M.1629685889.A.AEB",
 		},
 		{
 			name: "null board should return empty string",

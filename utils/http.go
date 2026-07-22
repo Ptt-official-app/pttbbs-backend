@@ -34,7 +34,7 @@ func BackendPost(c *gin.Context, url string, postData interface{}, headers map[s
 		return mockhttp.HTTPPost(url, postData, result)
 	}
 
-	url = withBackendPrefix(url)
+	url = withGoPTTBBSPrefix(url)
 
 	if headers == nil {
 		headers = make(map[string]string)
@@ -63,7 +63,7 @@ func BackendGet(c *gin.Context, url string, params interface{}, headers map[stri
 		return mockhttp.HTTPPost(url, params, result)
 	}
 
-	url = withBackendPrefix(url)
+	url = withGoPTTBBSPrefix(url)
 
 	if headers == nil {
 		headers = make(map[string]string)
@@ -86,7 +86,7 @@ func BackendGet(c *gin.Context, url string, params interface{}, headers map[stri
 func httpUpdateHeaders(headers map[string]string, c *gin.Context) {
 	if c == nil {
 		headers["Content-Type"] = "application/json"
-		headers["Host"] = types.HTTP_HOST
+		headers["Host"] = types.URL_PREFIX
 		headers["X-Forwarded-For"] = "127.0.0.1"
 		return
 	}
@@ -94,7 +94,7 @@ func httpUpdateHeaders(headers map[string]string, c *gin.Context) {
 	remoteAddr := c.ClientIP()
 
 	headers["Content-Type"] = "application/json"
-	headers["Host"] = types.HTTP_HOST
+	headers["Host"] = types.URL_PREFIX
 	headers["X-Forwarded-For"] = remoteAddr
 
 	authorization := c.GetHeader("Authorization")
@@ -152,8 +152,8 @@ func httpProcess(req *http.Request, headers map[string]string, result interface{
 	return 200, nil
 }
 
-func withBackendPrefix(url string) string {
-	return types.BACKEND_PREFIX + url
+func withGoPTTBBSPrefix(url string) string {
+	return types.GO_PTTBBS_PREFIX + url
 }
 
 func MergeURL(urlMap map[string]string, url string) string {
@@ -185,4 +185,21 @@ func GetCookie(c *gin.Context, name string) string {
 	}
 
 	return cookie.Value
+}
+
+func GetAccessToken(c *gin.Context) (token string) {
+	token = c.GetHeader("Authorization")
+	if token == "" {
+		return GetCookie(c, types.ACCESS_TOKEN_NAME)
+	}
+
+	splitTokens := strings.Split(token, " ")
+	if len(splitTokens) != 2 {
+		return ""
+	}
+	if splitTokens[0] != "Bearer" {
+		return ""
+	}
+
+	return splitTokens[1]
 }

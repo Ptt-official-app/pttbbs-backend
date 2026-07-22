@@ -45,12 +45,10 @@ func loginRequiredPathProcess(theFunc LoginRequiredPathAPIFunc, params interface
 		return
 	}
 
-	userID, err := verifyJwt(c)
+	userID, isOver18, err := verifyJwt(c)
 	if err != nil {
 		userID = bbs.UUserID(pttbbsapi.GUEST)
 	}
-
-	isOver18 := verifyIsOver18(c)
 
 	if userID != bbs.UUserID(pttbbsapi.GUEST) {
 		userVisit := &schema.UserVisit{

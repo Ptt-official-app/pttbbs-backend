@@ -3,7 +3,6 @@ package api
 import (
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
-	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -75,7 +74,7 @@ func ChangePasswd(remoteAddr string, user *UserInfo, params interface{}, path in
 	// result
 	ret := NewChangePasswdResult(result_b)
 
-	setTokenToCookie(c, result_b.Jwt)
+	// setTokenToCookie(c, result_b.Jwt)
 
 	return ret, 200, nil
 }
@@ -86,7 +85,7 @@ func NewChangePasswdResult(result_b *pttbbsapi.ChangePasswdResult) *ChangePasswd
 		AccessToken:     result_b.Jwt,
 		TokenType:       "bearer",
 		RefreshToken:    result_b.Refresh,
-		AccessExpireTS:  types.Time8(result_b.AccessExpire),
-		RefreshExpireTS: types.Time8(result_b.RefreshExpire),
+		AccessExpireTS:  uint64(result_b.AccessExpire),
+		RefreshExpireTS: uint64(result_b.RefreshExpire),
 	}
 }

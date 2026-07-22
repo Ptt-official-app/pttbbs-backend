@@ -42,7 +42,7 @@ func TestGetArticleDetail(t *testing.T) {
 		CreateTime: types.Time8(1608386280),
 		MTime:      types.Time8(1608386280),
 
-		URL:  "http://localhost:3457/bbs/board/WhoAmI/article/M.1608386280.A.BC9",
+		URL:  "http://localhost:5173/board/WhoAmI/article/M.1608386280.A.BC9",
 		Read: true,
 
 		Title:         "然後呢？～",
@@ -116,7 +116,7 @@ func TestGetArticleDetail(t *testing.T) {
 		CreateTime: types.Time8(1607937174),
 		MTime:      types.Time8(1607937100),
 
-		URL:  "http://localhost:3457/bbs/board/WhoAmI/article/M.1607937174.A.081",
+		URL:  "http://localhost:5173/board/WhoAmI/article/M.1607937174.A.081",
 		Read: true,
 
 		Title:         "再來呢？～",

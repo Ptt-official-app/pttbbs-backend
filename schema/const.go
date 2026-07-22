@@ -33,9 +33,19 @@ const (
 	ARGON2_THREADS  = 4
 	ARGON2_KEYLEN   = 32
 
-	RDB_PREFIX_2FA   = "2fa:"
-	RDB_PREFIX_EMAIL = "email:"
-	RDB_PREFIX_LOCK  = "lock:"
+	RDB_PREFIX_SEPARATOR                             = ":"
+	RDB_PREFIX_2FA                                   = "2fa" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_EMAIL                                 = "email" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_LOCK                                  = "lock" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_OIDC_OP_CODE                          = "opcode" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_OIDC_OP_REQUEST                       = "opreq" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_OIDC_OP_REQUEST_CHALLENGE             = "opreqchal" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_OIDC_OP_REQUEST_IS_AUTH               = "opreqauth" + RDB_PREFIX_SEPARATOR
+	RDB_OIDC_OP_REQUEST_TRUE                         = "1"
+	RDB_PREFIX_OIDC_OP_CHALLENGE                     = "opchal" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_OIDC_OP_ACCESS_TOKEN                  = "opaccess" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_OIDC_OP_ACCESS_TOKEN_SUBJECT_CLIENTID = "opaccesssubcli" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_OIDC_OP_REFRESH_TOKEN                 = "oprefresh" + RDB_PREFIX_SEPARATOR
 )
 
 var (

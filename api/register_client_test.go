@@ -11,6 +11,8 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/sirupsen/logrus"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
+	"github.com/zitadel/oidc/v3/pkg/op"
 )
 
 func TestRegisterClient(t *testing.T) {
@@ -23,13 +25,16 @@ func TestRegisterClient(t *testing.T) {
 		ClientID: "test_client_id",
 	}
 
-	expected := &RegisterClientResult{ClientSecret: "test_client_secret", TokenUser: "SYSOP"}
+	expected := &RegisterClientResult{TokenUser: "SYSOP"}
 
 	expectedDB := []*schema.Client{
 		{
-			ClientID:     "test_client_id",
-			ClientSecret: "test_client_secret",
-			RemoteAddr:   "localhost",
+			ClientID:           "test_client_id",
+			RemoteAddr:         "localhost",
+			TheApplicationType: op.ApplicationTypeNative,
+			TheAccessTokenType: op.AccessTokenTypeJWT,
+			TheResponseTypes:   []oidc.ResponseType{oidc.ResponseTypeCode, oidc.ResponseTypeIDToken, oidc.ResponseTypeIDTokenOnly},
+			TheGrantTypes:      []oidc.GrantType{oidc.GrantTypeBearer, oidc.GrantTypeCode, oidc.GrantTypeRefreshToken},
 		},
 	}
 

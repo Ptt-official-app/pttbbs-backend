@@ -5,7 +5,6 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/apitypes"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 const LOAD_MAN_ARTICLES_R = "/board/:bid/manuals"
@@ -49,7 +48,6 @@ func LoadManArticles(remoteAddr string, user *UserInfo, params interface{}, path
 
 	// check board permission
 	_, err = CheckUserBoardPermReadable(user, boardID, c)
-	logrus.Infof("api.LoadManArticles: after CheckUserBoardPermReadable: user: %v boardID: %v e: %v", user, boardID, err)
 	if err != nil {
 		return nil, 403, err
 	}
