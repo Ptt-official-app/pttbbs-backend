@@ -133,7 +133,7 @@ func dbcsToBig5PerLine(dbcs []byte, color0 types.Color) ([]*types.Rune, types.Co
 	big5 := make([]*types.Rune, 0, expectedLenBig5)
 	dbcsStat := DBCS_STATE_NONE
 	startIdx := 0
-	color1 := types.InvalidColor
+	color1 := color0
 	dbcs0Pos := -1
 	// 3. for-loop
 	for idx := 0; idx < len(dbcs); {
@@ -190,6 +190,7 @@ func dbcsToBig5PerLine(dbcs []byte, color0 types.Color) ([]*types.Rune, types.Co
 						DBCS:   eachDBCS,
 					}
 					big5 = append(big5, r)
+					color0 = color1 // color0 becomes color1 now.
 				}
 				startIdx = dbcs0Pos
 			case DBCS_STATE_NONE:
@@ -217,6 +218,7 @@ func dbcsToBig5PerLine(dbcs []byte, color0 types.Color) ([]*types.Rune, types.Co
 				}
 				big5 = append(big5, r)
 				startIdx = idx
+				color0 = color1 // color0 becomes color1 now.
 
 				dbcsStat = DBCS_STATE_NONE // dealt with tail, re-starting from none.
 				color1 = types.InvalidColor
@@ -225,6 +227,7 @@ func dbcsToBig5PerLine(dbcs []byte, color0 types.Color) ([]*types.Rune, types.Co
 			color, nBytes := dbcsParseColor(dbcs[idx:])
 			if dbcsStat != DBCS_STATE_LEAD {
 				color0 = dbcsIntegrateColor(color0, color)
+				color1 = color0 // color1 should be the same as color0 once color0 is set.
 			} else {
 				color1 = dbcsIntegrateColor(color1, color)
 			}
@@ -391,10 +394,10 @@ func dbcsParseColor(dbcs []byte) (color types.Color, nBytes int) {
 		}
 
 		colorCodeList := bytes.Split(p_dbcs[2:idxM], []byte{';'})
+
 		for idx, each := range colorCodeList {
 			if idx == 0 && len(each) == 0 { // reset
-				color = types.DefaultColor
-				color.IsReset = true
+				color = types.ResetColor
 				continue
 			}
 
@@ -403,6 +406,8 @@ func dbcsParseColor(dbcs []byte) (color types.Color, nBytes int) {
 				continue
 			}
 			switch {
+			case intColor == 0:
+				color = types.ResetColor
 			case intColor == 1:
 				color.Highlight = true
 			case intColor == 5:
