@@ -517,3 +517,40 @@ func TestUtf8ToDBCS(t *testing.T) {
 		})
 	}
 }
+
+func Test_dbcsParseColor(t *testing.T) {
+	tests := []struct {
+		name string // description of this test case
+		// Named input parameters for target function.
+		dbcs  []byte
+		want  types.Color
+		want2 int
+	}{
+		// TODO: Add test cases.
+		{
+			dbcs:  []byte{'\x1b', '[', '0', 'm'},
+			want:  types.ResetColor,
+			want2: 4,
+		},
+		{
+			dbcs:  []byte{'\x1b', '[', 'm'},
+			want:  types.ResetColor,
+			want2: 3,
+		},
+		{
+			dbcs:  []byte{'\x1b', '[', ';', '3', '2', 'm'},
+			want:  types.Color{Foreground: types.COLOR_FOREGROUND_GREEN, Background: types.COLOR_BACKGROUND_BLACK, IsReset: true},
+			want2: 6,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got2 := dbcsParseColor(tt.dbcs)
+			// TODO: update the condition below to compare got with tt.want.
+			testutil.TDeepEqual(t, tt.name, &got, &tt.want)
+			if got2 != tt.want2 {
+				t.Errorf("got2 = %v, want2 %v", got2, tt.want2)
+			}
+		})
+	}
+}
