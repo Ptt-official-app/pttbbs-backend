@@ -288,6 +288,8 @@ func main() {
 		// retry load man article details
 		g.AddRunningJob(cron.RetryLoadManArticleDetails)
 
+		// retry load popular boards
+		g.AddRunningJob(cron.RetryLoadPopularBoards)
 	} else {
 		// retry load popular boards
 		g.AddRunningJob(cron.RetryLoadPopularBoards)
