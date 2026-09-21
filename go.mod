@@ -7,7 +7,7 @@ require (
 	github.com/appleboy/graceful v1.3.0
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
-	github.com/go-jose/go-jose/v4 v4.1.4
+	github.com/go-jose/go-jose/v4 v4.1.5
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-viper/encoding/ini v0.1.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
