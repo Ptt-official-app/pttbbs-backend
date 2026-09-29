@@ -1,9 +1,0 @@
-DeleteCommentParams:
-  type: object
-  properties:
-    cid:
-      type: string
-      description: comment id
-    reason:
-      type: string
-      description: delete reason

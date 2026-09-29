@@ -1,7 +1,0 @@
-ParamsFields:
-  name: 'fields'
-  in: 'query'
-  required: false
-  description: 'fields to retrieve, separated by ,(comma)'
-  type: string
-  default: ''

@@ -1,8 +1,0 @@
-UserDetail:
-  type: object
-  properties:
-    !include uid.yaml
-    !include username_core.yaml
-    !include nickname_core.yaml
-    !include user_detail_core.yaml
-    !include tokenuser.yaml

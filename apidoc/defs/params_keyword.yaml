@@ -1,7 +1,0 @@
-ParamsKeyword:
-  name: 'keyword'
-  in: 'query'
-  required: false
-  description: "query keyword, '' returns all boards"
-  type: string
-  default: ''

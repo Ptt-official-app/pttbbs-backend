@@ -1,8 +1,0 @@
-Comment:
-  type: object
-  properties:
-    !include bid_core.yaml
-    !include aid_core.yaml
-    !include cid_core.yaml
-    !include comment_core.yaml
-    !include tokenuser.yaml

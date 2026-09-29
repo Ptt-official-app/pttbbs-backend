@@ -1,6 +1,0 @@
-read:
-  type: boolean
-  description: 已讀這個板的最新文章.
-fav:
-  type: boolean
-  description: 我的最愛.

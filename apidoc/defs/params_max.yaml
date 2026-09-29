@@ -1,7 +1,0 @@
-ParamsLimit:
-  name: 'limit'
-  in: 'query'
-  required: false
-  description: "max number of the returned list, requiring <= 200"
-  type: number
-  default: 200

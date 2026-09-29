@@ -1,7 +1,0 @@
-ParamsDesc:
-  name: 'desc'
-  in: 'query'
-  required: false
-  description: "descending (or ascending if false)"
-  type: boolean
-  default: true

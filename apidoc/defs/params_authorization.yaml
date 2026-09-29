@@ -1,8 +1,0 @@
-ParamsAuthorization:
-  name: 'Authorization'
-  in: 'header'
-  required: false
-  description: "bearer [token]"
-  type: string
-  default: ''
-

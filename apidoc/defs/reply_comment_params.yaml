@@ -1,8 +1,0 @@
-ReplyCommentParams:
-  type: object
-  properties:
-    cid:
-      type: string
-      description: comment id
-    content:
-      '$ref': '#/definitions/Content'

@@ -1,3 +1,0 @@
-tokenuser:
-  type: string
-  description: the user-id of the token.

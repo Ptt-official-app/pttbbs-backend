@@ -1,6 +1,0 @@
-ParamsSortBy:
-  name: 'sortby'
-  in: 'query'
-  required: false
-  description: '<a href="https://github.com/Ptt-official-app/go-pttbbs/blob/main/ptttype/bsort_by.go">sort-by</a>'
-  default: 0 (sort-by-name)

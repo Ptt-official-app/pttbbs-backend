@@ -1,4 +1,0 @@
-AccountLoginParams:
-  type: object
-  properties:
-    !include account_login_core.yaml

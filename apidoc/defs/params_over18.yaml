@@ -1,7 +1,0 @@
-ParamsOver18:
-  name: 'Cookie'
-  in: 'header'
-  required: false
-  description: "if over18 is true: over18=1"
-  type: string
-  default: ''
