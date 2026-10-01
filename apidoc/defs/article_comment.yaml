@@ -1,8 +1,0 @@
-ArticleComment:
-  type: object
-  properties:
-    !include bid_core.yaml
-    !include aid_core.yaml
-    !include cid_core.yaml
-    !include article_comment_core.yaml
-

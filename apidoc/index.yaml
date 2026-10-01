@@ -1,8 +1,0 @@
-index
----
-tags:
-  - misc
-definitions:
-responses:
-  200:
-    description: index

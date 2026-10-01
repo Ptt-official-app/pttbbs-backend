@@ -1,8 +1,0 @@
-DeleteArticlesParams:
-  type: object
-  properties:
-    aids:
-      type: array
-      items:
-        type: string
-      description: array of to-be-delete article-ids

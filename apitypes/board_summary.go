@@ -33,7 +33,7 @@ type BoardSummary struct {
 	Gid ptttype.Bid `json:"gid"`
 	Bid ptttype.Bid `json:"pttbid"`
 
-	Idx string `json:"idx"`
+	Idx string `json:"idx,omitempty"`
 
 	TokenUser bbs.UUserID `json:"tokenuser,omitempty"`
 

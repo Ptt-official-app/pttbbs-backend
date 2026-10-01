@@ -1,6 +1,0 @@
-Content:
-  type: array
-  items:
-    type: array
-    items:
-      '$ref': '#/definitions/Rune'

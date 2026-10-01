@@ -1,7 +1,0 @@
-ParamsAsc:
-  name: 'asc'
-  in: 'query'
-  required: false
-  description: "ascending (or descending if false)"
-  type: boolean
-  default: true

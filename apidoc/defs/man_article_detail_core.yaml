@@ -1,3 +1,0 @@
-content:
-  '$ref': '#/definitions/Content'
-  description: 本文

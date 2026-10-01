@@ -1,7 +1,0 @@
-ParamsTitle:
-  name: 'title'
-  in: 'query'
-  required: false
-  description: "query title, '' returns all boards"
-  type: string
-  default: ''

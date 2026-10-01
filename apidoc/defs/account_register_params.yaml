@@ -1,5 +1,0 @@
-AccountRegisterParams:
-  type: object
-  properties:
-    !include account_login_core.yaml
-    !include account_register_params_extra_core.yaml

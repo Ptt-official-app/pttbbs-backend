@@ -1,7 +1,0 @@
-UserSummary:
-  type: object
-  properties:
-    !include uid_core.yaml
-    !include username_core.yaml
-    !include nickname_core.yaml
-    !include user_summary_core.yaml

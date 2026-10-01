@@ -1,9 +1,0 @@
-ChangeEmailResult:
-  type: object
-  properties:
-    email:
-      type: string
-      required: true
-    tokenuser:
-      type: string
-      description: the user-id of the token.
