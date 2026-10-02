@@ -23,7 +23,7 @@ jobs:
       - name: check golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.7
+          version: latest
           args: --verbose
 
   build:
