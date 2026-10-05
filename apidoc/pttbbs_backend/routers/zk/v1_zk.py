@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from .types import (
+from .v1_types import (
     ChallengeResponse,
     IssuerCertStatusResponse,
     LinkVerifyRequest,

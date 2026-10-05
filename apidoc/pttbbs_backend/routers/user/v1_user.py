@@ -2,9 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from ..board.types import BoardSummary
+from ..board.v1_types import BoardSummary
 from ..types import FavID, Username
-from .types import (
+from .v1_types import (
     UserDetail,
 )
 

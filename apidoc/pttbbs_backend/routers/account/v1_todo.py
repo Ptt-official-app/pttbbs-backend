@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from .types import AttemptChangeEmailParams, AttemptSet6238Params, ChangeEmailParams, Set6238Params
+from .v1_types import AttemptChangeEmailParams, AttemptSet6238Params, ChangeEmailParams, Set6238Params
 
 router = APIRouter(
     tags=['TODO']
