@@ -1,10 +1,3 @@
+from . import v1_account
 
-from fastapi import APIRouter
-
-from . import account
-
-router = APIRouter()
-
-router.include_router(
-    account.router,
-)
+v1_router = v1_account.router

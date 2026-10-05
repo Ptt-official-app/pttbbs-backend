@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from ..board.types import BoardSummary
+from ..board.v1_types import BoardSummary
 from ..types import Perm, Time8, Username
 
 

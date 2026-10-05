@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 
 from ..types import Brdname
-from .types import (
+from .v1_types import (
     BoardDetail,
     BoardSummary,
     LoadAutoCompleteBoardsParams,

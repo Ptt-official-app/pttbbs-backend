@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from ..types import Brdname
-from .types import (
+from .v1_types import (
     BoardSummary,
     CreateBoardParams,
     LoadGeneralBoardsResult,

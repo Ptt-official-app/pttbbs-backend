@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from .routers import account, article, board, misc, todo, user, zk
 
-_PREFIX = '/api/v1'
+_V1_PREFIX = '/api/v1'
 
 
 class Resp500(BaseModel):
@@ -27,37 +27,37 @@ app = FastAPI(
 )
 
 app.include_router(
-    misc.router,
-    prefix=_PREFIX
+    misc.v1_router,
+    prefix=_V1_PREFIX
 )
 
 app.include_router(
-    account.router,
-    prefix=_PREFIX
+    account.v1_router,
+    prefix=_V1_PREFIX
 )
 
 app.include_router(
     zk.router,
-    prefix=_PREFIX
+    prefix=_V1_PREFIX
 )
 
 app.include_router(
-    user.router,
-    prefix=_PREFIX
+    user.v1_router,
+    prefix=_V1_PREFIX
 )
 
 app.include_router(
-    board.router,
-    prefix=_PREFIX
+    board.v1_router,
+    prefix=_V1_PREFIX
 )
 
 app.include_router(
-    article.router,
-    prefix=_PREFIX
+    article.v1_router,
+    prefix=_V1_PREFIX
 )
 
 
 app.include_router(
-    todo.router,
-    prefix=_PREFIX
+    todo.v1_router,
+    prefix=_V1_PREFIX
 )

@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from .types import GetVersionResult, IndexParams, IndexResult
+from .v1_types import GetVersionResult, IndexParams, IndexResult
 
 router = APIRouter(
     tags=['misc']

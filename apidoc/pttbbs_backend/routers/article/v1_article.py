@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from .types import (
+from .v1_types import (
     ArticleDetail,
     GetArticleBlocksParams,
     LoadArticleCommentsParams,
