@@ -3,9 +3,11 @@ import importlib.metadata
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from .routers import account, article, board, misc, todo, user, zk
+from .routers import account, article, board, misc, site, todo, user, zk
 
 _V1_PREFIX = '/api/v1'
+
+_V4_PREFIX = '/api/v4'
 
 
 class Resp500(BaseModel):
@@ -25,6 +27,13 @@ app = FastAPI(
         500: {"model": Resp500}
     }
 )
+
+
+app.include_router(
+    site.router,
+    prefix=_V4_PREFIX
+)
+
 
 app.include_router(
     misc.v1_router,
