@@ -3,7 +3,10 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 
 type Time8 = int
-type Time3339 = Annotated[str, 'in RFC-3339 format']
+type Time3339 = Annotated[
+    str,
+    'in RFC-3339 format (YYYY-MM-DDTHH:MM:SS.ffffffZ)']
+
 
 type Username = str
 type Brdname = str
@@ -11,6 +14,10 @@ type ArticleID = str
 type CommentID = str
 
 type FavID = str
+
+type ID = int
+
+type DbURL = str
 
 
 class Perm(BaseModel):
