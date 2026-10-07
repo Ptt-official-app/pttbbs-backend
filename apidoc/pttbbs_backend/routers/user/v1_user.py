@@ -1,15 +1,12 @@
-from typing import Annotated
+from fastapi import APIRouter
 
-from fastapi import APIRouter, Query
-
-from ..board.v1_types import BoardSummary
-from ..types import FavID, Username
+from ..types import Username
 from .v1_types import (
     UserDetail,
 )
 
 router = APIRouter(
-    tags=['user']
+    tags=['person']
 )
 
 

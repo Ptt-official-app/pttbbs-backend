@@ -2,10 +2,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, UploadFile
 
+from ..types import Result
 from .types import (
     CreateSiteParams,
-    DeleteSiteBannerResult,
-    DeleteSiteIconResult,
     NodeInfo,
     SiteInfo,
     SiteView,
@@ -40,7 +39,7 @@ def upload_site_icon(image: Annotated[UploadFile, File()]) -> UploadSiteIconResu
 
 
 @router.delete('/site/icon')
-def delete_site_icon() -> DeleteSiteIconResult:
+def delete_site_icon() -> Result:
     ...
 
 
@@ -50,7 +49,7 @@ def upload_site_banner(image: Annotated[UploadFile, File()]) -> UploadSiteBanner
 
 
 @router.delete('/site/banner')
-def delete_site_banner() -> DeleteSiteBannerResult:
+def delete_site_banner() -> Result:
     ...
 
 

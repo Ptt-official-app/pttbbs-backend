@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,8 @@ type FavID = str
 type ID = int
 
 type DbURL = str
+
+type PaginationCursor = str
 
 
 class Perm(BaseModel):
@@ -90,3 +92,61 @@ class Rune(BaseModel):
     color0: Color
     color1: Color
     is_url: bool
+
+
+class Result(BaseModel):
+    success: bool
+
+
+class Report(BaseModel):
+    conclusion: str = ''
+    updated_at: Time3339 = ''
+    published_at: Time3339
+    resolver_id: ID = Field(default=0, description='resolver person')
+    resolved: bool
+    reason: str
+    id: ID
+
+
+class ListParams(BaseModel):
+    limit: int = 0
+    page_cursor: PaginationCursor = ''
+
+
+class ListResult[T](BaseModel):
+    prev_page: PaginationCursor
+    next_page: PaginationCursor
+
+    items: list[T]
+
+
+type PostSortType = Literal[
+    'active',
+    'hot',
+    'new',
+    'old',
+    'top',
+    'most_comments',
+    'new_comments',
+    'controversial',
+    'scaled']
+
+
+type PostListingMode = Literal['list', 'card', 'small_card']
+
+type ListingType = Literal[
+    'all', 'local', 'subscribed', 'moderator_view', 'suggested']
+
+type PostNotificationMode = Literal[
+    'all_comments', 'replies_and_mentions', 'none']
+
+type CommentSortType = Literal['hot', 'top', 'new', 'old', 'controversial']
+
+type ReportSortType = Literal['default', 'new', 'old']
+
+type ReportType = Literal[
+    'all',
+    'posts',
+    'comments',
+    'private_messages',
+    'communities']

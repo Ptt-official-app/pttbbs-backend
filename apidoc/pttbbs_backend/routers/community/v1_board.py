@@ -15,7 +15,7 @@ from .v1_types import (
 )
 
 router = APIRouter(
-    tags=['board']
+    tags=['community']
 )
 
 
