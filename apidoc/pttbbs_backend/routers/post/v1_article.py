@@ -13,7 +13,7 @@ from .v1_types import (
 )
 
 router = APIRouter(
-    tags=['article']
+    tags=['post']
 )
 
 

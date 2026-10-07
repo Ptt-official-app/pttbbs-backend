@@ -2,7 +2,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from ..types import ID, DbURL, Time3339
+from ..media.types import ImageMode
+from ..types import ID, CommentSortType, DbURL, ListingType, PostListingMode, PostSortType, Time3339
 from ..user.types import PersonView
 
 
@@ -111,30 +112,10 @@ class CreateLocalSiteRateLimit(BaseModel):
     rate_limit_message_max_requests: int = 0
 
 
-type ImageMode = Literal['none', 'store_link_previews', 'proxy_all_images']
-
 type FederationMode = Literal['all', 'local', 'disable']
-
-type CommentSortType = Literal['hot', 'top', 'new', 'old', 'controversial']
-
-type PostSortType = Literal[
-    'active',
-    'hot',
-    'new',
-    'old',
-    'top',
-    'most_comments',
-    'new_comments',
-    'controversial',
-    'scaled']
-
-type PostListingMode = Literal['list', 'card', 'small_card']
 
 type RegistrationMode = Literal[
     'closed', 'require_application', 'require_invitation', 'open']
-
-type ListingType = Literal[
-    'all', 'local', 'subscribed', 'moderator_view', 'suggested']
 
 
 class LocalSiteConfig(BaseModel):
@@ -342,17 +323,9 @@ class UploadSiteIconResult(BaseModel):
     image_url: str
 
 
-class DeleteSiteIconResult(BaseModel):
-    success: bool
-
-
 class UploadSiteBannerResult(BaseModel):
     filename: str
     image_url: str
-
-
-class DeleteSiteBannerResult(BaseModel):
-    success: bool
 
 
 class NodeInfoServices(BaseModel):

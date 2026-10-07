@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
 from .account import v1_todo as account_todo
-from .article import v1_todo as article_todo
-from .board import v1_todo as board_todo
+from .community import v1_todo as board_todo
+from .post import v1_todo as article_todo
 from .user import v1_todo as user_todo
 
 v1_router = APIRouter()

@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from ..board.v1_types import BoardSummary
+from ..community.v1_types import BoardSummary
 from ..types import FavID, Username
 from .v1_types import (
     AddFavoriteBoardParams,
