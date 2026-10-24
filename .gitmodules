@@ -1,3 +1,9 @@
 [submodule "pttbbs"]
 	path = pttbbs
 	url = https://github.com/ptt/pttbbs.git
+[submodule "lemmy"]
+	path = lemmy
+	url = git@github.com:LemmyNet/lemmy.git
+[submodule "lemmy-js-client"]
+	path = lemmy-js-client
+	url = git@github.com:LemmyNet/lemmy-js-client.git
