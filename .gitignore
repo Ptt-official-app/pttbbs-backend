@@ -26,7 +26,6 @@ coverage.txt
 
 /apidoc/apidoc.egg-info
 /apidoc/__pycache__
-/.dockerignore
 /docker/docker-compose.yaml.me
 /docker/docker_compose.env.me
 /docs/config/00-config-production.go.template.me
