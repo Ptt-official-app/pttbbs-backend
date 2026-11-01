@@ -231,3 +231,5 @@ func DateMinStrToTime(dateTimeStr string) (time.Time, error) {
 func NewDateTime(year int, month time.Month, day int, hr int, minute int, second int) time.Time {
 	return time.Date(year, month, day, hr, minute, second, 0, TIMEZONE).In(TIMEZONE)
 }
+
+type Time8861 string

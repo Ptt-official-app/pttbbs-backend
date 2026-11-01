@@ -1,0 +1,13 @@
+# See the documentation for available config fields and descriptions:
+# https://join-lemmy.org/docs/en/administration/configuration.html
+{
+  setup: {
+    admin_username: "SYSOP"
+    admin_password: "1234567890"
+    site_name: "lemmy-dev"
+  }
+  hostname: lemmy-dev
+  database: {
+    connection: "postgres://SYSOP:12345678@postgres:5432/lemmy-dev"
+  }
+}

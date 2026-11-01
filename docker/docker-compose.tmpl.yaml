@@ -1,0 +1,128 @@
+name: pttbbs-backend
+
+# https://raw.githubusercontent.com/LemmyNet/lemmy-docs/main/assets/docker-compose.yml
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "50m"
+    max-file: "4"
+
+services:
+  go-pttbbs:
+    image: pttofficialapps/go-pttbbs:v0.26.10
+    ports:
+      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:48763:48763"
+      - "127.0.0.1:3458:3456"
+      - "127.0.0.1:[local-port]:[docker-port]"
+    restart: always
+    volumes:
+      - ${BBSHOME}:/home/bbs
+      - ${ETC}:/etc/go-pttbbs
+      - [local absolute directory]:/home/[username]/go-pttbbs
+  mongo:
+    image: mongo:8.0.11
+    restart: always
+    volumes:
+      - ${MONGO}:/data
+      - ${MONGO}/db:/data/db
+      - ${MONGO}/configdb:/data/configdb
+    cpus: ${MONGO_CPU}
+    mem_limit: ${MONGO_MEM}
+    mem_reservation: ${MONGO_MEM}
+  redis:
+    image: redis:6.0.9-alpine
+    restart: always
+  postfix:
+    image: chhsiao1981/docker-postfix
+    volumes:
+      - ${POSTFIX_MAIN_CF}:/etc/postfix/main.cf
+      - ${POSTFIX_MASTER_CF}:/etc/postfix/master.cf
+  pttbbs-backend:
+    image: pttofficialapps/pttbbs-backend:v0.44.3
+    ports:
+      - "127.0.0.1:3457:3457"
+      - "127.0.0.1:[local-port]:[docker-port]"
+    volumes:
+      - ${STATIC_DIR}:/static
+      - ${ETC}:/etc/pttbbs-backend
+      - ${ETC}:/etc/go-pttbbs
+      - [local absolute directory]:/home/[username]/pttbbs-backend
+    restart: always
+
+  # https://raw.githubusercontent.com/LemmyNet/lemmy-docs/main/assets/docker-compose.yml
+  lemmy:
+    image: docker-lemmy:latest
+    hostname: lemmy
+    restart: always
+    logging: *default-logging
+    environment:
+      - RUST_LOG=warn,extism=info,lemmy_server=debug,lemmy_api=debug,lemmy_api_common=debug,lemmy_api_crud=debug,lemmy_apub=debug,lemmy_db_schema=debug,lemmy_db_views=debug,lemmy_routes=debug,lemmy_utils=debug,lemmy_websocket=debug
+      - LEMMY_DISABLE_ACTIVITY_SENDING=true
+      - LEMMY_CONFIG_LOCATION=/config/config.hjson
+    volumes:
+      - type: bind
+        source: ${ETC}/pttbbs-lemmy/lemmy.hjson
+        target: /config/config.hjson
+    depends_on:
+      - postgres
+      - pictrs
+    ports:
+      - 127.0.0.1:8536:8536
+  postgres:
+    image: postgres:18.6-alpine3.24
+    hostname: postgres
+    environment:
+      - POSTGRES_USER=SYSOP
+      - POSTGRES_PASSWORD=12345678
+      - POSTGRES_DB=lemmy-dev
+    restart: always
+    shm_size: 1g
+    volumes:
+      - type: bind
+        source: ${POSTGRES}
+        target: /var/lib/postgresql
+    logging: *default-logging
+    ports:
+      - 127.0.0.1:5432:5432
+  pictrs:
+    image: asonix/pictrs:0.5.24
+    # this needs to match the pictrs url in lemmy.hjson
+    hostname: pictrs
+    # we can set options to pictrs like this, here we set max. image size and forced format for conversion
+    # entrypoint: /sbin/tini -- /usr/local/bin/pict-rs -p /mnt -m 4 --image-format webp
+    environment:
+      - PICTRS_OPENTELEMETRY_URL=http://otel:4137
+      - PICTRS__SERVER__API_KEY=12345678
+      - RUST_BACKTRACE=full
+      - PICTRS__MEDIA__VIDEO__VIDEO_CODEC=vp9
+      - PICTRS__MEDIA__ANIMATION__MAX_WIDTH=256
+      - PICTRS__MEDIA__ANIMATION__MAX_HEIGHT=256
+      - PICTRS__MEDIA__ANIMATION__MAX_FRAME_COUNT=400
+    user: 991:991
+    volumes:
+      - type: bind
+        source: ${PICTRS}
+        target: /mnt
+    restart: always
+    logging: *default-logging
+
+  lemmy-ui:
+    image: docker-lemmy-ui:latest
+    ports:
+      - 127.0.0.1:1234:1234
+    environment:
+      - LEMMY_UI_BACKEND_INTERNAL=lemmy:8536
+
+  pttbbs-lemmy:
+    image: pttofficialapps/pttbbs-lemmy:v0.1.1
+    ports:
+      - "127.0.0.1:8537:8537"
+    environment:
+      - RUST_LOG=warn,extism=info,lemmy_server=debug,lemmy_api=debug,lemmy_api_common=debug,lemmy_api_crud=debug,lemmy_apub=debug,lemmy_db_schema=debug,lemmy_db_views=debug,lemmy_routes=debug,lemmy_utils=debug,lemmy_websocket=debug
+      - LEMMY_DISABLE_ACTIVITY_SENDING=true
+      - LEMMY_CONFIG_LOCATION=/config/config.hjson
+    volumes:
+      - type: bind
+        source: ${ETC}/pttbbs-lemmy/config.hjson
+        target: /config/config.hjson

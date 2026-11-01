@@ -147,4 +147,13 @@ var (
 
 	SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS          = 3600
 	SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS_DURATION = time.Duration(SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS) * time.Second
+
+	// lemmy url prefix
+	LEMMY_PREFIX = "http://localhost:8536/api/v4"
+	// pttbbs-lemmy url prefix
+	PTTBBS_LEMMY_PREFIX = "http://localhost:8537/api/v4"
+	// lemmy admin
+	LEMMY_ADMIN = "SYSOP"
+	// lemmy admin password
+	LEMMY_ADMIN_PASSWORD = "1234567890"
 )
