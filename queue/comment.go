@@ -1,12 +1,15 @@
 package queue
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/dbcs"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
+	"github.com/sirupsen/logrus"
 )
 
 type CommentQueue struct {
@@ -24,15 +27,22 @@ func QueueCommentDBCS(bboardID bbs.BBoardID, articleID bbs.ArticleID, ownerID bb
 		BBoardID:          bboardID,
 		ArticleID:         articleID,
 		OwnerID:           ownerID,
-		CommentDBCS:       commentDBCS,
+		CommentDBCS:       bytes.Clone(commentDBCS),
 		ArticleCreateTime: articleCreateTime,
 		ArticleMTime:      articleMTime,
 		UpdateNanoTS:      updateNanoTS,
 	}
 
-	return client.QueueTask(func(c context.Context) error {
-		return ProcessCommentQueue(commentQueue)
+	err = queueTask(func(c context.Context) error {
+		if err := ProcessCommentQueue(commentQueue); err != nil {
+			return fmt.Errorf("process comments board=%s article=%s: %w", bboardID, articleID, err)
+		}
+		return nil
 	})
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{"board_id": bboardID, "article_id": articleID}).Warn("queue: unable to enqueue comments")
+	}
+	return err
 }
 
 // ProcessCommentQueue

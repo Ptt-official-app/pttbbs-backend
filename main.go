@@ -271,7 +271,11 @@ func main() {
 	}
 
 	g := graceful.NewManager()
+	httpStopped := make(chan struct{})
 	g.AddShutdownJob(func() error {
+		// Shutdown jobs run concurrently with running jobs. Let HTTP requests
+		// finish submitting work before closing queue admission.
+		<-httpStopped
 		queue.Close()
 		return nil
 	})
@@ -303,6 +307,7 @@ func main() {
 	g.AddRunningJob(cron.RetryLoadArticleDetails)
 
 	g.AddRunningJob(func(ctx context.Context) error {
+		defer close(httpStopped)
 		<-ctx.Done()
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
