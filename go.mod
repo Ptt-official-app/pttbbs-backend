@@ -1,6 +1,6 @@
 module github.com/Ptt-official-app/pttbbs-backend
 
-go 1.26.0
+go 1.26.10
 
 require (
 	github.com/Ptt-official-app/go-pttbbs v0.26.10
@@ -11,7 +11,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-viper/encoding/ini v0.1.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/golang-queue/queue v0.5.0
+	github.com/golang-queue/queue v0.6.0
 	github.com/google/go-querystring v1.2.0
 	github.com/google/uuid v1.6.0
 	github.com/sirupsen/logrus v1.10.2
