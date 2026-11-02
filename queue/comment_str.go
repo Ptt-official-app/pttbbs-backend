@@ -2,11 +2,13 @@ package queue
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/dbcs"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
+	"github.com/sirupsen/logrus"
 )
 
 type CommentQueueStr struct {
@@ -30,9 +32,16 @@ func QueueCommentDBCSStr(bboardID bbs.BBoardID, articleID bbs.ArticleID, ownerID
 		UpdateNanoTS:      updateNanoTS,
 	}
 
-	return client.QueueTask(func(c context.Context) error {
-		return ProcessCommentQueueStr(commentQueue)
+	err = queueTask(func(c context.Context) error {
+		if err := ProcessCommentQueueStr(commentQueue); err != nil {
+			return fmt.Errorf("process comments board=%s article=%s: %w", bboardID, articleID, err)
+		}
+		return nil
 	})
+	if err != nil {
+		logrus.WithError(err).WithFields(logrus.Fields{"board_id": bboardID, "article_id": articleID}).Warn("queue: unable to enqueue comments")
+	}
+	return err
 }
 
 // ProcessCommentQueue
