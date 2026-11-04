@@ -1,6 +1,8 @@
 package api
 
 import (
+	"slices"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
@@ -373,10 +375,8 @@ func checkBannedByBoard(userBoardInfo *schema.UserBoard) (err error) {
 }
 
 func checkBoardBM(userID bbs.UUserID, boardID bbs.BBoardID, bms []bbs.UUserID, boardParentID bbs.BBoardID) (ret bool, err error) {
-	for _, each := range bms {
-		if userID == each {
-			return true, nil
-		}
+	if slices.Contains(bms, userID) {
+		return true, nil
 	}
 
 	for boardParentID != "" {
@@ -385,10 +385,8 @@ func checkBoardBM(userID bbs.UUserID, boardID bbs.BBoardID, bms []bbs.UUserID, b
 			return false, err
 		}
 
-		for _, each := range boardPermInfo.BMs {
-			if userID == each {
-				return true, nil
-			}
+		if slices.Contains(boardPermInfo.BMs, userID) {
+			return true, nil
 		}
 
 		boardParentID = boardPermInfo.ParentID

@@ -234,7 +234,7 @@ func assertUserFields() error {
 
 type UserQuery struct {
 	UserID    bbs.UUserID `bson:"user_id"`
-	IsDeleted interface{} `bson:"deleted,omitempty"`
+	IsDeleted any         `bson:"deleted,omitempty"`
 }
 
 var EMPTY_USER_QUERY = &UserQuery{}

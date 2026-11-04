@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -43,7 +45,7 @@ func GetUserFavoritesMeta(userID bbs.UUserID) (result *UserFavoritesMeta, err er
 
 	result = &UserFavoritesMeta{}
 	err = UserFavoritesMeta_c.FindOne(query, result, nil)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

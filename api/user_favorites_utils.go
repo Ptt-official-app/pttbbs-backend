@@ -2,6 +2,8 @@ package api
 
 import (
 	"bytes"
+	"errors"
+	"maps"
 	"strconv"
 
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
@@ -153,7 +155,7 @@ func deserializeUserFavoritesAndUpdateDB(userID bbs.UUserID, mTime types.NanoTS,
 
 	// ok if data is out-dated.
 	err = schema.UpdateUserFavoritesMeta(meta)
-	if err == schema.ErrNoMatch {
+	if errors.Is(err, schema.ErrNoMatch) {
 		err = nil
 	}
 	if err != nil {
@@ -287,7 +289,7 @@ func postAddFavorite(userID bbs.UUserID, rootFav *fav.Fav, remoteAddr string, le
 	}
 
 	boardSummaries_db := make([]*schema.BoardSummary, 0, len(boardSummaryMap_db))
-	for _, each := range boardSummaryMap_db {
+	for each := range maps.Values(boardSummaryMap_db) {
 		boardSummaries_db = append(boardSummaries_db, each)
 	}
 

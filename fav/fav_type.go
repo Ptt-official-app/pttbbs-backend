@@ -6,7 +6,7 @@ type FavType struct {
 	FavIdx  int
 	TheType pttbbsfav.FavT
 	Attr    pttbbsfav.Favh
-	Fp      interface{}
+	Fp      any
 }
 
 func (ft *FavType) CastFolder() *FavFolder {

@@ -16,8 +16,8 @@ type LoadGeneralBoardsParams struct {
 	Title     string `json:"title,omitempty" form:"title,omitempty" url:"title,omitempty"`
 	Keyword   string `json:"keyword,omitempty" form:"keyword,omitempty" url:"keyword,omitempty"`
 	StartIdx  string `json:"start_idx,omitempty" form:"start_idx,omitempty" url:"start_idx,omitempty"`
-	Ascending bool   `json:"asc,omitempty"  form:"asc,omitempty" url:"asc,omitempty"`
-	Max       int    `json:"limit,omitempty" form:"limit,omitempty" url:"limit,omitempty"`
+	Ascending bool   `json:"asc,omitzero"  form:"asc,omitempty" url:"asc,omitempty"`
+	Max       int    `json:"limit,omitzero" form:"limit,omitempty" url:"limit,omitempty"`
 }
 
 type LoadGeneralBoardsResult struct {
@@ -39,11 +39,11 @@ func LoadGeneralBoardsWrapper(c *gin.Context) {
 	LoginRequiredQuery(LoadGeneralBoards, params, c)
 }
 
-func LoadGeneralBoards(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadGeneralBoards(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	return loadGeneralBoardsCore(remoteAddr, user, params, c, pttbbsapi.LOAD_GENERAL_BOARDS_R)
 }
 
-func loadGeneralBoardsCore(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context, url string) (result interface{}, statusCode int, err error) {
+func loadGeneralBoardsCore(remoteAddr string, user *UserInfo, params any, c *gin.Context, url string) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoadGeneralBoardsParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

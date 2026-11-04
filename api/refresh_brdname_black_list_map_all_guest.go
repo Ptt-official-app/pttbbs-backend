@@ -14,7 +14,7 @@ func RefreshBrdnameBlackListMapAllGuestWrapper(c *gin.Context) {
 	Query(RefreshBrdnameBlackListMapAllGuest, nil, c)
 }
 
-func RefreshBrdnameBlackListMapAllGuest(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func RefreshBrdnameBlackListMapAllGuest(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	nBoardID, err := RefreshBrdnameBlackListMap()
 	if err != nil {
 		return 0, 500, err

@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -57,7 +59,7 @@ func getUserUsernameCore(query bson.M) (userUsername *UserUsername, err error) {
 	userUsername = &UserUsername{}
 	err = User_c.FindOne(query, userUsername, userUsernameFields)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			err = nil
 		}
 		return nil, err

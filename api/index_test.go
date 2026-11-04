@@ -16,12 +16,12 @@ func TestIndex(t *testing.T) {
 	params := &IndexParams{}
 
 	type args struct {
-		params interface{}
+		params any
 	}
 	tests := []struct {
 		name     string
 		args     args
-		expected interface{}
+		expected any
 		wantErr  bool
 	}{
 		// TODO: Add test cases.

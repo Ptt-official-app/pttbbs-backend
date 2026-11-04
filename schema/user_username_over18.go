@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,7 +22,7 @@ func GetUserUsernameOver18ByUsername(username string) (ret *UserUsernameOver18, 
 	ret = &UserUsernameOver18{}
 	err = User_c.FindOne(query, ret, userUsernameFields)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			err = nil
 		}
 		return nil, err

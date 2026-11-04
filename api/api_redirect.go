@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-func RedirectQuery(theFunc RedirectAPIFunc, params interface{}, c *gin.Context) {
+func RedirectQuery(theFunc RedirectAPIFunc, params any, c *gin.Context) {
 	err := c.ShouldBindQuery(params)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -19,7 +19,7 @@ func RedirectQuery(theFunc RedirectAPIFunc, params interface{}, c *gin.Context) 
 	redirectProcess(theFunc, params, c)
 }
 
-func RedirectFormJSON(theFunc RedirectAPIFunc, params interface{}, c *gin.Context) {
+func RedirectFormJSON(theFunc RedirectAPIFunc, params any, c *gin.Context) {
 	err := c.ShouldBindJSON(params)
 	if err != nil {
 		err = c.ShouldBindWith(params, binding.Form)
@@ -32,7 +32,7 @@ func RedirectFormJSON(theFunc RedirectAPIFunc, params interface{}, c *gin.Contex
 	redirectProcess(theFunc, params, c)
 }
 
-func redirectProcess(theFunc RedirectAPIFunc, params interface{}, c *gin.Context) {
+func redirectProcess(theFunc RedirectAPIFunc, params any, c *gin.Context) {
 	remoteAddr := strings.TrimSpace(c.ClientIP())
 	if !isValidRemoteAddr(remoteAddr) {
 		processResult(c, nil, 403, ErrInvalidRemoteAddr, "")

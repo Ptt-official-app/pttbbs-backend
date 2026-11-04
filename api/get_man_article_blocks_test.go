@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"sync"
 	"testing"
 
@@ -22,7 +21,7 @@ func TestGetManArticleBlocks(t *testing.T) {
 	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", boardSummaries_b, 123456890000000000)
 
 	// load articles
-	ctx := context.Background()
+	ctx := t.Context()
 	req := &mand.ListRequest{
 		BoardName: "WhoAmI",
 		Path:      "",

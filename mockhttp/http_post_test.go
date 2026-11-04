@@ -19,13 +19,13 @@ func Test_parseResult(t *testing.T) {
 	var result2 *api.RegisterResult
 
 	type args struct {
-		backendResult interface{}
-		httpResult    interface{}
+		backendResult any
+		httpResult    any
 	}
 	tests := []struct {
 		name     string
 		args     args
-		expected interface{}
+		expected any
 	}{
 		// TODO: Add test cases.
 		{

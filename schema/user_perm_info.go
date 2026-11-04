@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
@@ -46,7 +48,7 @@ func GetUserPermInfo(userID bbs.UUserID) (userPermInfo *UserPermInfo, err error)
 	}
 
 	err = User_c.FindOne(query, &userPermInfo, userPermInfoFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

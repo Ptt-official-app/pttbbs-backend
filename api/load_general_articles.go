@@ -13,8 +13,8 @@ const LOAD_GENERAL_ARTICLES_R = "/board/:bid/articles"
 type LoadGeneralArticlesParams struct {
 	Keyword    string `json:"title,omitempty" form:"title,omitempty" url:"title,omitempty"`
 	StartIdx   string `json:"start_idx,omitempty" form:"start_idx,omitempty" url:"start_idx,omitempty"`
-	Max        int    `json:"limit,omitempty" form:"limit,omitempty" url:"limit,omitempty"`
-	Descending bool   `json:"desc,omitempty"  form:"desc,omitempty" url:"desc,omitempty"`
+	Max        int    `json:"limit,omitzero" form:"limit,omitempty" url:"limit,omitempty"`
+	Descending bool   `json:"desc,omitzero"  form:"desc,omitempty" url:"desc,omitempty"`
 }
 
 type LoadGeneralArticlesPath struct {
@@ -41,7 +41,7 @@ func LoadGeneralArticlesWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(LoadGeneralArticles, params, path, c)
 }
 
-func LoadGeneralArticles(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadGeneralArticles(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoadGeneralArticlesParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

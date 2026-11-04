@@ -18,7 +18,7 @@ func AttemptRegisterUserWrapper(c *gin.Context) {
 	FormJSON(AttemptRegisterUser, params, c)
 }
 
-func AttemptRegisterUser(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func AttemptRegisterUser(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*AttemptRegisterUserParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

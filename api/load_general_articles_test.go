@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"sync"
 	"testing"
 
@@ -32,7 +31,7 @@ func TestLoadGeneralArticles(t *testing.T) {
 	_, _ = schema.UserArticle_c.Update(update1, update1)
 
 	// load articles
-	ctx := context.Background()
+	ctx := t.Context()
 	brdname := &boardd.BoardRef_Name{Name: "WhoAmI"}
 	req := &boardd.ListRequest{
 		Ref:          &boardd.BoardRef{Ref: brdname},
@@ -234,14 +233,14 @@ func TestLoadGeneralArticles(t *testing.T) {
 	type args struct {
 		remoteAddr string
 		userID     bbs.UUserID
-		params     interface{}
-		path       interface{}
+		params     any
+		path       any
 		c          *gin.Context
 	}
 	tests := []struct {
 		name               string
 		args               args
-		expectedResult     interface{}
+		expectedResult     any
 		expectedStatusCode int
 		wantErr            bool
 	}{

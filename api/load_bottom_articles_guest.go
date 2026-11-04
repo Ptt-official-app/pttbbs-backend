@@ -11,7 +11,7 @@ func LoadBottomArticlesAllGuestWrapper(c *gin.Context) {
 	PathQuery(LoadBottomArticlesAllGuest, nil, path, c)
 }
 
-func LoadBottomArticlesAllGuest(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadBottomArticlesAllGuest(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	user.UserID = bbs.UUserID(pttbbsapi.GUEST)
 
 	return LoadBottomArticles(remoteAddr, user, params, path, c)

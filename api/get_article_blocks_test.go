@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"sync"
 	"testing"
 
@@ -24,7 +23,7 @@ func TestGetArticleBlocks(t *testing.T) {
 	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", boardSummaries_b, 123456890000000000)
 
 	// load articles
-	ctx := context.Background()
+	ctx := t.Context()
 	brdname := &boardd.BoardRef_Name{Name: "WhoAmI"}
 	req := &boardd.ListRequest{
 		Ref:          &boardd.BoardRef{Ref: brdname},
@@ -92,8 +91,8 @@ func TestGetArticleBlocks(t *testing.T) {
 	type args struct {
 		remoteAddr string
 		userID     bbs.UUserID
-		params     interface{}
-		path       interface{}
+		params     any
+		path       any
 		c          *gin.Context
 	}
 	tests := []struct {

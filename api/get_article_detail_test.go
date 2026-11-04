@@ -1,7 +1,8 @@
 package api
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 	"sync"
 	"testing"
 
@@ -163,8 +164,8 @@ func TestGetArticleDetail(t *testing.T) {
 	type args struct {
 		remoteAddr string
 		userID     bbs.UUserID
-		params     interface{}
-		path       interface{}
+		params     any
+		path       any
 		c          *gin.Context
 		boardID    bbs.BBoardID
 		articleID  bbs.ArticleID
@@ -172,7 +173,7 @@ func TestGetArticleDetail(t *testing.T) {
 	tests := []struct {
 		name                         string
 		args                         args
-		expectedResult               interface{}
+		expectedResult               any
 		expectedFirstComments        []*schema.Comment
 		expectedArticleDetailSummary *schema.ArticleDetailSummary
 
@@ -301,8 +302,8 @@ func TestGetArticleDetail(t *testing.T) {
 				each.UpdateNanoTS = 0
 			}
 
-			sort.SliceStable(gotComments, func(i, j int) bool {
-				return gotComments[i].SortTime <= gotComments[j].SortTime
+			slices.SortStableFunc(gotComments, func(a, b *schema.Comment) int {
+				return cmp.Compare(a.SortTime, b.SortTime)
 			})
 
 			testutil.TDeepEqual(t, "comments", gotComments, tt.expectedFirstComments)

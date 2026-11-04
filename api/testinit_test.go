@@ -68,7 +68,7 @@ func teardownTest() {
 	defer UnsetIsTest()
 }
 
-func testSetRequest(reqPath string, pathPattern string, params interface{}, jwt string, csrfToken string, headers map[string]string, method string, f gin.HandlerFunc) (*httptest.ResponseRecorder, *gin.Context, *gin.Engine) {
+func testSetRequest(reqPath string, pathPattern string, params any, jwt string, csrfToken string, headers map[string]string, method string, f gin.HandlerFunc) (*httptest.ResponseRecorder, *gin.Context, *gin.Engine) {
 	var jsonBytes []byte
 
 	if method == "GET" {

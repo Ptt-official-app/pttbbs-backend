@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,7 +24,7 @@ func GetUserNameInfo(userID bbs.UUserID) (userNameInfo *UserNameInfo, err error)
 	}
 
 	err = User_c.FindOne(query, &userNameInfo, userNameInfoFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

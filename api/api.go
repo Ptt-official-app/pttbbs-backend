@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-func JSON(theFunc APIFunc, params interface{}, c *gin.Context) {
+func JSON(theFunc APIFunc, params any, c *gin.Context) {
 	err := c.ShouldBindJSON(params)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -20,7 +20,7 @@ func JSON(theFunc APIFunc, params interface{}, c *gin.Context) {
 	process(theFunc, params, c)
 }
 
-func Form(theFunc APIFunc, params interface{}, c *gin.Context) {
+func Form(theFunc APIFunc, params any, c *gin.Context) {
 	err := c.ShouldBindWith(params, binding.Form)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -30,7 +30,7 @@ func Form(theFunc APIFunc, params interface{}, c *gin.Context) {
 	process(theFunc, params, c)
 }
 
-func FormJSON(theFunc APIFunc, params interface{}, c *gin.Context) {
+func FormJSON(theFunc APIFunc, params any, c *gin.Context) {
 	err := c.ShouldBindJSON(params)
 	if err != nil {
 		err = c.ShouldBindWith(params, binding.Form)
@@ -43,11 +43,11 @@ func FormJSON(theFunc APIFunc, params interface{}, c *gin.Context) {
 	process(theFunc, params, c)
 }
 
-func FormLogout(theFunc APIFunc, params interface{}, c *gin.Context) {
+func FormLogout(theFunc APIFunc, params any, c *gin.Context) {
 	processLogout(theFunc, params, c)
 }
 
-func Query(theFunc APIFunc, params interface{}, c *gin.Context) {
+func Query(theFunc APIFunc, params any, c *gin.Context) {
 	err := c.ShouldBindQuery(params)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -57,7 +57,7 @@ func Query(theFunc APIFunc, params interface{}, c *gin.Context) {
 	process(theFunc, params, c)
 }
 
-func process(theFunc APIFunc, params interface{}, c *gin.Context) {
+func process(theFunc APIFunc, params any, c *gin.Context) {
 	remoteAddr := strings.TrimSpace(c.ClientIP())
 	if !isValidRemoteAddr(remoteAddr) {
 		processResult(c, nil, 400, ErrInvalidRemoteAddr, "")
@@ -72,7 +72,7 @@ func process(theFunc APIFunc, params interface{}, c *gin.Context) {
 	processResult(c, result, statusCode, err, "")
 }
 
-func processLogout(theFunc APIFunc, params interface{}, c *gin.Context) {
+func processLogout(theFunc APIFunc, params any, c *gin.Context) {
 	remoteAddr := strings.TrimSpace(c.ClientIP())
 	if !isValidRemoteAddr(remoteAddr) {
 		processResult(c, nil, 400, ErrInvalidRemoteAddr, "")

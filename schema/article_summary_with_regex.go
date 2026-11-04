@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -221,10 +222,7 @@ func NewArticleSummaryWithRegex(a_b *bbs.ArticleSummary, updateNanoTS types.Nano
 //	theClass: (with 4-byte length)
 func articleTitleToTitleRegex(title string) (titleRegex []string) {
 	titleRune := []rune(title)
-	nGramTitleRegex := TITLE_REGEX_N_GRAM
-	if len(titleRune) < TITLE_REGEX_N_GRAM {
-		nGramTitleRegex = len(titleRune)
-	}
+	nGramTitleRegex := min(len(titleRune), TITLE_REGEX_N_GRAM)
 
 	lenTitleRegex := nGramTitleRegex * len(titleRune)
 
@@ -322,7 +320,7 @@ func GetArticleSummaryWithRegex(bboardID bbs.BBoardID, articleID bbs.ArticleID) 
 
 	result = &ArticleSummaryWithRegex{}
 	err = Article_c.FindOne(query, &result, articleSummaryWithRegexFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

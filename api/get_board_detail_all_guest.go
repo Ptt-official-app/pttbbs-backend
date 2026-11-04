@@ -12,7 +12,7 @@ func GetBoardDetailAllGuestWrapper(c *gin.Context) {
 	PathQuery(GetBoardDetailAllGuest, params, path, c)
 }
 
-func GetBoardDetailAllGuest(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func GetBoardDetailAllGuest(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	user.UserID = bbs.UUserID(pttbbsapi.GUEST)
 
 	return GetBoardDetail(remoteAddr, user, params, path, c)

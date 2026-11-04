@@ -34,14 +34,14 @@ func SendEmail(rcpts []string, title string, content string) (err error) {
 		"Content-Transfer-Encoding": "base64",
 	}
 
-	message := ""
+	var message strings.Builder
 
 	for k, v := range header {
-		message += fmt.Sprintf("%s: %s\n", k, v)
+		fmt.Fprintf(&message, "%s: %s\n", k, v)
 	}
-	message += "\n" + base64.StdEncoding.EncodeToString([]byte(content))
+	message.WriteString("\n" + base64.StdEncoding.EncodeToString([]byte(content)))
 
-	err = smtp.SendMail(types.EMAIL_SERVER, nil, from.Address, rcpts, []byte(message))
+	err = smtp.SendMail(types.EMAIL_SERVER, nil, from.Address, rcpts, []byte(message.String()))
 	if err != nil {
 		return err
 	}

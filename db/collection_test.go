@@ -1,9 +1,10 @@
 package db
 
 import (
+	"cmp"
 	"context"
 	"reflect"
-	"sort"
+	"slices"
 	"sync"
 	"testing"
 
@@ -27,7 +28,7 @@ func TestCollection_CreateOnly(t *testing.T) {
 	coll := client.Collection("test")
 	defer coll.Drop()
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test"] = 1
 	filter1["test1"] = "2"
 
@@ -49,8 +50,8 @@ func TestCollection_CreateOnly(t *testing.T) {
 		coll *Collection
 	}
 	type args struct {
-		filter interface{}
-		update interface{}
+		filter any
+		update any
 	}
 	tests := []struct {
 		name      string
@@ -108,7 +109,7 @@ func TestCollection_UpdateOneOnly(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter0 := make(map[string]interface{})
+	filter0 := make(map[string]any)
 	filter0["test"] = 1
 	filter0["test1"] = "4"
 
@@ -116,7 +117,7 @@ func TestCollection_UpdateOneOnly(t *testing.T) {
 
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test"] = 1
 	filter1["test1"] = "3"
 
@@ -128,7 +129,7 @@ func TestCollection_UpdateOneOnly(t *testing.T) {
 		UpsertedCount: 0,
 	}
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test"] = 1
 
 	update2 := &testUpdate{Test1: "2", Test3: true}
@@ -143,8 +144,8 @@ func TestCollection_UpdateOneOnly(t *testing.T) {
 		coll *Collection
 	}
 	type args struct {
-		filter interface{}
-		update interface{}
+		filter any
+		update any
 	}
 	tests := []struct {
 		name      string
@@ -199,7 +200,7 @@ func TestCollection_Update(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test"] = 1
 	filter1["test1"] = "3"
 
@@ -210,7 +211,7 @@ func TestCollection_Update(t *testing.T) {
 	expected1.ModifiedCount = 0
 	expected1.UpsertedCount = 1
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test"] = 1
 
 	update2 := &testUpdate{Test1: "2", Test3: true}
@@ -224,8 +225,8 @@ func TestCollection_Update(t *testing.T) {
 		coll *Collection
 	}
 	type args struct {
-		filter interface{}
-		update interface{}
+		filter any
+		update any
 	}
 	tests := []struct {
 		name      string
@@ -282,7 +283,7 @@ func TestCollection_Update_OmitEmpty(t *testing.T) {
 		Test3 bool   `bson:"test3,omitempty"`
 	}
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test1"] = "3"
 
 	update1 := &testUpdate{Test1: "3", Test3: true}
@@ -292,7 +293,7 @@ func TestCollection_Update_OmitEmpty(t *testing.T) {
 	expected1.ModifiedCount = 0
 	expected1.UpsertedCount = 1
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test1"] = "3"
 
 	update2 := &testUpdate{Test1: "3"}
@@ -306,8 +307,8 @@ func TestCollection_Update_OmitEmpty(t *testing.T) {
 		coll *Collection
 	}
 	type args struct {
-		filter interface{}
-		update interface{}
+		filter any
+		update any
 	}
 	tests := []struct {
 		name      string
@@ -380,7 +381,7 @@ func TestCollection_Find(t *testing.T) {
 		Test4 string `bson:"test4"`
 	}
 
-	filter0 := make(map[string]interface{})
+	filter0 := make(map[string]any)
 	filter0["test"] = 0
 	update0 := &testUpdate{Test1: "300", Test2: "12", Test3: true, Test4: "14"}
 	_, _ = coll.Update(filter0, update0)
@@ -398,7 +399,7 @@ func TestCollection_Find(t *testing.T) {
 		Find4 bool   `bson:"test3"`
 	}
 
-	find1 := make(map[string]interface{})
+	find1 := make(map[string]any)
 	find1["test"] = 2
 
 	project := make(map[string]bool)
@@ -409,7 +410,7 @@ func TestCollection_Find(t *testing.T) {
 	var ret1 []*testFind1
 	expected1 := []*testFind1{{Find1: 2, Find2: nil, Find4: true}}
 
-	find2 := make(map[string]interface{})
+	find2 := make(map[string]any)
 	var ret2 []*testFind1
 	expected2 := []*testFind1{{Find1: 0, Find2: nil, Find4: true}}
 
@@ -427,7 +428,7 @@ func TestCollection_Find(t *testing.T) {
 		coll *Collection
 	}
 	type args struct {
-		filter  interface{}
+		filter  any
 		ret     []*testFind1
 		n       int64
 		project map[string]bool
@@ -507,7 +508,7 @@ func TestCollection_Remove(t *testing.T) {
 		Test4 string `bson:"test4"`
 	}
 
-	filter0 := make(map[string]interface{})
+	filter0 := make(map[string]any)
 	filter0["test"] = 0
 	update0 := &testUpdate{Test1: "300", Test2: "12", Test3: true, Test4: "14"}
 	_, _ = coll.Update(filter0, update0)
@@ -518,12 +519,12 @@ func TestCollection_Remove(t *testing.T) {
 	filter0["test"] = 2
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test"] = 2
 
-	filter3 := make(map[string]interface{})
+	filter3 := make(map[string]any)
 	filter3["test2"] = "12"
 
 	type testFind1 struct {
@@ -537,7 +538,7 @@ func TestCollection_Remove(t *testing.T) {
 		coll *Collection
 	}
 	type args struct {
-		filter map[string]interface{}
+		filter map[string]any
 	}
 	tests := []struct {
 		name    string
@@ -618,7 +619,7 @@ func TestCollection_FindOne(t *testing.T) {
 		Test4 string `bson:"test4"`
 	}
 
-	filter0 := make(map[string]interface{})
+	filter0 := make(map[string]any)
 	filter0["test"] = 0
 	update0 := &testUpdate{Test1: "300", Test2: "12", Test3: true, Test4: "14"}
 	_, _ = coll.Update(filter0, update0)
@@ -636,7 +637,7 @@ func TestCollection_FindOne(t *testing.T) {
 		Find4 bool   `bson:"test3"`
 	}
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test"] = 1
 	ret1 := &testFind1{}
 	expected1 := &testFind1{
@@ -646,7 +647,7 @@ func TestCollection_FindOne(t *testing.T) {
 		Find4: true,
 	}
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test2"] = "12"
 	ret2 := &testFind1{}
 	expected2 := &testFind1{
@@ -656,7 +657,7 @@ func TestCollection_FindOne(t *testing.T) {
 		Find4: true,
 	}
 
-	filter3 := make(map[string]interface{})
+	filter3 := make(map[string]any)
 	filter3["test"] = 5
 	ret3 := &testFind1{}
 
@@ -664,8 +665,8 @@ func TestCollection_FindOne(t *testing.T) {
 		coll *Collection
 	}
 	type args struct {
-		filter  interface{}
-		ret     interface{}
+		filter  any
+		ret     any
 		project map[string]bool
 	}
 	tests := []struct {
@@ -733,7 +734,7 @@ func TestCollection_Count(t *testing.T) {
 		Test4 string `bson:"test4"`
 	}
 
-	filter0 := make(map[string]interface{})
+	filter0 := make(map[string]any)
 	filter0["test"] = 0
 	update0 := &testUpdate{Test1: "300", Test2: "12", Test3: true, Test4: "14"}
 	_, _ = coll.Update(filter0, update0)
@@ -751,20 +752,20 @@ func TestCollection_Count(t *testing.T) {
 		Find4 bool   `bson:"test3"`
 	}
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test"] = 1
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test2"] = "12"
 
-	filter3 := make(map[string]interface{})
+	filter3 := make(map[string]any)
 	filter3["test2"] = "123"
 
 	type fields struct {
 		coll *Collection
 	}
 	type args struct {
-		filter interface{}
+		filter any
 		n      int64
 	}
 	tests := []struct {
@@ -825,10 +826,10 @@ func TestCollection_BulkCreateOnly(t *testing.T) {
 	coll := client.Collection("test")
 	defer coll.Drop()
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test1"] = "2"
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test1"] = "3"
 
 	type testUpdate struct {
@@ -902,10 +903,10 @@ func TestCollection_BulkUpdateOneOnly(t *testing.T) {
 	coll := client.Collection("test")
 	defer coll.Drop()
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test1"] = "2"
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test1"] = "3"
 
 	type testUpdate struct {
@@ -932,19 +933,19 @@ func TestCollection_BulkUpdateOneOnly(t *testing.T) {
 	expected1.MatchedCount = 1
 	expected1.UpsertedCount = 0
 	expected1.ModifiedCount = 0
-	expected1.UpsertedIDs = map[int64]interface{}{}
+	expected1.UpsertedIDs = map[int64]any{}
 
 	expected2 := &mongo.BulkWriteResult{}
 	expected2.MatchedCount = 1
 	expected2.UpsertedCount = 0
 	expected2.ModifiedCount = 1
-	expected2.UpsertedIDs = map[int64]interface{}{}
+	expected2.UpsertedIDs = map[int64]any{}
 
 	expected3 := &mongo.BulkWriteResult{}
 	expected3.MatchedCount = 1
 	expected3.UpsertedCount = 0
 	expected3.ModifiedCount = 0
-	expected3.UpsertedIDs = map[int64]interface{}{}
+	expected3.UpsertedIDs = map[int64]any{}
 
 	type fields struct {
 		coll *mongo.Collection
@@ -999,10 +1000,10 @@ func TestCollection_BulkUpdate(t *testing.T) {
 	coll := client.Collection("test")
 	defer coll.Drop()
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test1"] = "2"
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test1"] = "3"
 
 	type testUpdate struct {
@@ -1153,10 +1154,10 @@ func TestCollection_BulkUpdateOneOnlyNoSet(t *testing.T) {
 	coll := client.Collection("test")
 	defer coll.Drop()
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test1"] = "2"
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test1"] = "3"
 
 	type testUpdate struct {
@@ -1191,19 +1192,19 @@ func TestCollection_BulkUpdateOneOnlyNoSet(t *testing.T) {
 	expected1.MatchedCount = 1
 	expected1.UpsertedCount = 0
 	expected1.ModifiedCount = 0
-	expected1.UpsertedIDs = map[int64]interface{}{}
+	expected1.UpsertedIDs = map[int64]any{}
 
 	expected2 := &mongo.BulkWriteResult{}
 	expected2.MatchedCount = 1
 	expected2.UpsertedCount = 0
 	expected2.ModifiedCount = 1
-	expected2.UpsertedIDs = map[int64]interface{}{}
+	expected2.UpsertedIDs = map[int64]any{}
 
 	expected3 := &mongo.BulkWriteResult{}
 	expected3.MatchedCount = 1
 	expected3.UpsertedCount = 0
 	expected3.ModifiedCount = 0
-	expected3.UpsertedIDs = map[int64]interface{}{}
+	expected3.UpsertedIDs = map[int64]any{}
 	type fields struct {
 		coll *Collection
 	}
@@ -1267,7 +1268,7 @@ func TestCollection_UpdateManyOnly(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter0 := make(map[string]interface{})
+	filter0 := make(map[string]any)
 	filter0["test"] = 1
 	filter0["test1"] = "4"
 
@@ -1275,7 +1276,7 @@ func TestCollection_UpdateManyOnly(t *testing.T) {
 
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test"] = 1
 	filter1["test1"] = "3"
 
@@ -1286,7 +1287,7 @@ func TestCollection_UpdateManyOnly(t *testing.T) {
 	expected1.ModifiedCount = 0
 	expected1.UpsertedCount = 0
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test"] = 1
 
 	update2 := &testUpdate{Test1: "2", Test3: true}
@@ -1300,8 +1301,8 @@ func TestCollection_UpdateManyOnly(t *testing.T) {
 		coll *Collection
 	}
 	type args struct {
-		filter interface{}
-		update interface{}
+		filter any
+		update any
 	}
 	tests := []struct {
 		name      string
@@ -1351,7 +1352,7 @@ func TestCollection_Aggregate(t *testing.T) {
 	coll := client.Collection("test")
 	defer coll.Drop()
 
-	filter := make(map[string]interface{})
+	filter := make(map[string]any)
 	type testUpdate struct {
 		Test1 int  `bson:"test1"`
 		Test3 bool `bson:"test3"`
@@ -1438,8 +1439,8 @@ func TestCollection_Aggregate(t *testing.T) {
 		coll *mongo.Collection
 	}
 	type args struct {
-		filter interface{}
-		group  interface{}
+		filter any
+		group  any
 	}
 
 	type ret struct {
@@ -1486,10 +1487,8 @@ func TestCollection_Aggregate(t *testing.T) {
 			}
 
 			if gotRet != nil {
-				sort.SliceStable(gotRet, func(i, j int) bool {
-					retI := gotRet[i]["sum"].(int32)
-					retJ := gotRet[j]["sum"].(int32)
-					return retI < retJ
+				slices.SortStableFunc(gotRet, func(a, b bson.M) int {
+					return cmp.Compare(a["sum"].(int32), b["sum"].(int32))
 				})
 			}
 
@@ -1532,7 +1531,7 @@ func TestCollection_UpdateOneOnlyNoSet(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter0 := map[string]interface{}{
+	filter0 := map[string]any{
 		"test":  1,
 		"test1": "4",
 	}
@@ -1541,7 +1540,7 @@ func TestCollection_UpdateOneOnlyNoSet(t *testing.T) {
 
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := map[string]interface{}{
+	filter1 := map[string]any{
 		"test":  1,
 		"test1": "3",
 	}
@@ -1556,7 +1555,7 @@ func TestCollection_UpdateOneOnlyNoSet(t *testing.T) {
 		UpsertedCount: 0,
 	}
 
-	filter2 := map[string]interface{}{
+	filter2 := map[string]any{
 		"test": 1,
 	}
 
@@ -1574,8 +1573,8 @@ func TestCollection_UpdateOneOnlyNoSet(t *testing.T) {
 		coll *mongo.Collection
 	}
 	type args struct {
-		filter interface{}
-		update interface{}
+		filter any
+		update any
 	}
 	tests := []struct {
 		name      string
@@ -1631,7 +1630,7 @@ func TestCollection_FindOneAndUpdateNoSet(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter0 := map[string]interface{}{
+	filter0 := map[string]any{
 		"test":  1,
 		"test1": "4",
 	}
@@ -1640,7 +1639,7 @@ func TestCollection_FindOneAndUpdateNoSet(t *testing.T) {
 
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := map[string]interface{}{
+	filter1 := map[string]any{
 		"test": 1,
 	}
 
@@ -1650,7 +1649,7 @@ func TestCollection_FindOneAndUpdateNoSet(t *testing.T) {
 
 	expected1 := &testUpdate{Test1: "4", Test3: false}
 
-	filter2 := map[string]interface{}{
+	filter2 := map[string]any{
 		"test": 1,
 	}
 
@@ -1660,7 +1659,7 @@ func TestCollection_FindOneAndUpdateNoSet(t *testing.T) {
 
 	expected2 := &testUpdate{Test1: "3", Test3: false}
 
-	filter3 := map[string]interface{}{
+	filter3 := map[string]any{
 		"test": 1,
 	}
 
@@ -1670,8 +1669,8 @@ func TestCollection_FindOneAndUpdateNoSet(t *testing.T) {
 		coll *mongo.Collection
 	}
 	type args struct {
-		filter interface{}
-		update interface{}
+		filter any
+		update any
 		isNew  bool
 	}
 	tests := []struct {
@@ -1746,7 +1745,7 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter0 := map[string]interface{}{
+	filter0 := map[string]any{
 		"test":  1,
 		"test1": "4",
 	}
@@ -1755,7 +1754,7 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := map[string]interface{}{
+	filter1 := map[string]any{
 		"test": 1,
 	}
 
@@ -1763,7 +1762,7 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 
 	expected1 := &testUpdate{Test1: "4", Test3: false}
 
-	filter2 := map[string]interface{}{
+	filter2 := map[string]any{
 		"test": 1,
 	}
 
@@ -1771,7 +1770,7 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 
 	expected2 := &testUpdate{Test1: "2", Test3: true}
 
-	filter3 := map[string]interface{}{
+	filter3 := map[string]any{
 		"test": 2,
 	}
 
@@ -1781,8 +1780,8 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 		coll *mongo.Collection
 	}
 	type args struct {
-		filter interface{}
-		update interface{}
+		filter any
+		update any
 	}
 	tests := []struct {
 		name      string
@@ -1849,7 +1848,7 @@ func TestCollection_UpdateManyOnlyNoSet(t *testing.T) {
 		Test3 bool   `bson:"test3"`
 	}
 
-	filter0 := make(map[string]interface{})
+	filter0 := make(map[string]any)
 	filter0["test"] = 1
 	filter0["test1"] = "4"
 
@@ -1857,7 +1856,7 @@ func TestCollection_UpdateManyOnlyNoSet(t *testing.T) {
 
 	_, _ = coll.Update(filter0, update0)
 
-	filter1 := make(map[string]interface{})
+	filter1 := make(map[string]any)
 	filter1["test"] = 1
 	filter1["test1"] = "3"
 
@@ -1870,7 +1869,7 @@ func TestCollection_UpdateManyOnlyNoSet(t *testing.T) {
 	expected1.ModifiedCount = 0
 	expected1.UpsertedCount = 0
 
-	filter2 := make(map[string]interface{})
+	filter2 := make(map[string]any)
 	filter2["test"] = 1
 
 	update2 := bson.M{
@@ -1886,8 +1885,8 @@ func TestCollection_UpdateManyOnlyNoSet(t *testing.T) {
 		coll *mongo.Collection
 	}
 	type args struct {
-		filter interface{}
-		update interface{}
+		filter any
+		update any
 	}
 	tests := []struct {
 		name      string

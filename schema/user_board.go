@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -76,7 +78,7 @@ func FindUserBoard(userID bbs.UUserID, boardID bbs.BBoardID) (result *UserBoard,
 	}
 
 	err = UserBoard_c.FindOne(query, &result, nil)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return &UserBoard{UserID: userID, BBoardID: boardID}, nil
 	}
 	if err != nil {
@@ -96,7 +98,7 @@ func FindUserBoards(userID bbs.UUserID, boardIDs []bbs.BBoardID) (result []*User
 	}
 
 	err = UserBoard_c.Find(query, 0, &result, nil, nil)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return []*UserBoard{}, nil
 	}
 	if err != nil {

@@ -20,7 +20,7 @@ lint:
 	@hash golangci-lint > /dev/null 2>&1; if [ $$? -ne 0 ]; then \
 		$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest; \
 	fi
-	golangci-lint run -v --deadline=3m
+	golangci-lint run -v --timeout=3m
 
 .PHONY: fmt
 fmt:

@@ -1,6 +1,8 @@
 package api
 
 import (
+	"maps"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/pttbbs-backend/apitypes"
@@ -12,10 +14,10 @@ const LOAD_CLASS_BOARDS_R = "/cls/:clsid"
 
 type LoadClassBoardsParams struct {
 	StartIdx string          `json:"start_idx,omitempty" form:"start_idx,omitempty" url:"start_idx,omitempty"`
-	SortBy   ptttype.BSortBy `json:"sortby,omitempty" form:"sortby,omitempty" url:"sortby,omitempty"`
+	SortBy   ptttype.BSortBy `json:"sortby,omitzero" form:"sortby,omitempty" url:"sortby,omitempty"`
 
-	Ascending bool `json:"asc,omitempty"  form:"asc,omitempty" url:"asc,omitempty"`
-	Max       int  `json:"limit,omitempty" form:"limit,omitempty" url:"limit,omitempty"`
+	Ascending bool `json:"asc,omitzero"  form:"asc,omitempty" url:"asc,omitempty"`
+	Max       int  `json:"limit,omitzero" form:"limit,omitempty" url:"limit,omitempty"`
 }
 
 type LoadClassBoardsPath struct {
@@ -42,7 +44,7 @@ func LoadClassBoardsWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(LoadClassBoards, params, path, c)
 }
 
-func LoadClassBoards(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadClassBoards(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoadClassBoardsParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams
@@ -142,9 +144,7 @@ func loadClassBoards(userID bbs.UUserID, clsID ptttype.Bid, startIdx string, asc
 		boardSummaries_db = append(boardSummaries_db, validBoardSummaries_db...)
 		remaining -= len(validBoardSummaries_db)
 
-		for eachBoardID, eachBoardInfo := range eachUserBoardInfoMap {
-			userBoardInfoMap[eachBoardID] = eachBoardInfo
-		}
+		maps.Copy(userBoardInfoMap, eachUserBoardInfoMap)
 	}
 
 	// check isRead

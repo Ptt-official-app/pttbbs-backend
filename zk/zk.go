@@ -77,8 +77,8 @@ type VerifyResponse struct {
 	// VerifySuccessResponse
 	Verified      bool                  `json:"verified"`
 	Nullifier     string                `json:"nullifier,omitempty"`
-	IDVerified    bool                  `json:"id_verified,omitempty"`
-	Persisted     bool                  `json:"persisted,omitempty"`
+	IDVerified    bool                  `json:"id_verified,omitzero"`
+	Persisted     bool                  `json:"persisted,omitzero"`
 	PublicSignals *PublicSignals        `json:"public_signals,omitempty"`
 	ParsedInputs  *VerifierParsedInputs `json:"parsed_inputs,omitempty"`
 	SmtRoot       *SmtRootOutcome       `json:"smt_root,omitempty"`

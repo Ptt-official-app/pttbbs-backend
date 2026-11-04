@@ -39,13 +39,13 @@ func TestRefresh(t *testing.T) {
 
 	type args struct {
 		remoteAddr string
-		params     interface{}
+		params     any
 		c          *gin.Context
 	}
 	tests := []struct {
 		name           string
 		args           args
-		wantResult     interface{}
+		wantResult     any
 		wantStatusCode int
 		wantErr        bool
 	}{

@@ -30,7 +30,7 @@ func DeleteCommentsWrapper(c *gin.Context) {
 	LoginRequiredPathJSON(DeleteComments, params, path, c)
 }
 
-func DeleteComments(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func DeleteComments(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*DeleteCommentsParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

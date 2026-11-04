@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -29,7 +31,7 @@ func GetArticlePermInfo(boardID bbs.BBoardID, articleID bbs.ArticleID) (articleP
 	}
 
 	err = Article_c.FindOne(query, &articlePermInfo, articlePermInfoFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {
@@ -47,7 +49,7 @@ func GetArticlesPermInfo(boardID bbs.BBoardID, articleIDs []bbs.ArticleID) (arti
 	}
 
 	err = Article_c.Find(query, 0, &articlesPermInfo, articlePermInfoFields, nil)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

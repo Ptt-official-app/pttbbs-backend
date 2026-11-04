@@ -20,7 +20,7 @@ func RegisterUserWrapper(c *gin.Context) {
 	RedirectQuery(RegisterUser, params, c)
 }
 
-func RegisterUser(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result string, statusCode int, err error) {
+func RegisterUser(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result string, statusCode int, err error) {
 	theParams, ok := params.(*RegisterUserParams)
 	if !ok {
 		return types.FRONTEND_ERR_URL, 303, ErrInvalidParams

@@ -1,6 +1,7 @@
 package dbcs
 
 import (
+	"slices"
 	"strconv"
 
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
@@ -144,10 +145,7 @@ func calcEditDistance(comments []*schema.Comment, allCommentMD5s []*schema.Comme
 	// 2. dp.
 	for idx := 1; idx <= lenNew; idx++ {
 		for idx2 := 1; idx2 <= lenOrig; idx2++ {
-			minScore := scoreMat[idx-1][idx2] + 1
-			if scoreMat[idx][idx2-1]+1 < minScore {
-				minScore = scoreMat[idx][idx2-1] + 1
-			}
+			minScore := min(scoreMat[idx][idx2-1]+1, scoreMat[idx-1][idx2]+1)
 
 			if comments[idx-1].MD5 == allCommentMD5s[idx2-1].MD5 && scoreMat[idx-1][idx2-1] < minScore {
 				minScore = scoreMat[idx-1][idx2-1]
@@ -216,10 +214,7 @@ func calcEditDistanceBacktracking(scoreMat [][]int, comments []*schema.Comment, 
 }
 
 func reverseEDInfos(edInfos []*EDInfo) []*EDInfo {
-	for i := 0; i < len(edInfos)/2; i++ {
-		j := len(edInfos) - i - 1
-		edInfos[i], edInfos[j] = edInfos[j], edInfos[i]
-	}
+	slices.Reverse(edInfos)
 	return edInfos
 }
 

@@ -20,7 +20,7 @@ func GetUserVisitCountWrapper(c *gin.Context) {
 	Query(GetUserVisitCount, nil, c)
 }
 
-func GetUserVisitCount(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func GetUserVisitCount(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	// get backend(go-pttbbs || c-pttbbs) user count
 	url := pttbbsapi.GET_USER_VISIT_COUNT_R
 	var result_b *pttbbsapi.GetUserVisitCountResult

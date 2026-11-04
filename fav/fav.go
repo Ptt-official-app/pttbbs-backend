@@ -78,7 +78,7 @@ func (f *Fav) WriteFavrec(file io.Writer) (err error) {
 	}
 	total := f.getDataNumber()
 
-	for i := 0; i < total; i++ {
+	for i := range total {
 		ft := f.Favh[i]
 		err := binary.Write(file, binary.LittleEndian, &ft.TheType)
 		if err != nil {
@@ -127,7 +127,7 @@ func (f *Fav) WriteFavrec(file io.Writer) (err error) {
 		}
 	}
 
-	for i := 0; i < total; i++ {
+	for i := range total {
 		ft := f.Favh[i]
 		if ft == nil {
 			continue
@@ -181,7 +181,7 @@ func ReadFavrec(file io.ReadSeeker, parent *Fav, root *Fav, depth int) (favrec *
 	favrec.FolderID = 0
 	favrec.Favh = make([]*FavType, nFavh)
 
-	for i := 0; i < nFavh; i++ {
+	for i := range nFavh {
 		ft := &FavType{}
 		favrec.IncreaseFavNum()
 
@@ -237,7 +237,7 @@ func ReadFavrec(file io.ReadSeeker, parent *Fav, root *Fav, depth int) (favrec *
 		}
 	}
 
-	for i := 0; i < nFavh; i++ {
+	for i := range nFavh {
 		ft := favrec.Favh[i]
 		if ft == nil {
 			continue
@@ -383,7 +383,7 @@ func (f *Fav) GetFavItem(theID int, theType pttbbsfav.FavT) (idx int, favType *F
 //
 // https://github.com/ptt/pttbbs/blob/master/mbbsd/fav.c#L804
 // Although it is named PreAppend, actually it appends to DataTail
-func (f *Fav) PreAppend(theType pttbbsfav.FavT, fp interface{}) (favType *FavType, err error) {
+func (f *Fav) PreAppend(theType pttbbsfav.FavT, fp any) (favType *FavType, err error) {
 	favt := &FavType{
 		TheType: theType,
 		Attr:    pttbbsfav.FAVH_FAV,
@@ -396,7 +396,7 @@ func (f *Fav) PreAppend(theType pttbbsfav.FavT, fp interface{}) (favType *FavTyp
 	return favt, nil
 }
 
-func (f *Fav) Increase(theType pttbbsfav.FavT, fp interface{}) {
+func (f *Fav) Increase(theType pttbbsfav.FavT, fp any) {
 	switch theType {
 	case pttbbsfav.FAVT_BOARD:
 		f.NBoards++

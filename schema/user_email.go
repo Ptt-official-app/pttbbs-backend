@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -50,7 +52,7 @@ func getUserEmailCore(query bson.M) (userEmail *UserEmail, err error) {
 	userEmail = &UserEmail{}
 	err = UserEmail_c.FindOne(query, userEmail, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			err = nil
 		}
 		return nil, err

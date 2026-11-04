@@ -41,7 +41,7 @@ func EditArticleDetailWrapper(c *gin.Context) {
 	LoginRequiredPathJSON(EditArticleDetail, params, path, c)
 }
 
-func EditArticleDetail(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func EditArticleDetail(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*EditArticleParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

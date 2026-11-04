@@ -16,7 +16,7 @@ func GetBoardSummaryAllGuestWrapper(c *gin.Context) {
 	PathQuery(GetBoardSummaryAllGuest, params, path, c)
 }
 
-func GetBoardSummaryAllGuest(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func GetBoardSummaryAllGuest(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	user.UserID = bbs.UUserID(pttbbsapi.GUEST)
 
 	thePath, ok := path.(*GetBoardSummaryPath)

@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PathQuery(theFunc PathAPIFunc, params interface{}, path interface{}, c *gin.Context) {
+func PathQuery(theFunc PathAPIFunc, params any, path any, c *gin.Context) {
 	err := c.ShouldBindQuery(params)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -18,7 +18,7 @@ func PathQuery(theFunc PathAPIFunc, params interface{}, path interface{}, c *gin
 	pathProcess(theFunc, params, path, c)
 }
 
-func pathProcess(theFunc PathAPIFunc, params interface{}, path interface{}, c *gin.Context) {
+func pathProcess(theFunc PathAPIFunc, params any, path any, c *gin.Context) {
 	err := c.ShouldBindUri(path)
 	if err != nil {
 		processResult(c, nil, 400, err, "")

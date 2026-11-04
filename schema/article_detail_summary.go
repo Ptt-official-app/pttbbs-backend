@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -64,7 +66,7 @@ func GetArticleDetailSummary(bboardID bbs.BBoardID, articleID bbs.ArticleID) (re
 
 	result = &ArticleDetailSummary{}
 	err = Article_c.FindOne(query, &result, articleDetailSummaryFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

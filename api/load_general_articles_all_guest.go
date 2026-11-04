@@ -12,7 +12,7 @@ func LoadGeneralArticlesAllGuestWrapper(c *gin.Context) {
 	PathQuery(LoadGeneralArticlesAllGuest, params, path, c)
 }
 
-func LoadGeneralArticlesAllGuest(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadGeneralArticlesAllGuest(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	user.UserID = bbs.UUserID(pttbbsapi.GUEST)
 
 	return LoadGeneralArticles(remoteAddr, user, params, path, c)

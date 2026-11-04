@@ -12,6 +12,6 @@ func LoadGeneralBoardsByClassWrapper(c *gin.Context) {
 	LoginRequiredQuery(LoadGeneralBoardsByClass, params, c)
 }
 
-func LoadGeneralBoardsByClass(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadGeneralBoardsByClass(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	return loadGeneralBoardsCore(remoteAddr, user, params, c, pttbbsapi.LOAD_GENERAL_BOARDS_BY_CLASS_R)
 }

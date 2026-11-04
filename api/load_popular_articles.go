@@ -11,8 +11,8 @@ const LOAD_POPULAR_ARTICLES_R = "/articles/popular"
 
 type LoadPopularArticlesParams struct {
 	StartIdx   string `json:"start_idx,omitempty" form:"start_idx,omitempty" url:"start_idx,omitempty"`
-	Max        int    `json:"limit,omitempty" form:"limit,omitempty" url:"limit,omitempty"`
-	Descending bool   `json:"desc,omitempty"  form:"desc,omitempty" url:"desc,omitempty"`
+	Max        int    `json:"limit,omitzero" form:"limit,omitempty" url:"limit,omitempty"`
+	Descending bool   `json:"desc,omitzero"  form:"desc,omitempty" url:"desc,omitempty"`
 }
 
 type LoadPopularArticlesResult struct {
@@ -34,7 +34,7 @@ func LoadPopularArticlesWrapper(c *gin.Context) {
 	LoginRequiredQuery(LoadPopularArticles, params, c)
 }
 
-func LoadPopularArticles(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadPopularArticles(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	result = mock.ArticleListResult
 	return result, 200, nil
 }

@@ -12,7 +12,7 @@ func LoadArticleCommentsAllGuestWrapper(c *gin.Context) {
 	PathQuery(LoadArticleCommentsAllGuest, params, path, c)
 }
 
-func LoadArticleCommentsAllGuest(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadArticleCommentsAllGuest(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	user.UserID = bbs.UUserID(pttbbsapi.GUEST)
 
 	return LoadArticleComments(remoteAddr, user, params, path, c)

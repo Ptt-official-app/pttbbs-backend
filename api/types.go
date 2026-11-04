@@ -8,17 +8,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type APIFunc func(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error)
+type APIFunc func(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error)
 
-type RedirectAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (redirectPath string, statusCode int, err error)
+type RedirectAPIFunc func(remoteAddr string, user *UserInfo, params any, c *gin.Context) (redirectPath string, statusCode int, err error)
 
-type PathAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error)
+type PathAPIFunc func(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error)
 
-type LoginRequiredAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error)
+type LoginRequiredAPIFunc func(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error)
 
-type LoginRequiredPathAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error)
+type LoginRequiredPathAPIFunc func(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error)
 
-type LoginRequiredRedirectPathAPIFunc func(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (redirectPath string, statusCode int, err error)
+type LoginRequiredRedirectPathAPIFunc func(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (redirectPath string, statusCode int, err error)
 
 type errResult struct {
 	Msg string

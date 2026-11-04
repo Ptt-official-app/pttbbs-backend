@@ -172,7 +172,7 @@ func assertArticleFields() error {
 type ArticleQuery struct {
 	BBoardID  bbs.BBoardID  `bson:"bid"`
 	ArticleID bbs.ArticleID `bson:"aid"`
-	IsDeleted interface{}   `bson:"deleted,omitempty"` //
+	IsDeleted any           `bson:"deleted,omitempty"` //
 }
 
 var EMPTY_ARTICLE_QUERY = &ArticleQuery{}
@@ -182,7 +182,7 @@ type ArticleCreateQuery struct {
 	ArticleID      bbs.ArticleID        `bson:"aid"`
 	BoardArticleID types.BoardArticleID `bson:"baid"`
 
-	IsDeleted interface{} `bson:"deleted,omitempty"` //
+	IsDeleted any `bson:"deleted,omitempty"` //
 }
 
 var EMPTY_ARTICLE_CREATE_QUERY = &ArticleCreateQuery{}

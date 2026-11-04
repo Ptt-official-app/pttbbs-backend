@@ -1,8 +1,9 @@
 package schema
 
 import (
+	"cmp"
 	"reflect"
-	"sort"
+	"slices"
 	"sync"
 	"testing"
 
@@ -52,8 +53,8 @@ func TestGetCommentSummaries(t *testing.T) {
 				return
 			}
 
-			sort.SliceStable(gotCommentSummaries, func(i int, j int) bool {
-				return gotCommentSummaries[i].CreateTime <= gotCommentSummaries[j].CreateTime
+			slices.SortStableFunc(gotCommentSummaries, func(a, b *CommentSummary) int {
+				return cmp.Compare(a.CreateTime, b.CreateTime)
 			})
 
 			testutil.TDeepEqual(t, "got", gotCommentSummaries, tt.expectedCommentSummaries)
@@ -100,8 +101,8 @@ func TestUpdateCommentSummaries(t *testing.T) {
 
 			gotCommentSummaries, _ := GetCommentSummaries(tt.args.bboardID, tt.args.articleID, types.NanoTS(1261396500000000000), types.NanoTS(1261396680003100001))
 
-			sort.SliceStable(gotCommentSummaries, func(i int, j int) bool {
-				return gotCommentSummaries[i].CreateTime <= gotCommentSummaries[j].CreateTime
+			slices.SortStableFunc(gotCommentSummaries, func(a, b *CommentSummary) int {
+				return cmp.Compare(a.CreateTime, b.CreateTime)
 			})
 
 			testutil.TDeepEqual(t, "got", gotCommentSummaries, tt.expected)

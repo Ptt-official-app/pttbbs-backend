@@ -25,7 +25,7 @@ func GetBoardSummaryWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(GetBoardSummary, params, path, c)
 }
 
-func GetBoardSummary(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func GetBoardSummary(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	thePath, ok := path.(*GetBoardSummaryPath)
 	if !ok {
 		return nil, 400, ErrInvalidPath

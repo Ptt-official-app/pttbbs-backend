@@ -13,7 +13,7 @@ const GET_ARTICLE_BLOCKS_R = "/board/:bid/articleblocks/:aid"
 
 type GetArticleBlocksParams struct {
 	StartIdx string `json:"start_idx,omitempty" form:"start_idx,omitempty" url:"start_idx,omitempty"`
-	Max      int    `json:"limit,omitempty" form:"limit,omitempty" url:"limit,omitempty"`
+	Max      int    `json:"limit,omitzero" form:"limit,omitempty" url:"limit,omitempty"`
 }
 
 type GetArticleBlocksPath struct {
@@ -24,24 +24,24 @@ type GetArticleBlocksPath struct {
 type GetArticleBlocksResult struct {
 	Content [][]*types.Rune `json:"content,omitempty"`
 
-	IsDeleted   bool                `json:"deleted,omitempty"`     //
-	CreateTime  types.Time8         `json:"create_time,omitempty"` //
-	MTime       types.Time8         `json:"modified,omitempty"`    //
-	Recommend   int                 `json:"recommend,omitempty"`   //
-	NComments   int                 `json:"n_comments,omitempty"`  //
-	Owner       bbs.UUserID         `json:"owner,omitempty"`       //
+	IsDeleted   bool                `json:"deleted,omitzero"`     //
+	CreateTime  types.Time8         `json:"create_time,omitzero"` //
+	MTime       types.Time8         `json:"modified,omitzero"`    //
+	Recommend   int                 `json:"recommend,omitzero"`   //
+	NComments   int                 `json:"n_comments,omitzero"`  //
+	Owner       bbs.UUserID         `json:"owner,omitempty"`      //
 	Nickname    string              `json:"nickname,omitempty"`
 	Title       string              `json:"title,omitempty"` //
-	Money       int                 `json:"money,omitempty"` //
+	Money       int                 `json:"money,omitzero"`  //
 	Class       string              `json:"class,omitempty"` // can be: R: 轉, [class]
-	Filemode    ptttype.FileMode    `json:"mode,omitempty"`  //
+	Filemode    ptttype.FileMode    `json:"mode,omitzero"`   //
 	SubjectType ptttype.SubjectType `json:"subject_type"`
 
 	IP   string `json:"ip,omitempty"`
 	Host string `json:"host,omitempty"` // ip 的中文呈現, 外國則為國家.
 	BBS  string `json:"bbs,omitempty"`
 
-	Rank int `json:"rank,omitempty"` // 評價
+	Rank int `json:"rank,omitzero"` // 評價
 
 	NextIdx string `json:"next_idx"`
 
@@ -60,7 +60,7 @@ func GetArticleBlocksWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(GetArticleBlocks, params, path, c)
 }
 
-func GetArticleBlocks(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func GetArticleBlocks(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*GetArticleBlocksParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func HTTPPost(url string, data interface{}, result interface{}) (statusCode int, err error) {
+func HTTPPost(url string, data any, result any) (statusCode int, err error) {
 	logrus.Infof("HTTPPost: url: %v", url)
 	switch url {
 	case api.LOGIN_R:
@@ -111,13 +111,13 @@ func HTTPPost(url string, data interface{}, result interface{}) (statusCode int,
 	}
 }
 
-func parseResult(backendResult interface{}, httpResult interface{}) (statusCode int, err error) {
+func parseResult(backendResult any, httpResult any) (statusCode int, err error) {
 	convert(backendResult, httpResult)
 
 	return 200, nil
 }
 
-func convert(dataBackend interface{}, dataResult interface{}) {
+func convert(dataBackend any, dataResult any) {
 	valueBackend := reflect.ValueOf(dataResult)
 	valuePttbbs := reflect.ValueOf(dataBackend)
 	valueBackend.Elem().Set(valuePttbbs)

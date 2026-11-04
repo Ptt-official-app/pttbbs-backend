@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func ErrRecover(err interface{}) error {
+func ErrRecover(err any) error {
 	str := fmt.Sprintf("(recover) %v", err)
 	return errors.New(str)
 }

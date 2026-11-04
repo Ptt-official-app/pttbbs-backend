@@ -1,7 +1,8 @@
 package schema
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 	"strconv"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -201,12 +202,12 @@ func UpdateUserFavorites(userID bbs.UUserID, doubleBufferIdx int, userFavorites 
 
 func SortUserFavoritesByFavIdx(userFavorites []*UserFavorites, ascending bool) (newUserFavorites []*UserFavorites) {
 	if ascending {
-		sort.SliceStable(userFavorites, func(i, j int) bool {
-			return userFavorites[i].FavIdx < userFavorites[j].FavIdx
+		slices.SortStableFunc(userFavorites, func(a, b *UserFavorites) int {
+			return cmp.Compare(a.FavIdx, b.FavIdx)
 		})
 	} else {
-		sort.SliceStable(userFavorites, func(i, j int) bool {
-			return userFavorites[i].FavIdx > userFavorites[j].FavIdx
+		slices.SortStableFunc(userFavorites, func(a, b *UserFavorites) int {
+			return cmp.Compare(b.FavIdx, a.FavIdx)
 		})
 	}
 

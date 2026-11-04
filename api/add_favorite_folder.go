@@ -25,7 +25,7 @@ func AddFavoriteFolderWrapper(c *gin.Context) {
 	LoginRequiredPathJSON(AddFavoriteFolder, params, path, c)
 }
 
-func AddFavoriteFolder(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func AddFavoriteFolder(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*AddFavoriteFolderParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

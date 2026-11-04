@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -269,7 +270,7 @@ func GetBoardSummary(bboardID bbs.BBoardID) (result *BoardSummary, err error) {
 
 	result = &BoardSummary{}
 	err = Board_c.FindOne(query, result, boardSummaryFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {
