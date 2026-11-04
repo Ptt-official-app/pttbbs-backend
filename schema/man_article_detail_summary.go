@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -42,7 +44,7 @@ func GetManArticleDetailSummary(bboardID bbs.BBoardID, articleID types.ManArticl
 
 	result = &ManArticleDetailSummary{}
 	err = ManArticle_c.FindOne(query, &result, manArticleDetailSummaryFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

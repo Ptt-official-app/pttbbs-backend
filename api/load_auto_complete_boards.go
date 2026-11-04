@@ -11,8 +11,8 @@ const LOAD_AUTO_COMPLETE_BOARDS_R = "/boards/autocomplete"
 type LoadAutoCompleteBoardsParams struct {
 	Keyword   string `json:"brdname,omitempty" form:"brdname,omitempty" url:"brdname,omitempty"`
 	StartIdx  string `json:"start_idx,omitempty" form:"start_idx,omitempty" url:"start_idx,omitempty"`
-	Ascending bool   `json:"asc,omitempty"  form:"asc,omitempty" url:"asc,omitempty"`
-	Max       int    `json:"limit,omitempty" form:"limit,omitempty" url:"limit,omitempty"`
+	Ascending bool   `json:"asc,omitzero"  form:"asc,omitempty" url:"asc,omitempty"`
+	Max       int    `json:"limit,omitzero" form:"limit,omitempty" url:"limit,omitempty"`
 }
 
 func NewLoadAutoCompleteBoardsParams() *LoadAutoCompleteBoardsParams {
@@ -27,7 +27,7 @@ func LoadAutoCompleteBoardsWrapper(c *gin.Context) {
 	LoginRequiredQuery(LoadAutoCompleteBoards, params, c)
 }
 
-func LoadAutoCompleteBoards(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadAutoCompleteBoards(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoadAutoCompleteBoardsParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

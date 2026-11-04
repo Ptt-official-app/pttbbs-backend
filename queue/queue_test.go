@@ -145,16 +145,14 @@ func TestQueueConcurrentAdmissionAndClose(t *testing.T) {
 	var accepted, completed atomic.Int32
 	var submitters sync.WaitGroup
 	for range 100 {
-		submitters.Add(1)
-		go func() {
-			defer submitters.Done()
+		submitters.Go(func() {
 			err := queueTask(func(context.Context) error { completed.Add(1); return nil })
 			if err == nil {
 				accepted.Add(1)
 			} else if !errors.Is(err, pool.ErrQueueShutdown) {
 				t.Errorf("enqueue: %v", err)
 			}
-		}()
+		})
 	}
 	Close()
 	submitters.Wait()

@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func LoginRequiredPathJSON(theFunc LoginRequiredPathAPIFunc, params interface{}, path interface{}, c *gin.Context) {
+func LoginRequiredPathJSON(theFunc LoginRequiredPathAPIFunc, params any, path any, c *gin.Context) {
 	err := c.ShouldBindJSON(params)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -22,7 +22,7 @@ func LoginRequiredPathJSON(theFunc LoginRequiredPathAPIFunc, params interface{},
 	loginRequiredPathProcess(theFunc, params, path, c)
 }
 
-func LoginRequiredPathQuery(theFunc LoginRequiredPathAPIFunc, params interface{}, path interface{}, c *gin.Context) {
+func LoginRequiredPathQuery(theFunc LoginRequiredPathAPIFunc, params any, path any, c *gin.Context) {
 	err := c.ShouldBindQuery(params)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -32,7 +32,7 @@ func LoginRequiredPathQuery(theFunc LoginRequiredPathAPIFunc, params interface{}
 	loginRequiredPathProcess(theFunc, params, path, c)
 }
 
-func loginRequiredPathProcess(theFunc LoginRequiredPathAPIFunc, params interface{}, path interface{}, c *gin.Context) {
+func loginRequiredPathProcess(theFunc LoginRequiredPathAPIFunc, params any, path any, c *gin.Context) {
 	err := c.ShouldBindUri(path)
 	if err != nil {
 		processResult(c, nil, 400, err, "")

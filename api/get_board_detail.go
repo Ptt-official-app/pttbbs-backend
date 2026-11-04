@@ -26,7 +26,7 @@ func GetBoardDetailWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(GetBoardDetail, params, path, c)
 }
 
-func GetBoardDetail(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func GetBoardDetail(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*GetBoardDetailParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams
@@ -52,9 +52,8 @@ func GetBoardDetail(remoteAddr string, user *UserInfo, params interface{}, path 
 	// fields
 	var fieldMap map[string]bool
 	if len(theParams.Fields) > 0 {
-		fields := strings.Split(theParams.Fields, ",")
 		fieldMap = make(map[string]bool)
-		for _, each := range fields {
+		for each := range strings.SplitSeq(theParams.Fields, ",") {
 			each_db, ok := apitypes.BOARD_DETAIL_FIELD_MAP[each]
 			if !ok {
 				each_db = each

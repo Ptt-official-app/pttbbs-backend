@@ -42,8 +42,8 @@ type ArticleComment struct {
 	TheType ArticleCommentType `json:"type"`
 
 	CommentID         types.CommentID     `json:"cid,omitempty"`
-	CommentType       ptttype.CommentType `json:"ctype,omitempty"`
-	CommentCreateTime types.Time8         `json:"ctime,omitempty"`
+	CommentType       ptttype.CommentType `json:"ctype,omitzero"`
+	CommentCreateTime types.Time8         `json:"ctime,omitzero"`
 	Comment           [][]*types.Rune     `json:"comment,omitempty"`
 
 	TokenUser bbs.UUserID `json:"tokenuser"`

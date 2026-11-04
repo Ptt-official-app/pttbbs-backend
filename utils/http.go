@@ -29,7 +29,7 @@ import (
 //	postData := &backend.LoginParams{}
 //	result := &backend.LoginResult{}
 //	BackendPost(c, url, postData, nil, &result)
-func BackendPost(c *gin.Context, url string, postData interface{}, headers map[string]string, result interface{}) (statusCode int, err error) {
+func BackendPost(c *gin.Context, url string, postData any, headers map[string]string, result any) (statusCode int, err error) {
 	if isTest {
 		return mockhttp.HTTPPost(url, postData, result)
 	}
@@ -58,7 +58,7 @@ func BackendPost(c *gin.Context, url string, postData interface{}, headers map[s
 	return httpProcess(req, headers, result)
 }
 
-func BackendGet(c *gin.Context, url string, params interface{}, headers map[string]string, result interface{}) (statusCode int, err error) {
+func BackendGet(c *gin.Context, url string, params any, headers map[string]string, result any) (statusCode int, err error) {
 	if isTest {
 		return mockhttp.HTTPPost(url, params, result)
 	}
@@ -110,7 +110,7 @@ func httpUpdateHeaders(headers map[string]string, c *gin.Context) {
 	}
 }
 
-func httpProcess(req *http.Request, headers map[string]string, result interface{}) (statusCode int, err error) {
+func httpProcess(req *http.Request, headers map[string]string, result any) (statusCode int, err error) {
 	for k, v := range headers {
 		req.Header.Add(k, v)
 	}

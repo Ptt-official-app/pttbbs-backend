@@ -25,7 +25,7 @@ type BoardSummary struct {
 	Total        int             `json:"total"`
 	LastPostTime types.Time8     `json:"last_post_time"`
 
-	StatAttr ptttype.BoardStatAttr `json:"stat_attr,omitempty"`
+	StatAttr ptttype.BoardStatAttr `json:"stat_attr,omitzero"`
 	LevelIdx schema.LevelIdx       `json:"level_idx,omitempty"` // sub-level-idx for folder, "" if type is line or board.
 
 	URL string `json:"url,omitempty"`
@@ -37,30 +37,30 @@ type BoardSummary struct {
 
 	TokenUser bbs.UUserID `json:"tokenuser,omitempty"`
 
-	IsPopular bool `json:"is_popular,omitempty"` // 熱門板
-	IsOver18  bool `json:"is_over_18"`           // 18歲板
+	IsPopular bool `json:"is_popular,omitzero"` // 熱門板
+	IsOver18  bool `json:"is_over_18"`          // 18歲板
 
-	IsNoStats             bool `json:"is_no_stats,omitempty"`               // 不列入統計
-	IsGroupBoard          bool `json:"is_group_board,omitempty"`            // 群組板
-	IsHide                bool `json:"is_hide,omitempty"`                   // 隱板
-	IsPostMask            bool `json:"is_post_mask,omitempty"`              // 限制發表或是閱讀
-	IsAnonymous           bool `json:"is_anony,omitempty"`                  // 匿名板
-	IsDefaultAnonymous    bool `json:"is_default_anony,omitempty"`          // 預設匿名板
-	IsNoCredit            bool `json:"is_no_credit,omitempty"`              // 發文無獎勵板
-	IsVoteBoard           bool `json:"is_vote_board,omitempty"`             // 連署機看板
-	IsWarnEOL             bool `json:"is_warn_eol,omitempty"`               // 已警告要廢除
-	IsNoComment           bool `json:"is_no_comment,omitempty"`             // 不可推文
-	IsAngelAnonymous      bool `json:"is_angel_anony,omitempty"`            // 小天使可匿名
-	IsSymLink             bool `json:"is_sym_link,omitempty"`               // 文章是 sym-link (AllPost/HiddenAllPost)
-	IsNoBoo               bool `json:"is_no_boo,omitempty"`                 // 不可噓文
-	IsBoardMemberOnlyPost bool `json:"is_board_member_only_post,omitempty"` // 板友才可以發文
-	IsGuestPost           bool `json:"is_guest_post,omitempty"`             // guest 可發文
-	IsCooldown            bool `json:"is_cooldown,omitempty"`               // 靜
-	IsIPLogComment        bool `json:"is_ip_log_comment,omitempty"`         // 推文記錄 IP
-	IsNoReply             bool `json:"is_no_reply,omitempty"`               // 不可回文
-	IsAlignedComment      bool `json:"is_aligned_comment,omitempty"`        // 對齊式推文
-	IsNoSelfDelPost       bool `json:"is_no_self_del_post,omitempty"`       // 不可以自己刪文
-	IsBMMaskContent       bool `json:"is_bm_mask_content,omitempty"`        // 允許板主刪除特定文字
+	IsNoStats             bool `json:"is_no_stats,omitzero"`               // 不列入統計
+	IsGroupBoard          bool `json:"is_group_board,omitzero"`            // 群組板
+	IsHide                bool `json:"is_hide,omitzero"`                   // 隱板
+	IsPostMask            bool `json:"is_post_mask,omitzero"`              // 限制發表或是閱讀
+	IsAnonymous           bool `json:"is_anony,omitzero"`                  // 匿名板
+	IsDefaultAnonymous    bool `json:"is_default_anony,omitzero"`          // 預設匿名板
+	IsNoCredit            bool `json:"is_no_credit,omitzero"`              // 發文無獎勵板
+	IsVoteBoard           bool `json:"is_vote_board,omitzero"`             // 連署機看板
+	IsWarnEOL             bool `json:"is_warn_eol,omitzero"`               // 已警告要廢除
+	IsNoComment           bool `json:"is_no_comment,omitzero"`             // 不可推文
+	IsAngelAnonymous      bool `json:"is_angel_anony,omitzero"`            // 小天使可匿名
+	IsSymLink             bool `json:"is_sym_link,omitzero"`               // 文章是 sym-link (AllPost/HiddenAllPost)
+	IsNoBoo               bool `json:"is_no_boo,omitzero"`                 // 不可噓文
+	IsBoardMemberOnlyPost bool `json:"is_board_member_only_post,omitzero"` // 板友才可以發文
+	IsGuestPost           bool `json:"is_guest_post,omitzero"`             // guest 可發文
+	IsCooldown            bool `json:"is_cooldown,omitzero"`               // 靜
+	IsIPLogComment        bool `json:"is_ip_log_comment,omitzero"`         // 推文記錄 IP
+	IsNoReply             bool `json:"is_no_reply,omitzero"`               // 不可回文
+	IsAlignedComment      bool `json:"is_aligned_comment,omitzero"`        // 對齊式推文
+	IsNoSelfDelPost       bool `json:"is_no_self_del_post,omitzero"`       // 不可以自己刪文
+	IsBMMaskContent       bool `json:"is_bm_mask_content,omitzero"`        // 允許板主刪除特定文字
 }
 
 func NewBoardSummary(b_db *schema.BoardSummary, idx string, userBoardInfo *UserBoardInfo, userID bbs.UUserID) *BoardSummary {

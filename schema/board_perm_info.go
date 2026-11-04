@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"go.mongodb.org/mongo-driver/bson"
@@ -45,7 +47,7 @@ func GetBoardPermInfo(boardID bbs.BBoardID) (boardPermInfo *BoardPermInfo, err e
 	}
 
 	err = Board_c.FindOne(query, &boardPermInfo, boardPermInfoFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

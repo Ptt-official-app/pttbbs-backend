@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -48,7 +50,7 @@ func getUserIDEmailCore(query bson.M, updateNanoTS types.NanoTS) (userIDEmail *U
 	userIDEmail = &UserIDEmail{}
 	err = UserIDEmail_c.FindOne(query, userIDEmail, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			err = nil
 		}
 		return nil, err

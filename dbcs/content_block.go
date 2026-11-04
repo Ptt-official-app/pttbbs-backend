@@ -19,10 +19,7 @@ func ParseContentBlocks(boardID bbs.BBoardID, articleID bbs.ArticleID, content [
 
 	var eachContent [][]*types.Rune
 	for idx := 0; idx < nBlocks && len(content) > 0; idx++ {
-		theLen := N_LINES_PER_CONTENT_BLOCK
-		if len(content) < N_LINES_PER_CONTENT_BLOCK {
-			theLen = len(content)
-		}
+		theLen := min(len(content), N_LINES_PER_CONTENT_BLOCK)
 
 		eachContent, content = content[:theLen], content[theLen:]
 		eachContentBlock := &schema.ContentBlock{

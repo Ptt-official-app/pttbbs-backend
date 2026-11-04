@@ -1,6 +1,6 @@
 package db
 
 type UpdatePair struct {
-	Filter interface{}
-	Update interface{}
+	Filter any
+	Update any
 }

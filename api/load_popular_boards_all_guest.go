@@ -13,7 +13,7 @@ func LoadPopularBoardsAllGuestWrapper(c *gin.Context) {
 	Query(LoadPopularBoardsAllGuest, nil, c)
 }
 
-func LoadPopularBoardsAllGuest(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadPopularBoardsAllGuest(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	boardSummaries_db, err := schema.GetPopularBoardSummaries()
 	if err != nil {
 		return nil, 500, err

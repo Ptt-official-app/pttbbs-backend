@@ -39,14 +39,14 @@ func TestSetIDEmail(t *testing.T) {
 	type args struct {
 		remoteAddr string
 		userID     bbs.UUserID
-		params     interface{}
-		path       interface{}
+		params     any
+		path       any
 		c          *gin.Context
 	}
 	tests := []struct {
 		name               string
 		args               args
-		expectedResult     interface{}
+		expectedResult     any
 		expectedStatusCode int
 		wantErr            bool
 	}{

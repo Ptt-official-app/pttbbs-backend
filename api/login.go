@@ -61,7 +61,7 @@ func LoginWrapper(c *gin.Context) {
 	FormJSON(Login, params, c)
 }
 
-func Login(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoginParams)
 	// record user login
 	loginLog := &LoginLog{

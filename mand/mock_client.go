@@ -13,7 +13,7 @@ func NewMockClientConn() *MockClientConn {
 	return &MockClientConn{}
 }
 
-func (c *MockClientConn) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) (err error) {
+func (c *MockClientConn) Invoke(ctx context.Context, method string, args any, reply any, opts ...grpc.CallOption) (err error) {
 	logrus.Infof("mand.MockClient: method: %v", method)
 	switch method {
 	case "/pttbbs.man.ManService/List":

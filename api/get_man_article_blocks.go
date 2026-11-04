@@ -12,7 +12,7 @@ const GET_MAN_ARTICLE_BLOCKS_R = "/board/:bid/manualblocks/*aid"
 
 type GetManArticleBlocksParams struct {
 	StartIdx string `json:"start_idx,omitempty" form:"start_idx,omitempty" url:"start_idx,omitempty"`
-	Max      int    `json:"limit,omitempty" form:"limit,omitempty" url:"limit,omitempty"`
+	Max      int    `json:"limit,omitzero" form:"limit,omitempty" url:"limit,omitempty"`
 }
 
 type GetManArticleBlocksPath struct {
@@ -23,10 +23,10 @@ type GetManArticleBlocksPath struct {
 type GetManArticleBlocksResult struct {
 	Content [][]*types.Rune `json:"content,omitempty"`
 
-	IsDeleted  bool        `json:"deleted,omitempty"`     //
-	CreateTime types.Time8 `json:"create_time,omitempty"` //
-	MTime      types.Time8 `json:"modified,omitempty"`    //
-	Title      string      `json:"title,omitempty"`       //
+	IsDeleted  bool        `json:"deleted,omitzero"`     //
+	CreateTime types.Time8 `json:"create_time,omitzero"` //
+	MTime      types.Time8 `json:"modified,omitzero"`    //
+	Title      string      `json:"title,omitempty"`      //
 
 	NextIdx string `json:"next_idx"`
 
@@ -45,7 +45,7 @@ func GetManArticleBlocksWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(GetManArticleBlocks, params, path, c)
 }
 
-func GetManArticleBlocks(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func GetManArticleBlocks(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*GetManArticleBlocksParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

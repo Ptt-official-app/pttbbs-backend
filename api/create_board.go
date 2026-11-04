@@ -19,10 +19,10 @@ type CreateBoardParams struct {
 	BrdClass     string            `json:"class" form:"class" url:"class"`
 	BrdTitle     string            `json:"title" form:"title" url:"title"`
 	BMs          []bbs.UUserID     `json:"bms,omitempty" form:"bms,omitempty" url:"bms,omitempty"`
-	BrdAttr      ptttype.BrdAttr   `json:"brdattr,omitempty" form:"brdattr,omitempty" url:"brdattr,omitempty"`
-	Level        ptttype.PERM      `json:"level,omitempty" form:"level,omitempty" url:"level,omitempty"`
-	ChessCountry ptttype.ChessCode `json:"chess_country,omitempty" form:"chess_country,omitempty" url:"chess_country,omitempty"`
-	IsGroup      bool              `json:"is_group,omitempty" form:"is_group,omitempty" url:"is_group,omitempty"`
+	BrdAttr      ptttype.BrdAttr   `json:"brdattr,omitzero" form:"brdattr,omitempty" url:"brdattr,omitempty"`
+	Level        ptttype.PERM      `json:"level,omitzero" form:"level,omitempty" url:"level,omitempty"`
+	ChessCountry ptttype.ChessCode `json:"chess_country,omitzero" form:"chess_country,omitempty" url:"chess_country,omitempty"`
+	IsGroup      bool              `json:"is_group,omitzero" form:"is_group,omitempty" url:"is_group,omitempty"`
 }
 
 type CreateBoardPath struct {
@@ -38,7 +38,7 @@ func CreateBoardWrapper(c *gin.Context) {
 	LoginRequiredPathJSON(CreateBoard, params, path, c)
 }
 
-func CreateBoard(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func CreateBoard(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*CreateBoardParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

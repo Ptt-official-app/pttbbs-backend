@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func LoginRequiredJSON(theFunc LoginRequiredAPIFunc, params interface{}, c *gin.Context) {
+func LoginRequiredJSON(theFunc LoginRequiredAPIFunc, params any, c *gin.Context) {
 	err := c.ShouldBindJSON(params)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -18,7 +18,7 @@ func LoginRequiredJSON(theFunc LoginRequiredAPIFunc, params interface{}, c *gin.
 	loginRequiredProcess(theFunc, params, c)
 }
 
-func LoginRequiredQuery(theFunc LoginRequiredAPIFunc, params interface{}, c *gin.Context) {
+func LoginRequiredQuery(theFunc LoginRequiredAPIFunc, params any, c *gin.Context) {
 	err := c.ShouldBindQuery(params)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -28,7 +28,7 @@ func LoginRequiredQuery(theFunc LoginRequiredAPIFunc, params interface{}, c *gin
 	loginRequiredProcess(theFunc, params, c)
 }
 
-func loginRequiredProcess(theFunc LoginRequiredAPIFunc, params interface{}, c *gin.Context) {
+func loginRequiredProcess(theFunc LoginRequiredAPIFunc, params any, c *gin.Context) {
 	remoteAddr, user, err := loginRequiredCore(c)
 	if err != nil {
 		processResult(c, nil, 403, ErrInvalidRemoteAddr, "")

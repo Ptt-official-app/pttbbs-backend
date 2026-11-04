@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"time"
 
 	"github.com/Ptt-official-app/pttbbs-backend/db"
@@ -186,7 +187,7 @@ func GetClient(clientID string) (ret *Client, err error) {
 
 	ret = &Client{}
 	err = Client_c.FindOne(query, ret, nil)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

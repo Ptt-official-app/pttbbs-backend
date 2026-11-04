@@ -2,6 +2,7 @@ package schema
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/Ptt-official-app/pttbbs-backend/db"
@@ -29,7 +30,7 @@ func GetOIDCAccessTokensBySubjectAndClientID(subject string, clientID string) (a
 	accessTokens = make([]*OIDCAccessToken, 0, len(accessTokenIDs))
 	for _, eachID := range accessTokenIDs {
 		each, err := GetOIDCAccessToken(eachID)
-		if err == ErrNotFound {
+		if errors.Is(err, ErrNotFound) {
 			continue
 		}
 		if err != nil {

@@ -185,7 +185,7 @@ func assertBoardFields() error {
 type BoardQuery struct {
 	BBoardID bbs.BBoardID `bson:"bid"`
 
-	IsDeleted interface{} `bson:"deleted,omitempty"`
+	IsDeleted any `bson:"deleted,omitempty"`
 }
 
 var EMPTY_BOARD_QUERY = &BoardQuery{}

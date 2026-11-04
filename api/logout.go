@@ -14,7 +14,7 @@ func LogoutWrapper(c *gin.Context) {
 	FormLogout(Logout, nil, c)
 }
 
-func Logout(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func Logout(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	jwt := pttbbsapi.GetJwt(c) // get jwt from access-token
 
 	if jwt == "" {

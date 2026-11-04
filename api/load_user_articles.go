@@ -13,8 +13,8 @@ const LOAD_USER_ARTICLES_R = "/user/:user_id/articles"
 
 type LoadUserArticlesParams struct {
 	StartIdx   string `json:"start_idx,omitempty" form:"start_idx,omitempty" url:"start_idx,omitempty"`
-	Descending bool   `json:"desc,omitempty"  form:"desc,omitempty" url:"desc,omitempty"`
-	Max        int    `json:"limit,omitempty" form:"limit,omitempty" url:"limit,omitempty"`
+	Descending bool   `json:"desc,omitzero"  form:"desc,omitempty" url:"desc,omitempty"`
+	Max        int    `json:"limit,omitzero" form:"limit,omitempty" url:"limit,omitempty"`
 }
 
 type LoadUserArticlesPath struct {
@@ -41,7 +41,7 @@ func LoadUserArticlesWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(LoadUserArticles, params, path, c)
 }
 
-func LoadUserArticles(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadUserArticles(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoadUserArticlesParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

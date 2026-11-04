@@ -35,7 +35,7 @@ func TestCreateRank(t *testing.T) {
 	tests := []struct {
 		name               string
 		args               args
-		expectedResult     interface{}
+		expectedResult     any
 		expectedStatusCode int
 		wantErr            bool
 	}{

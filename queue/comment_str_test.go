@@ -1,7 +1,8 @@
 package queue
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -75,8 +76,8 @@ func TestQueueCommentDBCSStr(t *testing.T) {
 			var got []*schema.Comment
 			_ = schema.Comment_c.Find(query, 0, &got, nil, nil)
 
-			sort.SliceStable(got, func(i, j int) bool {
-				return got[i].SortTime <= got[j].SortTime
+			slices.SortStableFunc(got, func(a, b *schema.Comment) int {
+				return cmp.Compare(a.SortTime, b.SortTime)
 			})
 			for _, each := range got {
 				each.UpdateNanoTS = types.NanoTS(0)

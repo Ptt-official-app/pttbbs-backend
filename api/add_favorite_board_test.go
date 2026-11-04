@@ -73,8 +73,8 @@ func TestAddFavoriteBoard(t *testing.T) {
 	type args struct {
 		remoteAddr string
 		userID     bbs.UUserID
-		params     interface{}
-		path       interface{}
+		params     any
+		path       any
 		c          *gin.Context
 	}
 	tests := []struct {

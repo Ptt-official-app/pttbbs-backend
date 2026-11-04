@@ -151,14 +151,14 @@ func parseCommentEditStr(commentDBCS string, origCommentDBCS string) (comment *s
 func parseCommentEditOwnerIDStr(commentDBCS string) (ownerID bbs.UUserID, newCommentDBCS string) {
 	p_commentDBCS := commentDBCS
 
-	theIdx := strings.Index(p_commentDBCS, " ")
-	if theIdx == -1 {
+	before, after, ok := strings.Cut(p_commentDBCS, " ")
+	if !ok {
 		return "", commentDBCS
 	}
 
-	ownerID = bbs.UUserID(string(p_commentDBCS[:theIdx]))
+	ownerID = bbs.UUserID(string(before))
 
-	return ownerID, p_commentDBCS[theIdx+1:]
+	return ownerID, after
 }
 
 // parseCommentEditIPCreateTime
@@ -324,12 +324,12 @@ func parseCommentDeletedOwnerIDStr(commentDBCS string) (ownerID bbs.UUserID, new
 		return "", commentDBCS
 	}
 	commentDBCS = commentDBCS[startIdx+len(MATCH_COMMENT_DELETED_INFIX0_STR):]
-	idx := strings.Index(commentDBCS, " ")
-	if idx == -1 {
+	before, _, ok := strings.Cut(commentDBCS, " ")
+	if !ok {
 		return "", origCommentDBCS
 	}
 
-	ownerID = bbs.UUserID(string(commentDBCS[:idx]))
+	ownerID = bbs.UUserID(string(before))
 
 	return ownerID, origCommentDBCS
 }
@@ -443,9 +443,9 @@ func parseCommentDefaultIPCreateTimeStr(p_commentDBCS string) (ip string, dateSt
 	if len(p_commentDBCS) == 0 {
 		return "", ""
 	}
-	theIdx := strings.Index(p_commentDBCS, "推") // 推
-	if theIdx != -1 {                           // old
-		postfix := strings.TrimSpace(p_commentDBCS[theIdx+len("推"):])
+	_, after, ok := strings.Cut(p_commentDBCS, "推") // 推
+	if ok {                                         // old
+		postfix := strings.TrimSpace(after)
 		postfixList := strings.Split(postfix, " ")
 		if len(postfixList) != 2 { // assuming 推 11/19
 			dateStr = strings.TrimSpace(postfix)

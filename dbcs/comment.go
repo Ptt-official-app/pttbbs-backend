@@ -177,14 +177,14 @@ func parseCommentEdit(commentDBCS []byte, origCommentDBCS []byte) (comment *sche
 func parseCommentEditOwnerID(commentDBCS []byte) (ownerID bbs.UUserID, newCommentDBCS []byte) {
 	p_commentDBCS := commentDBCS
 
-	theIdx := bytes.Index(p_commentDBCS, []byte(" "))
-	if theIdx == -1 {
+	before, after, ok := bytes.Cut(p_commentDBCS, []byte(" "))
+	if !ok {
 		return "", commentDBCS
 	}
 
-	ownerID = bbs.UUserID(string(p_commentDBCS[:theIdx]))
+	ownerID = bbs.UUserID(string(before))
 
-	return ownerID, p_commentDBCS[theIdx+1:]
+	return ownerID, after
 }
 
 func parseCommentEditIPCreateTime(commentDBCS []byte) (ip string, host string, theDate string) {
@@ -432,9 +432,9 @@ func parseCommentDefaultIPCreateTime(p_commentDBCS []byte) (ip string, dateStr s
 	if len(p_commentDBCS) == 0 {
 		return "", ""
 	}
-	theIdx := bytes.Index(p_commentDBCS, []byte("\xb1\xc0")) // 推
-	if theIdx != -1 {                                        // old
-		postfix := strings.TrimSpace(types.Big5ToUtf8(p_commentDBCS[theIdx+2:]))
+	_, after, ok := bytes.Cut(p_commentDBCS, []byte("\xb1\xc0")) // 推
+	if ok {                                                      // old
+		postfix := strings.TrimSpace(types.Big5ToUtf8(after))
 		postfixList := strings.Split(postfix, " ")
 		if len(postfixList) != 2 { // unable to parse. return createTime + 10-millisecond
 			return "", ""

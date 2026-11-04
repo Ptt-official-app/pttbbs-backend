@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -202,7 +203,7 @@ func GetBoardDetail(bboardID bbs.BBoardID, fields map[string]bool) (result *Boar
 		fields = boardDetailFields
 	}
 	err = Board_c.FindOne(query, result, fields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

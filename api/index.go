@@ -7,7 +7,7 @@ import (
 const INDEX_R = "/"
 
 type IndexParams struct {
-	In int `json:"in,omitempty" form:"in,omitempty" url:"in,omitempty"`
+	In int `json:"in,omitzero" form:"in,omitempty" url:"in,omitempty"`
 }
 
 func NewIndexParams() *IndexParams {
@@ -15,7 +15,7 @@ func NewIndexParams() *IndexParams {
 }
 
 type IndexResult struct {
-	Data interface{} `json:"data,omitempty"`
+	Data any `json:"data,omitempty"`
 }
 
 func IndexWrapper(c *gin.Context) {
@@ -23,7 +23,7 @@ func IndexWrapper(c *gin.Context) {
 	Query(Index, params, c)
 }
 
-func Index(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func Index(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	result = &IndexResult{Data: params}
 	return result, 200, nil
 }

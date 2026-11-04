@@ -392,7 +392,7 @@ func Close() (err error) {
 	*/
 }
 
-func getBSONName(empty interface{}, fieldName string) string {
+func getBSONName(empty any, fieldName string) string {
 	val := reflect.ValueOf(empty).Elem().Interface()
 	theType := reflect.TypeOf(val)
 	field, ok := theType.FieldByName(fieldName)
@@ -402,11 +402,11 @@ func getBSONName(empty interface{}, fieldName string) string {
 	return strings.Split(field.Tag.Get("bson"), ",")[0]
 }
 
-func getFields(empty interface{}, fields_i interface{}) (fields map[string]bool) {
+func getFields(empty any, fields_i any) (fields map[string]bool) {
 	fieldsType := reflect.ValueOf(fields_i).Elem().Type()
 	nFieldNames := fieldsType.NumField()
 	fieldNames := make([]string, nFieldNames)
-	for idx := 0; idx < nFieldNames; idx++ {
+	for idx := range nFieldNames {
 		fieldNames[idx] = fieldsType.Field(idx).Name
 	}
 
@@ -419,11 +419,11 @@ func getFields(empty interface{}, fields_i interface{}) (fields map[string]bool)
 	return fields
 }
 
-func assertFields(empty interface{}, fields_i interface{}) error {
+func assertFields(empty any, fields_i any) error {
 	emptyType := reflect.ValueOf(empty).Elem().Type()
 	fieldsType := reflect.ValueOf(fields_i).Elem().Type()
 	nFieldNames := fieldsType.NumField()
-	for idx := 0; idx < nFieldNames; idx++ {
+	for idx := range nFieldNames {
 		fieldName := fieldsType.Field(idx).Name
 		emptyBSONName := getBSONName(empty, fieldName)
 		if emptyBSONName == "" {

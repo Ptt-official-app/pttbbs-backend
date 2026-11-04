@@ -1,8 +1,9 @@
 package schema
 
 import (
+	"cmp"
 	"reflect"
-	"sort"
+	"slices"
 	"sync"
 	"testing"
 
@@ -150,8 +151,8 @@ func TestSumRankByBoardID(t *testing.T) {
 				return
 			}
 
-			sort.SliceStable(gotRet, func(i, j int) bool {
-				return gotRet[i].ArticleID < gotRet[j].ArticleID
+			slices.SortStableFunc(gotRet, func(a, b *RankAgged) int {
+				return cmp.Compare(a.ArticleID, b.ArticleID)
 			})
 			if !reflect.DeepEqual(gotRet, tt.expectedRet) {
 				t.Errorf("SumRankByBoardID() = %v, want %v", gotRet, tt.expectedRet)

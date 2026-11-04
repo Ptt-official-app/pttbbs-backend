@@ -58,7 +58,7 @@ func GetArticleDetailWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(GetArticleDetail, params, path, c)
 }
 
-func GetArticleDetail(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func GetArticleDetail(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	thePath, ok := path.(*GetArticleDetailPath)
 	if !ok {
 		return nil, 400, ErrInvalidPath

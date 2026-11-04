@@ -1,8 +1,8 @@
 package schema
 
 import (
-	"sort"
-	"strings"
+	"cmp"
+	"slices"
 	"testing"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -87,8 +87,8 @@ func TestGetArticleNCommentsByArticleIDs(t *testing.T) {
 				return
 			}
 
-			sort.SliceStable(gotArticleNComments, func(i, j int) bool {
-				return strings.Compare(string(gotArticleNComments[i].ArticleID), string(gotArticleNComments[j].ArticleID)) <= 0
+			slices.SortStableFunc(gotArticleNComments, func(a, b *ArticleNComments) int {
+				return cmp.Compare(a.ArticleID, b.ArticleID)
 			})
 
 			testutil.TDeepEqual(t, "got", gotArticleNComments, tt.expectedArticleNComments)

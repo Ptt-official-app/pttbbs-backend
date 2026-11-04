@@ -1,8 +1,8 @@
 package schema
 
 import (
-	"sort"
-	"strings"
+	"cmp"
+	"slices"
 	"testing"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -78,8 +78,8 @@ func TestUpdateUserReadArticles(t *testing.T) {
 				t.Errorf("UpdateUserReadArticles: e: %v", err)
 			}
 
-			sort.SliceStable(got, func(i, j int) bool {
-				return strings.Compare(string(got[i].ArticleID), string(got[j].ArticleID)) <= 0
+			slices.SortStableFunc(got, func(a, b *UserReadArticle) int {
+				return cmp.Compare(a.ArticleID, b.ArticleID)
 			})
 			testutil.TDeepEqual(t, "got", got, tt.want)
 		})

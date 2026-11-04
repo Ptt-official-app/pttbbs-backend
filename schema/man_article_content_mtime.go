@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -25,7 +27,7 @@ func GetManArticleContentMTime(bboardID bbs.BBoardID, articleID types.ManArticle
 
 	ret = &ManArticleContentMTime{}
 	err = ManArticle_c.FindOne(query, &ret, manArticleContentMTimeFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {

@@ -1,6 +1,8 @@
 package api
 
 import (
+	"maps"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	pttbbsfav "github.com/Ptt-official-app/go-pttbbs/ptt/fav"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
@@ -14,8 +16,8 @@ const LOAD_FAVORITE_BOARDS_R = "/user/:user_id/favorites"
 type LoadFavoriteBoardsParams struct {
 	LevelIdx  schema.LevelIdx `json:"level_idx,omitempty" form:"level_idx,omitempty" url:"level_idx,omitempty"`
 	StartIdx  string          `json:"start_idx,omitempty" form:"start_idx,omitempty" url:"start_idx,omitempty"`
-	Ascending bool            `json:"asc,omitempty"  form:"asc,omitempty" url:"asc,omitempty"`
-	Max       int             `json:"limit,omitempty" form:"limit,omitempty" url:"limit,omitempty"`
+	Ascending bool            `json:"asc,omitzero"  form:"asc,omitempty" url:"asc,omitempty"`
+	Max       int             `json:"limit,omitzero" form:"limit,omitempty" url:"limit,omitempty"`
 }
 
 type LoadFavoriteBoardsPath struct {
@@ -42,7 +44,7 @@ func LoadFavoriteBoardsWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(LoadFavoriteBoards, params, path, c)
 }
 
-func LoadFavoriteBoards(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadFavoriteBoards(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoadFavoriteBoardsParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams
@@ -69,7 +71,7 @@ func LoadFavoriteBoards(remoteAddr string, user *UserInfo, params interface{}, p
 	}
 
 	boardSummaries_db := make([]*schema.BoardSummary, 0, len(boardSummaryMap_db))
-	for _, each := range boardSummaryMap_db {
+	for each := range maps.Values(boardSummaryMap_db) {
 		boardSummaries_db = append(boardSummaries_db, each)
 	}
 
@@ -78,7 +80,7 @@ func LoadFavoriteBoards(remoteAddr string, user *UserInfo, params interface{}, p
 		return nil, 500, err
 	}
 
-	for _, each := range userBoardInfoMap {
+	for each := range maps.Values(userBoardInfoMap) {
 		each.Fav = true
 	}
 

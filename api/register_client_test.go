@@ -40,12 +40,12 @@ func TestRegisterClient(t *testing.T) {
 
 	type args struct {
 		remoteAddr string
-		params     interface{}
+		params     any
 	}
 	tests := []struct {
 		name       string
 		args       args
-		expected   interface{}
+		expected   any
 		expectedDB []*schema.Client
 		wantErr    bool
 	}{

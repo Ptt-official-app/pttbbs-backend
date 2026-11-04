@@ -1,9 +1,9 @@
 package schema
 
 import (
+	"cmp"
 	"reflect"
-	"sort"
-	"strings"
+	"slices"
 	"testing"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -86,8 +86,8 @@ func TestFindUserBoards(t *testing.T) {
 				t.Errorf("FindUserBoards() = %v, want %v", got, tt.want)
 			}
 
-			sort.SliceStable(got, func(i, j int) bool {
-				return strings.Compare(string(got[i].BBoardID), string(got[j].BBoardID)) <= 0
+			slices.SortStableFunc(got, func(a, b *UserBoard) int {
+				return cmp.Compare(a.BBoardID, b.BBoardID)
 			})
 			testutil.TDeepEqual(t, "got", got, tt.want)
 		})

@@ -19,7 +19,7 @@ func GetUsernameWrapper(c *gin.Context) {
 	LoginRequiredQuery(GetUsername, nil, c)
 }
 
-func GetUsername(remoteAddr string, user *UserInfo, params interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func GetUsername(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	userID := user.UserID
 
 	userNameInfo, err := schema.GetUserNameInfo(userID)

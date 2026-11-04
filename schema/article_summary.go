@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -56,7 +57,7 @@ func GetArticleSummary(bboardID bbs.BBoardID, articleID bbs.ArticleID) (result *
 
 	result = &ArticleSummary{}
 	err = Article_c.FindOne(query, &result, articleSummaryFields)
-	if err == mongo.ErrNoDocuments {
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, nil
 	}
 	if err != nil {
@@ -345,18 +346,12 @@ func getArticleSummariesByRegexPatternList(boardID bbs.BBoardID, keywordList [][
 		return "", nil
 	}
 
-	lenFirst := len(keywordList[0])
-	if lenFirst > TITLE_REGEX_N_GRAM {
-		lenFirst = TITLE_REGEX_N_GRAM
-	}
+	lenFirst := min(len(keywordList[0]), TITLE_REGEX_N_GRAM)
 	firstPattern = string(keywordList[0][:lenFirst])
 
 	patternList = make(bson.A, 0, len(keywordList)-1)
 	for _, each := range keywordList[1:] {
-		lenEach := len(each)
-		if lenEach > TITLE_REGEX_N_GRAM {
-			lenEach = TITLE_REGEX_N_GRAM
-		}
+		lenEach := min(len(each), TITLE_REGEX_N_GRAM)
 
 		patternList = append(patternList, bson.M{ARTICLE_BBOARD_ID_b: boardID, ARTICLE_TITLE_REGEX_b: string(each[:lenEach])})
 	}

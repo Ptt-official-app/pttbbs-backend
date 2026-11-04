@@ -31,7 +31,7 @@ func CreateRankWrapper(c *gin.Context) {
 	LoginRequiredPathJSON(CreateRank, params, path, c)
 }
 
-func CreateRank(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func CreateRank(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*CreateRankParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

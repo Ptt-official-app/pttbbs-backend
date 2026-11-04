@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func processResult(c *gin.Context, result interface{}, statusCode int, err error, userID bbs.UUserID) {
+func processResult(c *gin.Context, result any, statusCode int, err error, userID bbs.UUserID) {
 	setHeader(c)
 
 	if statusCode == 200 {

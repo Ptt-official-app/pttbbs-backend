@@ -29,7 +29,7 @@ func LoadManArticlesWrapper(c *gin.Context) {
 	LoginRequiredPathQuery(LoadManArticles, params, path, c)
 }
 
-func LoadManArticles(remoteAddr string, user *UserInfo, params interface{}, path interface{}, c *gin.Context) (result interface{}, statusCode int, err error) {
+func LoadManArticles(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoadManArticlesParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams

@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func LoginRequiredRedirectPathQuery(theFunc LoginRequiredRedirectPathAPIFunc, params interface{}, path interface{}, c *gin.Context) {
+func LoginRequiredRedirectPathQuery(theFunc LoginRequiredRedirectPathAPIFunc, params any, path any, c *gin.Context) {
 	err := c.ShouldBindQuery(params)
 	if err != nil {
 		processResult(c, nil, 400, err, "")
@@ -18,7 +18,7 @@ func LoginRequiredRedirectPathQuery(theFunc LoginRequiredRedirectPathAPIFunc, pa
 	loginRequiredRedirectPathProcess(theFunc, params, path, c)
 }
 
-func loginRequiredRedirectPathProcess(theFunc LoginRequiredRedirectPathAPIFunc, params interface{}, path interface{}, c *gin.Context) {
+func loginRequiredRedirectPathProcess(theFunc LoginRequiredRedirectPathAPIFunc, params any, path any, c *gin.Context) {
 	err := c.ShouldBindUri(path)
 	if err != nil {
 		processResult(c, nil, 400, err, "")

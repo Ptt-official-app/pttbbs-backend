@@ -7,7 +7,7 @@ import (
 
 func Test_getBSONName(t *testing.T) {
 	type args struct {
-		empty     interface{}
+		empty     any
 		fieldName string
 	}
 	tests := []struct {
@@ -35,8 +35,8 @@ func Test_getFields(t *testing.T) {
 	expected[ARTICLE_CONTENT_MTIME_b] = true
 	expected[ARTICLE_IS_DELETED_b] = true
 	type args struct {
-		empty    interface{}
-		fields_i interface{}
+		empty    any
+		fields_i any
 	}
 	tests := []struct {
 		name           string
@@ -60,8 +60,8 @@ func Test_getFields(t *testing.T) {
 
 func Test_assertFields(t *testing.T) {
 	type args struct {
-		empty    interface{}
-		fields_i interface{}
+		empty    any
+		fields_i any
 	}
 	tests := []struct {
 		name    string
