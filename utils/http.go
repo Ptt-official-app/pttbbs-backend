@@ -153,6 +153,10 @@ func httpProcess(req *http.Request, headers map[string]string, result any) (stat
 }
 
 func withGoPTTBBSPrefix(url string) string {
+	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		return url
+	}
+
 	return types.GO_PTTBBS_PREFIX + url
 }
 

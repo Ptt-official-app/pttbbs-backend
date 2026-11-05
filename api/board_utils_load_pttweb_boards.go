@@ -10,6 +10,7 @@ import (
 
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
+	"github.com/Ptt-official-app/pttbbs-backend/lemmyutils"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/Ptt-official-app/pttbbs-backend/utils"
@@ -245,6 +246,11 @@ func loadPttWebBoardsParseBoard(node *html.Node, c *gin.Context, updateNanoTS ty
 		return nil, err
 	}
 
+	err = setupLemmyBoard(board, c)
+	if err != nil {
+		return nil, err
+	}
+
 	return board, nil
 }
 
@@ -333,4 +339,25 @@ func loadPttWebBoardsGetIsOver18(boardName string, c *gin.Context) (isOver18 boo
 	}
 
 	return false, nil
+}
+
+func setupLemmyBoard(board *schema.BoardSummary, c *gin.Context) (err error) {
+	boardLemmyInfo, err := schema.GetBoardLemmyInfo(board.BBoardID)
+	if err != nil {
+		return err
+	}
+	if boardLemmyInfo != nil && boardLemmyInfo.LemmyID != 0 {
+		board.LemmyID = boardLemmyInfo.LemmyID
+		board.LemmyUpdateNS = boardLemmyInfo.LemmyUpdateNS
+		return nil
+	}
+
+	lemmyBoard, err := lemmyutils.TryCreateBoard(board.Brdname, board.Title, board.IsOver18, c)
+	if err != nil {
+		return err
+	}
+	board.LemmyID = int(lemmyBoard.CommunityView.Community.ID)
+	board.LemmyUpdateNS = types.NowNanoTS()
+
+	return nil
 }

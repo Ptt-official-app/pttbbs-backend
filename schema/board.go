@@ -80,6 +80,9 @@ type Board struct {
 	IsAlignedComment      bool `bson:"is_aligned_comment"`        // 對齊式推文
 	IsNoSelfDelPost       bool `bson:"is_no_self_del_post"`       // 不可以自己刪文
 	IsBMMaskContent       bool `bson:"is_bm_mask_content"`        // 允許板主刪除特定文字
+
+	LemmyID       int          `bson:"lemmy_id"` // lemmy id
+	LemmyUpdateNS types.NanoTS `bson:"lemmy_update_ns"`
 }
 
 var EMPTY_BOARD = &Board{}
@@ -148,6 +151,9 @@ var (
 	BOARD_IS_ALIGNED_COMMENT_b        = getBSONName(EMPTY_BOARD, "IsAlignedComment")
 	BOARD_IS_NO_SELF_DEL_POST_b       = getBSONName(EMPTY_BOARD, "IsNoSelfDelPost")
 	BOARD_IS_BM_MASK_CONTENT_b        = getBSONName(EMPTY_BOARD, "IsBMMaskContent")
+
+	BOARD_LEMMY_ID        = getBSONName(EMPTY_BOARD, "LemmyID")
+	BOARD_LEMMY_UPDATE_NS = getBSONName(EMPTY_BOARD, "LemmyUpdateNS")
 )
 
 func assertBoardFields() error {
@@ -176,6 +182,10 @@ func assertBoardFields() error {
 	}
 
 	if err := assertFields(EMPTY_BOARD, EMPTY_BOARD_IS_POPULAR); err != nil {
+		return err
+	}
+
+	if err := assertFields(EMPTY_BOARD, EMPTY_BOARD_LEMMY_INFO); err != nil {
 		return err
 	}
 

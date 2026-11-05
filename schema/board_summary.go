@@ -64,6 +64,9 @@ type BoardSummary struct {
 	IsAlignedComment      bool `bson:"is_aligned_comment"`        // 對齊式推文
 	IsNoSelfDelPost       bool `bson:"is_no_self_del_post"`       // 不可以自己刪文
 	IsBMMaskContent       bool `bson:"is_bm_mask_content"`        // 允許板主刪除特定文字
+
+	LemmyID       int          `bson:"lemmy_id"` // lemmy id
+	LemmyUpdateNS types.NanoTS `bson:"lemmy_update_ns"`
 }
 
 var (
