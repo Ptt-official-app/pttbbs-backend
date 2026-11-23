@@ -133,13 +133,17 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 
 func NewLoginResult(username string, accessToken string, refreshToken string, expireTS time.Duration, redirectURI string) *LoginResult {
 	expireTS_u64 := uint64(expireTS.Seconds())
+	refreshExpireTS_u64 := uint64(0)
+	if refreshToken != "" {
+		refreshExpireTS_u64 = uint64(types.REFRESH_TOKEN_EXPIRE_TS_DURATION.Seconds())
+	}
 	return &LoginResult{
 		Username:        username,
 		TokenType:       "bearer",
 		AccessToken:     accessToken,
 		AccessExpireTS:  expireTS_u64,
 		RefreshToken:    refreshToken,
-		RefreshExpireTS: expireTS_u64,
+		RefreshExpireTS: refreshExpireTS_u64,
 		RedirectURI:     redirectURI,
 	}
 }
