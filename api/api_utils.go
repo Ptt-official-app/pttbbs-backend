@@ -102,6 +102,7 @@ func processCSRFContent(filename string, cacheControlMaxAge int, c *gin.Context)
 	contentBytes, err := io.ReadAll(reader)
 	if err != nil {
 		processResult(c, nil, 500, ErrInvalidPath, "")
+		return
 	}
 
 	ext := filepath.Ext(filename)
@@ -109,14 +110,22 @@ func processCSRFContent(filename string, cacheControlMaxAge int, c *gin.Context)
 
 	content := string(contentBytes)
 
+	// The cookie is client-controlled: reuse it only if it is a valid (signed and not expired) token.
+	// Otherwise an expired token would be embedded in the page, and an arbitrary cookie value
+	// would be reflected into the HTML.
 	csrfToken := utils.GetCookie(c, types.CSRF_TOKEN)
-	if csrfToken == "" {
-		csrfToken, _ = createCSRFToken()
+	if !isValidCSRFToken(csrfToken) {
+		csrfToken, err = createCSRFToken()
+		if err != nil {
+			processResult(c, nil, 500, err, "")
+			return
+		}
 		setCookie(c, types.CSRF_TOKEN, csrfToken, types.CSRF_TOKEN_TS_DURATION, true, types.CSRF_COOKIE_DOMAIN)
 	}
 	content = strings.Replace(content, "__CSRFTOKEN__", csrfToken, 1)
 
-	c.Header("Cache-Control", "max-age="+strconv.Itoa(cacheControlMaxAge))
+	// The content contains the per-user csrf-token, it must not be stored by shared caches.
+	c.Header("Cache-Control", "private, max-age="+strconv.Itoa(cacheControlMaxAge))
 
 	processStringResult(c, content, mimeType)
 }
@@ -133,6 +142,14 @@ func setCookie(c *gin.Context, name string, value string, expireDuration time.Du
 	c.SetCookie(name, value, int(expireDuration.Seconds()), "/", cookieDomain, true, isHTTPOnly)
 }
 
-func removeCookie(c *gin.Context, name string, isHTTPOnly bool) {
-	c.SetCookie(name, "", -1, "/", types.COOKIE_DOMAIN, true, false)
+func removeCookie(c *gin.Context, name string, isHTTPOnly bool, cookieDomain string) {
+	if c == nil {
+		return
+	}
+
+	if cookieDomain == "" {
+		cookieDomain = types.COOKIE_DOMAIN
+	}
+
+	c.SetCookie(name, "", -1, "/", cookieDomain, true, isHTTPOnly)
 }
