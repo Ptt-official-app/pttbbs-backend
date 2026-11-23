@@ -24,10 +24,10 @@ const ZK_ISSUER_CERT_STATUS_R = "/issuer-cert/status"
 func ZKProxyWrapper(zkProxy *httputil.ReverseProxy) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		// 1. loginRequiredCore
-		_, user, err := loginRequiredCore(c)
+		_, user, statusCode, err := loginRequiredCore(c)
 		if err != nil {
 			logrus.Errorf("ZKProxyWrapper: unable to pass loginRequired: e: %v", err)
-			processResult(c, nil, 403, ErrInvalidRemoteAddr, "")
+			processResult(c, nil, statusCode, err, "")
 			return
 		}
 

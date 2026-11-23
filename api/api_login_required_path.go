@@ -45,9 +45,10 @@ func loginRequiredPathProcess(theFunc LoginRequiredPathAPIFunc, params any, path
 		return
 	}
 
-	userID, isOver18, err := verifyJwt(c)
+	userID, isOver18, statusCode, err := getLoginUser(c)
 	if err != nil {
-		userID = bbs.UUserID(pttbbsapi.GUEST)
+		processResult(c, nil, statusCode, err, "")
+		return
 	}
 
 	if userID != bbs.UUserID(pttbbsapi.GUEST) {

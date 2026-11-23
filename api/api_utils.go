@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/Ptt-official-app/pttbbs-backend/utils"
@@ -19,8 +21,16 @@ func verifyIsOver18(c *gin.Context) bool {
 	return utils.GetCookie(c, types.IS_OVER_18_NAME) == types.IS_OVER_18_VALUE
 }
 
+// verifyJwt verifies the access token (and the csrf-token for web clients).
+//
+//   - no access token: GUEST, no error.
+//   - invalid / expired access token: ErrInvalidToken.
+//   - valid access token but invalid csrf-token: ErrInvalidCSRFToken.
 func verifyJwt(c *gin.Context) (userID bbs.UUserID, isOver18 bool, err error) {
 	token := utils.GetAccessToken(c)
+	if token == "" {
+		return bbs.UUserID(pttbbsapi.GUEST), false, nil
+	}
 
 	userID, _, _, clientType, isOver18, err := verifyAccessToken(token)
 	if err != nil {
@@ -37,23 +47,43 @@ func verifyJwt(c *gin.Context) (userID bbs.UUserID, isOver18 bool, err error) {
 
 	csrfToken := c.GetHeader("X-CSRFToken")
 	if len(csrfToken) == 0 {
-		return "", false, ErrInvalidToken
+		return "", false, ErrInvalidCSRFToken
 	}
 
 	cookieCSRFToken := utils.GetCookie(c, types.CSRF_TOKEN)
 	if cookieCSRFToken == "" {
-		return "", false, ErrInvalidToken
+		return "", false, ErrInvalidCSRFToken
 	}
 
 	if csrfToken != cookieCSRFToken {
-		return "", false, ErrInvalidToken
+		return "", false, ErrInvalidCSRFToken
 	}
 
 	if !isValidCSRFToken(csrfToken) {
-		return "", false, ErrInvalidToken
+		return "", false, ErrInvalidCSRFToken
 	}
 
 	return userID, isOver18, nil
+}
+
+// getLoginUser returns the user of the request for login-required apis.
+//
+// The request is processed as GUEST if there is no access token, or the csrf-token is invalid.
+// It returns 401 if the access token is invalid or expired,
+// so the client knows that the user is no longer logged-in,
+// instead of silently being processed as GUEST.
+func getLoginUser(c *gin.Context) (userID bbs.UUserID, isOver18 bool, statusCode int, err error) {
+	userID, isOver18, err = verifyJwt(c)
+	switch {
+	case err == nil:
+		return userID, isOver18, 200, nil
+	case errors.Is(err, ErrInvalidCSRFToken):
+		return bbs.UUserID(pttbbsapi.GUEST), false, 200, nil
+	case errors.Is(err, ErrInvalidToken):
+		return "", false, 401, err
+	default:
+		return "", false, 500, err
+	}
 }
 
 func createCSRFToken() (raw string, err error) {
