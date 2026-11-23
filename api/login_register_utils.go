@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"crypto/subtle"
 	"fmt"
 	"strings"
 	"time"
@@ -51,15 +52,37 @@ func gen2FAToken() string {
 	return fmt.Sprintf(types.MAX_2FA_TOKEN_STR_PROMPT, randInt)
 }
 
+// check2FAToken verifies the 2FA token of the user.
+//
+// Every call counts as an attempt (before the token is compared),
+// so concurrent guesses can not bypass the limit.
+// After MAX_2FA_ATTEMPT attempts the token is removed and the user needs to
+// wait until the attempt window expires.
+// The token is removed after a successful verification, so it can be used only once.
 func check2FAToken(userID bbs.UUserID, token string) (oidcID string, err error) {
-	twoFA_db, err := schema.Get2FA(userID)
+	attempts, err := schema.Incr2FAAttempt(userID, types.EXPIRE_ATTEMPT_LOGIN_EMAIL_TS_DURATION)
 	if err != nil {
 		return "", err
 	}
+	if attempts > types.MAX_2FA_ATTEMPT {
+		_ = schema.Delete2FA(userID)
+		return "", ErrTooManyAttempts
+	}
 
-	if token != twoFA_db.Token {
+	twoFA_db, err := schema.Get2FA(userID)
+	if err != nil {
 		return "", ErrInvalidToken
 	}
+
+	if token == "" || subtle.ConstantTimeCompare([]byte(token), []byte(twoFA_db.Token)) != 1 {
+		return "", ErrInvalidToken
+	}
+
+	err = schema.Delete2FA(userID)
+	if err != nil {
+		return "", err
+	}
+	_ = schema.Reset2FAAttempt(userID)
 
 	return twoFA_db.OIDCID, nil
 }

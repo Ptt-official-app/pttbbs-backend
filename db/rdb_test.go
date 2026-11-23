@@ -164,3 +164,35 @@ func TestRDBDel(t *testing.T) {
 		wg.Wait()
 	}
 }
+
+func TestRDBIncrWithExpire(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
+	key := "test-incr"
+	defer func() { _ = RDBDel(rdb, key) }()
+
+	for i := int64(1); i <= 3; i++ {
+		got, err := RDBIncrWithExpire(rdb, key, 1*time.Second)
+		if err != nil {
+			t.Fatalf("RDBIncrWithExpire() failed: %v", err)
+		}
+		if got != i {
+			t.Errorf("RDBIncrWithExpire() = %v, want %v", got, i)
+		}
+	}
+
+	time.Sleep(1500 * time.Millisecond)
+
+	got, err := RDBIncrWithExpire(rdb, key, 1*time.Second)
+	if err != nil {
+		t.Fatalf("RDBIncrWithExpire() after expire failed: %v", err)
+	}
+	if got != 1 {
+		t.Errorf("RDBIncrWithExpire() after expire = %v, want 1", got)
+	}
+}

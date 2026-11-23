@@ -93,3 +93,52 @@ func TestGet2FA(t *testing.T) {
 		})
 	}
 }
+
+func TestDelete2FA(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	_ = Set2FA("SYSOP", "test@ptt.test", "123456", "", time.Duration(10)*time.Second)
+
+	if _, err := Get2FA("SYSOP"); err != nil {
+		t.Fatalf("Get2FA() before delete: e: %v", err)
+	}
+
+	if err := Delete2FA("SYSOP"); err != nil {
+		t.Fatalf("Delete2FA() e: %v", err)
+	}
+
+	if got, err := Get2FA("SYSOP"); err == nil {
+		t.Errorf("Get2FA() after delete succeeded unexpectedly: %v", got)
+	}
+}
+
+func TestIncr2FAAttempt(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	for i := int64(1); i <= 3; i++ {
+		got, err := Incr2FAAttempt("SYSOP", time.Duration(10)*time.Second)
+		if err != nil {
+			t.Fatalf("Incr2FAAttempt() e: %v", err)
+		}
+		if got != i {
+			t.Errorf("Incr2FAAttempt() = %v, want %v", got, i)
+		}
+	}
+
+	// Set2FA does not reset the attempt counter.
+	_ = Set2FA("SYSOP", "test@ptt.test", "123456", "", time.Duration(10)*time.Second)
+	got, _ := Incr2FAAttempt("SYSOP", time.Duration(10)*time.Second)
+	if got != 4 {
+		t.Errorf("Incr2FAAttempt() after Set2FA = %v, want 4", got)
+	}
+
+	if err := Reset2FAAttempt("SYSOP"); err != nil {
+		t.Fatalf("Reset2FAAttempt() e: %v", err)
+	}
+	got, _ = Incr2FAAttempt("SYSOP", time.Duration(10)*time.Second)
+	if got != 1 {
+		t.Errorf("Incr2FAAttempt() after reset = %v, want 1", got)
+	}
+}
