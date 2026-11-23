@@ -5,7 +5,7 @@ go 1.26.10
 require (
 	github.com/Ptt-official-app/go-pttbbs v0.26.10
 	github.com/appleboy/graceful v1.3.0
-	github.com/gin-contrib/cors v1.7.10
+	github.com/gin-contrib/cors v1.7.11
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-jose/go-jose/v4 v4.1.9
 	github.com/go-redis/redis/v8 v8.11.5
