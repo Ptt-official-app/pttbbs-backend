@@ -9,6 +9,7 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -100,16 +101,16 @@ func TestCreateUserEmail(t *testing.T) {
 
 			switch err2 := err.(type) {
 			case mongo.WriteException:
-				err2.Raw = nil
-				writeErrors := make([]mongo.WriteError, 0, len(err2.WriteErrors))
-				for _, each := range err2.WriteErrors {
-					each.Raw = nil
-					writeErrors = append(writeErrors, each)
+				expectedErr, ok := tt.expectedErr.(mongo.WriteException)
+				require.True(t, ok, "expectedErr: %v", tt.expectedErr)
+				require.Len(t, err2.WriteErrors, len(expectedErr.WriteErrors))
+				for idx, each := range err2.WriteErrors {
+					assert.Equal(t, expectedErr.WriteErrors[idx].Index, each.Index)
+					assert.Equal(t, expectedErr.WriteErrors[idx].Code, each.Code)
+					// newer MongoDB versions prefix the server message (e.g. "Plan executor error during update :: caused by :: ").
+					assert.Contains(t, each.Message, expectedErr.WriteErrors[idx].Message)
 				}
-				err2.WriteErrors = writeErrors
-				err2.Labels = nil
-				err2.Raw = nil
-				assert.Equal(t, tt.expectedErr, err2)
+				assert.Nil(t, err2.WriteConcernError)
 			default:
 				assert.Equal(t, tt.expectedErr, err)
 			}
