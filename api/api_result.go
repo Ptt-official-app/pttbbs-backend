@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +26,15 @@ func processResult(c *gin.Context, result any, statusCode int, err error, userID
 		return
 	}
 
-	c.JSON(statusCode, &errResult{Msg: err.Error(), TokenUser: userID})
+	c.JSON(statusCode, &errResult{Msg: errMsg(statusCode, err), TokenUser: userID})
+}
+
+// errMsg returns the error message, or the status text if err is nil.
+func errMsg(statusCode int, err error) string {
+	if err == nil {
+		return http.StatusText(statusCode)
+	}
+	return err.Error()
 }
 
 func processStringResult(c *gin.Context, content string, contentType string) {
@@ -40,7 +50,7 @@ func processRedirectResult(c *gin.Context, redirectPath string, statusCode int, 
 	if statusCode == 303 {
 		c.Redirect(statusCode, redirectPath)
 	} else {
-		c.JSON(statusCode, &errResult{Msg: err.Error(), TokenUser: userID})
+		c.JSON(statusCode, &errResult{Msg: errMsg(statusCode, err), TokenUser: userID})
 	}
 }
 

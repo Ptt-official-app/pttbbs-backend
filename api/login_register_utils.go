@@ -30,7 +30,10 @@ func removeTokenFromCookie(c *gin.Context) {
 }
 
 func gen2FATokenAndSendEmail(userID bbs.UUserID, username string, email string, oidcID string, title string, template string, expireTS time.Duration) (err error) {
-	token := gen2FAToken()
+	token, err := gen2FAToken()
+	if err != nil {
+		return err
+	}
 
 	err = schema.Set2FA(userID, email, token, oidcID, expireTS)
 	if err != nil {
@@ -46,9 +49,12 @@ func gen2FATokenAndSendEmail(userID bbs.UUserID, username string, email string, 
 	return utils.SendEmail([]string{email}, title, content)
 }
 
-func gen2FAToken() string {
-	randInt := utils.GenRandomInt64(types.MAX_2FA_TOKEN)
-	return fmt.Sprintf(types.MAX_2FA_TOKEN_STR_PROMPT, randInt)
+func gen2FAToken() (token string, err error) {
+	randInt, err := utils.GenRandomInt64(types.MAX_2FA_TOKEN)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(types.MAX_2FA_TOKEN_STR_PROMPT, randInt), nil
 }
 
 func check2FAToken(userID bbs.UUserID, token string) (oidcID string, err error) {
