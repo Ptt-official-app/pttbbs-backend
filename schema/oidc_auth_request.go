@@ -92,10 +92,12 @@ func SaveAuthRequest(authReq *OIDCAuthRequest) (err error) {
 		return err
 	}
 
-	// ensure that the challenge is unique.
-	err = db.RDBSetNX(rdb, RDB_PREFIX_OIDC_OP_REQUEST_CHALLENGE+authReq.CodeChallenge.Challenge, RDB_OIDC_OP_REQUEST_TRUE, types.EXPIRE_OIDC_AUTH_REQUEST_TS_DURATION+1*time.Second)
-	if err != nil {
-		return err
+	// ensure that the challenge is unique (the challenge is optional without PKCE).
+	if authReq.CodeChallenge != nil {
+		err = db.RDBSetNX(rdb, RDB_PREFIX_OIDC_OP_REQUEST_CHALLENGE+authReq.CodeChallenge.Challenge, RDB_OIDC_OP_REQUEST_TRUE, types.EXPIRE_OIDC_AUTH_REQUEST_TS_DURATION+1*time.Second)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = db.RDBSetNX(rdb, RDB_PREFIX_OIDC_OP_REQUEST+authReq.ID, string(authReqBytes), types.EXPIRE_OIDC_AUTH_REQUEST_TS_DURATION)
@@ -277,7 +279,7 @@ func DeleteOIDCAuthRequest(requestID string) (err error) {
 		return err
 	}
 
-	if authRequest == nil {
+	if authRequest == nil || authRequest.CodeChallenge == nil {
 		return nil
 	}
 
