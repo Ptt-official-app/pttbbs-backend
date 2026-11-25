@@ -12,5 +12,7 @@ var (
 
 	ErrNotFound = errors.New("not found")
 
+	ErrClientAlreadyExists = errors.New("client already exists")
+
 	ErrInvalidPTTBID = errors.New("invalid bid")
 )

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"reflect"
 	"sync"
@@ -146,4 +147,38 @@ func TestRegisterClientWrapper(t *testing.T) {
 		})
 	}
 	wg.Wait()
+}
+
+func TestRegisterClient_existing(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	defer schema.Client_c.Drop()
+
+	user := &UserInfo{UserID: bbs.UUserID("SYSOP")}
+
+	_, statusCode, err := RegisterClient("localhost", user, &RegisterClientParams{
+		ClientID:     "test_client_id_existing",
+		ClientType:   types.CLIENT_TYPE_WEB,
+		RedirectURIs: []string{"https://good.example/cb"},
+	}, nil)
+	if err != nil || statusCode != 200 {
+		t.Fatalf("RegisterClient() first: statusCode = %v, err = %v", statusCode, err)
+	}
+
+	// re-registering must not replace the redirect_uris of the existing client.
+	_, statusCode, err = RegisterClient("localhost", user, &RegisterClientParams{
+		ClientID:     "test_client_id_existing",
+		ClientType:   types.CLIENT_TYPE_WEB,
+		RedirectURIs: []string{"https://evil.example/cb"},
+	}, nil)
+	if statusCode != http.StatusConflict || !errors.Is(err, ErrAlreadyExists) {
+		t.Errorf("RegisterClient() second: statusCode = %v, err = %v", statusCode, err)
+	}
+
+	client, err := schema.GetClient("test_client_id_existing")
+	if err != nil || client == nil {
+		t.Fatalf("GetClient() = %v, err = %v", client, err)
+	}
+	testutil.TDeepEqual(t, "redirect_uris", client.TheRedirectURIs, []string{"https://good.example/cb"})
 }
