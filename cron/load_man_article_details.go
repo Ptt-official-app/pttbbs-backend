@@ -2,7 +2,6 @@ package cron
 
 import (
 	"context"
-	"runtime/debug"
 	"time"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -13,24 +12,16 @@ import (
 )
 
 func RetryLoadManArticleDetails(ctx context.Context) error {
-	defer func() {
-		if r := recover(); r != nil {
-			logrus.Errorf("RetryLoadManArticleDetails: Recovered r: %v stack: %v", r, string(debug.Stack()))
-		}
-	}()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
 			logrus.Infof("RetryLoadManArticleDetails: to LoadManArticleDetails")
-			_ = LoadManArticleDetails()
-			select {
-			case <-ctx.Done():
+			runRecovered("RetryLoadManArticleDetails", LoadManArticleDetails)
+			logrus.Infof("RetryLoadManArticleDetails: to sleep 1 min")
+			if !sleepCtx(ctx, 1*time.Minute) {
 				return nil
-			default:
-				logrus.Infof("RetryLoadManArticleDetails: to sleep 1 min")
-				time.Sleep(1 * time.Minute)
 			}
 		}
 	}
