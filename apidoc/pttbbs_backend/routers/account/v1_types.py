@@ -7,7 +7,6 @@ class AttemptRegisterUserParams(BaseModel):
 
 class AttemptLoginParams(BaseModel):
     input: str = Field(description='can be username or email')
-    oidc_id: str = ''
 
 
 class LoginParams(BaseModel):
@@ -17,6 +16,10 @@ class LoginParams(BaseModel):
     input: str
 
     verify_code: str
+
+    oidc_id: str = Field(
+        default='',
+        description='id of the OIDC auth request to complete, empty for a normal web login')
 
 
 class LoginResult(BaseModel):

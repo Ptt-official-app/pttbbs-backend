@@ -10,8 +10,6 @@ const ATTEMPT_LOGIN_R = "/account/attemptlogin"
 
 type AttemptLoginParams struct {
 	Input string `json:"input" form:"input"`
-
-	OIDCID string `json:"oidc_id"`
 }
 
 type AttemptLoginResult struct{}
@@ -33,7 +31,7 @@ func AttemptLogin(remoteAddr string, user *UserInfo, params any, c *gin.Context)
 		return &AttemptLoginResult{}, 200, nil
 	}
 
-	err = gen2FATokenAndSendEmail(userID, username, email, theParams.OIDCID, types.ATTEMPT_LOGIN_TITLE, types.ATTEMPT_LOGIN_TEMPLATE_CONTENT, types.EXPIRE_ATTEMPT_LOGIN_EMAIL_TS_DURATION)
+	err = gen2FATokenAndSendEmail(userID, username, email, types.ATTEMPT_LOGIN_TITLE, types.ATTEMPT_LOGIN_TEMPLATE_CONTENT, types.EXPIRE_ATTEMPT_LOGIN_EMAIL_TS_DURATION)
 	if err != nil {
 		logrus.Errorf("api.AttemptLogin: unable to gen2FATokenAndSendEmail: input: %v userID: %v email: %v e: %v", theParams.Input, userID, email, err)
 		return &AttemptLoginResult{}, 200, nil

@@ -43,7 +43,7 @@ func TestSet2FA(t *testing.T) {
 			defer wg.Done()
 
 			time.Sleep(tt.sleep)
-			if err := Set2FA(tt.args.userID, tt.args.token, tt.args.email, "", tt.args.expireTSDuration); (err != nil) != tt.wantErr {
+			if err := Set2FA(tt.args.userID, tt.args.token, tt.args.email, tt.args.expireTSDuration); (err != nil) != tt.wantErr {
 				t.Errorf("Set2FA() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -55,7 +55,7 @@ func TestGet2FA(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
-	_ = Set2FA("SYSOP", "test@ptt.test", "123456", "", time.Duration(1)*time.Second)
+	_ = Set2FA("SYSOP", "test@ptt.test", "123456", time.Duration(1)*time.Second)
 
 	type args struct {
 		userID bbs.UUserID
@@ -98,7 +98,7 @@ func TestDelete2FA(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
-	_ = Set2FA("SYSOP", "test@ptt.test", "123456", "", time.Duration(10)*time.Second)
+	_ = Set2FA("SYSOP", "test@ptt.test", "123456", time.Duration(10)*time.Second)
 
 	if _, err := Get2FA("SYSOP"); err != nil {
 		t.Fatalf("Get2FA() before delete: e: %v", err)
@@ -128,7 +128,7 @@ func TestIncr2FAAttempt(t *testing.T) {
 	}
 
 	// Set2FA does not reset the attempt counter.
-	_ = Set2FA("SYSOP", "test@ptt.test", "123456", "", time.Duration(10)*time.Second)
+	_ = Set2FA("SYSOP", "test@ptt.test", "123456", time.Duration(10)*time.Second)
 	got, _ := Incr2FAAttempt("SYSOP", time.Duration(10)*time.Second)
 	if got != 4 {
 		t.Errorf("Incr2FAAttempt() after Set2FA = %v, want 4", got)

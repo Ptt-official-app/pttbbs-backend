@@ -9,14 +9,12 @@ import (
 )
 
 type TwoFactor struct {
-	Token  string `json:"token" bson:"token"`
-	OIDCID string `json:"oidc_id" bson:"oidc_id"`
+	Token string `json:"token" bson:"token"`
 }
 
-func Set2FA(userID bbs.UUserID, email string, token string, oidcID string, expireTSDuration time.Duration) (err error) {
+func Set2FA(userID bbs.UUserID, email string, token string, expireTSDuration time.Duration) (err error) {
 	twoFactor := &TwoFactor{
-		Token:  token,
-		OIDCID: oidcID,
+		Token: token,
 	}
 	twoFactorBytes, err := json.Marshal(twoFactor)
 	if err != nil {
