@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
+	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
 	"github.com/Ptt-official-app/pttbbs-backend/apitypes"
 	"github.com/Ptt-official-app/pttbbs-backend/boardd"
@@ -12,11 +13,15 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoadUserArticles(t *testing.T) {
 	setupTest()
 	defer teardownTest()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
 
 	boardSummaries_b := []*bbs.BoardSummary{testBoardSummaryWhoAmI_b, testBoardSummarySYSOP_b}
 	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", boardSummaries_b, 123456890000000000)
@@ -330,4 +335,44 @@ func TestLoadUserArticles(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+// setupOver18AndNormalBoards creates over-18 board 10_WhoAmI and normal board 1_SYSOP, with users SYSOP and chhsiao123.
+func setupOver18AndNormalBoards() {
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserChhsiao123_b, 123456891000000000)
+
+	over18Board_b := *testBoardSummaryWhoAmI_b
+	over18Board_b.BrdAttr = ptttype.BRD_OVER18
+	boardSummaries_b := []*bbs.BoardSummary{&over18Board_b, testBoardSummarySYSOP_b}
+	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", boardSummaries_b, 123456890000000000)
+}
+
+func TestLoadUserArticles_restrictedBoard(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	setupOver18AndNormalBoards()
+
+	_ = schema.UpdateArticleSummaries([]*schema.ArticleSummary{
+		{BBoardID: "10_WhoAmI", ArticleID: "1VrooM21", BoardArticleID: "10_WhoAmI:1VrooM21", Owner: "teemo", CreateTime: 1607937174000000000},
+		{BBoardID: "1_SYSOP", ArticleID: "19bWBI4Z", BoardArticleID: "1_SYSOP:19bWBI4Z", Owner: "teemo", CreateTime: 1607937175000000000},
+	}, 1234567890000000000)
+
+	path := &LoadUserArticlesPath{UserID: "teemo"}
+
+	// no over-18 cookie: the over-18 board must be filtered out.
+	user := &UserInfo{UserID: "chhsiao123", IsOver18: false}
+	gotResult, statusCode, err := LoadUserArticles(testIP, user, NewUserArticlesParams(), path, nil)
+	require.NoError(t, err)
+	assert.Equal(t, 200, statusCode)
+	got := gotResult.(*LoadUserArticlesResult)
+	require.Len(t, got.List, 1)
+	assert.Equal(t, apitypes.FBoardID("SYSOP"), got.List[0].FBoardID)
+
+	// SYSOP can read both.
+	sysop := &UserInfo{UserID: "SYSOP", IsOver18: true}
+	gotResult, _, err = LoadUserArticles(testIP, sysop, NewUserArticlesParams(), path, nil)
+	require.NoError(t, err)
+	assert.Len(t, gotResult.(*LoadUserArticlesResult).List, 2)
 }
