@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
@@ -162,5 +163,69 @@ func TestRDBDel(t *testing.T) {
 			}
 		})
 		wg.Wait()
+	}
+}
+
+func TestRDBSAddExpire(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+	defer rdb.Close()
+
+	key := "test-sadd-expire"
+	defer func() { _ = RDBDel(rdb, key) }()
+
+	err := RDBSAdd(rdb, key, "member", 10*time.Second)
+	if err != nil {
+		t.Fatalf("RDBSAdd() failed: %v", err)
+	}
+
+	ttl, err := rdb.TTL(context.Background(), key).Result()
+	if err != nil {
+		t.Fatalf("TTL() failed: %v", err)
+	}
+	if ttl <= 0 || ttl > 10*time.Second {
+		t.Errorf("TTL() = %v, want in (0, 10s]", ttl)
+	}
+
+	err = RDBSAdd(rdb, key, "member", 10*time.Second)
+	if err != ErrRDBAlreadyExists {
+		t.Errorf("RDBSAdd(dup) err = %v, want %v", err, ErrRDBAlreadyExists)
+	}
+}
+  
+
+func TestRDBIncrWithExpire(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
+	key := "test-incr"
+	defer func() { _ = RDBDel(rdb, key) }()
+
+	for i := int64(1); i <= 3; i++ {
+		got, err := RDBIncrWithExpire(rdb, key, 1*time.Second)
+		if err != nil {
+			t.Fatalf("RDBIncrWithExpire() failed: %v", err)
+		}
+		if got != i {
+			t.Errorf("RDBIncrWithExpire() = %v, want %v", got, i)
+		}
+	}
+
+	time.Sleep(1500 * time.Millisecond)
+
+	got, err := RDBIncrWithExpire(rdb, key, 1*time.Second)
+	if err != nil {
+		t.Fatalf("RDBIncrWithExpire() after expire failed: %v", err)
+	}
+	if got != 1 {
+		t.Errorf("RDBIncrWithExpire() after expire = %v, want 1", got)
 	}
 }

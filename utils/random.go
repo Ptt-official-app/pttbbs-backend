@@ -6,7 +6,6 @@ import (
 	"math/big"
 
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 )
 
 // avoid '-' and '_' in leading char.
@@ -24,10 +23,17 @@ func GenRandomString() string {
 
 // GenRandomInt64
 // https://stackoverflow.com/questions/32349807/how-can-i-generate-a-random-int-using-the-crypto-rand-package/32350135
-func GenRandomInt64(theMax int64) int64 {
+//
+// Returns a uniform random number in [0, theMax).
+// theMax must be positive (rand.Int panics otherwise).
+func GenRandomInt64(theMax int64) (int64, error) {
+	if theMax <= 0 {
+		return 0, ErrInvalidMax
+	}
+
 	nBig, err := rand.Int(rand.Reader, big.NewInt(theMax))
 	if err != nil {
-		logrus.Warnf("GenRandomInt64: unable to rand: e: %v", err)
+		return 0, err
 	}
-	return nBig.Int64()
+	return nBig.Int64(), nil
 }

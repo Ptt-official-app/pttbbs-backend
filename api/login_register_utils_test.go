@@ -22,7 +22,10 @@ func Test_gen2FAToken(t *testing.T) {
 		wg.Add(1)
 		t.Run(tt.name, func(t *testing.T) {
 			defer wg.Done()
-			got := gen2FAToken()
+			got, err := gen2FAToken()
+			if err != nil {
+				t.Errorf("gen2FAToken() e: %v", err)
+			}
 			if len(got) != tt.expected {
 				t.Errorf("gen2FAToken() = %v, want %v", got, tt.expected)
 			}

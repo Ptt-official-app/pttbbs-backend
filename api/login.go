@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -63,6 +64,10 @@ func LoginWrapper(c *gin.Context) {
 
 func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoginParams)
+	if !ok {
+		return nil, 400, ErrInvalidParams
+	}
+
 	// record user login
 	loginLog := &LoginLog{
 		ClientInfo: ClientInfo{
@@ -76,10 +81,6 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 	defer func() {
 		logrus.Infof("%v", loginLog)
 	}()
-
-	if !ok {
-		return nil, 400, ErrInvalidParams
-	}
 
 	// XXX skip client-info for now.
 	/*
@@ -96,6 +97,9 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 	}
 
 	oidcID, err := check2FAToken(userID, theParams.VerifyCode)
+	if errors.Is(err, ErrTooManyAttempts) {
+		return nil, 429, err
+	}
 	if err != nil {
 		return nil, 401, err
 	}
@@ -133,13 +137,17 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 
 func NewLoginResult(username string, accessToken string, refreshToken string, expireTS time.Duration, redirectURI string) *LoginResult {
 	expireTS_u64 := uint64(expireTS.Seconds())
+	refreshExpireTS_u64 := uint64(0)
+	if refreshToken != "" {
+		refreshExpireTS_u64 = uint64(types.REFRESH_TOKEN_EXPIRE_TS_DURATION.Seconds())
+	}
 	return &LoginResult{
 		Username:        username,
 		TokenType:       "bearer",
 		AccessToken:     accessToken,
 		AccessExpireTS:  expireTS_u64,
 		RefreshToken:    refreshToken,
-		RefreshExpireTS: expireTS_u64,
+		RefreshExpireTS: refreshExpireTS_u64,
 		RedirectURI:     redirectURI,
 	}
 }
