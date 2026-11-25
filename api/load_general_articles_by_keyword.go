@@ -45,7 +45,7 @@ func LoadGeneralArticlesByKeyword(remoteAddr string, user *UserInfo, params any,
 		createNanoTS = types.Time4ToNanoTS(createTSTime4)
 	}
 
-	articleSummaries_db, err := schema.GetArticleSummariesByRegex(boardID, keywordList, createNanoTS, articleID, theParams.Descending, theParams.Max+1)
+	articleSummaries_db, scanNextIdx, err := schema.GetArticleSummariesByRegex(boardID, keywordList, createNanoTS, articleID, theParams.Descending, theParams.Max+1)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -62,7 +62,8 @@ func LoadGeneralArticlesByKeyword(remoteAddr string, user *UserInfo, params any,
 	}
 
 	// nextIdx
-	var nextIdx string
+	// the scan may stop before filling a page: continue from where it stopped.
+	nextIdx := scanNextIdx
 	if len(articleSummaries_db) > theParams.Max {
 		nextIdx = articleSummaries_db[theParams.Max].Idx
 		articleSummaries_db = articleSummaries_db[:theParams.Max]

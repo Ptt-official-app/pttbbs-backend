@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 	"testing"
@@ -8,6 +9,7 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
+	ptttypes "github.com/Ptt-official-app/go-pttbbs/types"
 	"github.com/Ptt-official-app/pttbbs-backend/mockhttp"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/sirupsen/logrus"
@@ -442,7 +444,7 @@ func TestGetArticleSummariesByRegex(t *testing.T) {
 		wg.Add(1)
 		t.Run(tt.name, func(t *testing.T) {
 			defer wg.Done()
-			gotResult, err := GetArticleSummariesByRegex(tt.args.boardID, tt.args.keywordList, tt.args.createNanoTS, tt.args.articleID, tt.args.descending, tt.args.limit)
+			gotResult, _, err := GetArticleSummariesByRegex(tt.args.boardID, tt.args.keywordList, tt.args.createNanoTS, tt.args.articleID, tt.args.descending, tt.args.limit)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetArticleSummariesByRegex() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -608,4 +610,61 @@ func TestGetArticleSummaries(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+func TestGetArticleSummariesByRegex_scanCap(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	// The 6-rune keyword matches the 5-gram regex of every title below, but only the
+	// oldest article contains the whole keyword. The newer ones are rejected after the read.
+	keyword := "aaaaaa"
+	nInvalid := MAX_ARTICLE_SUMMARIES_BY_REGEX_ROUNDS*2 + 5
+
+	newArticle := func(idx int, title string) *ArticleSummaryWithRegex {
+		filename := &ptttype.Filename_t{}
+		copy(filename[:], fmt.Sprintf("M.%d.A.000", 1600000000+idx))
+		articleID := bbs.ToArticleID(filename)
+		createTime := ptttypes.Time4(1600000000 + idx)
+		return &ArticleSummaryWithRegex{
+			BBoardID:       "10_WhoAmI",
+			ArticleID:      articleID,
+			BoardArticleID: types.ToBoardArticleID("10_WhoAmI", articleID),
+			CreateTime:     types.Time4ToNanoTS(createTime),
+			MTime:          types.Time4ToNanoTS(createTime),
+			Title:          title,
+			TitleRegex:     articleTitleToTitleRegex(title),
+			Idx:            bbs.SerializeArticleIdxStr(&bbs.ArticleSummary{ArticleID: articleID, CreateTime: createTime}),
+			UpdateNanoTS:   1234567890000000000,
+		}
+	}
+
+	articles := []*ArticleSummaryWithRegex{newArticle(0, "aaaaaa valid")}
+	for i := 1; i <= nInvalid; i++ {
+		articles = append(articles, newArticle(i, "aaaaab invalid aaaaa"))
+	}
+	_ = UpdateArticleSummaryWithRegexes(articles, 1234567890000000000)
+
+	// limit 2: each round reads 3 articles.
+	result, nextIdx, err := GetArticleSummariesByRegex("10_WhoAmI", []string{keyword}, 0, "", true, 2)
+	assert.NoError(t, err)
+	assert.Empty(t, result)
+	assert.NotEmpty(t, nextIdx)
+
+	// continuing from nextIdx finally reaches the valid article.
+	var found []*ArticleSummary
+	for range 10 {
+		createTime4, articleID, err := bbs.DeserializeArticleIdxStr(nextIdx)
+		assert.NoError(t, err)
+
+		found, nextIdx, err = GetArticleSummariesByRegex("10_WhoAmI", []string{keyword}, types.Time4ToNanoTS(createTime4), articleID, true, 2)
+		assert.NoError(t, err)
+		if len(found) > 0 {
+			break
+		}
+	}
+	if assert.Len(t, found, 1) {
+		assert.Equal(t, articles[0].ArticleID, found[0].ArticleID)
+	}
+	assert.Empty(t, nextIdx)
 }

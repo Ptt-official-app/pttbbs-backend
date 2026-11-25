@@ -15,6 +15,9 @@ const (
 
 	MAX_ALL_CONTENT_BLOCK = 2000
 
+	// each round reads up to limit+1 articles, so a request scans at most 10 * (limit+1) articles.
+	MAX_ARTICLE_SUMMARIES_BY_REGEX_ROUNDS = 10
+
 	STR_REPLY       = "Re:"
 	STR_REPLY_LOWER = "re:"
 
