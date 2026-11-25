@@ -2,10 +2,12 @@ package schema
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
+	"github.com/go-redis/redis/v8"
 )
 
 type OIDCRefreshToken struct {
@@ -23,6 +25,9 @@ type OIDCRefreshToken struct {
 
 func GetOIDCRefreshToken(refreshTokenID string) (refreshToken *OIDCRefreshToken, err error) {
 	val, err := db.RDBGet(rdb, RDB_PREFIX_OIDC_OP_REFRESH_TOKEN+refreshTokenID)
+	if errors.Is(err, redis.Nil) {
+		return nil, ErrNotFound
+	}
 	if err != nil {
 		return nil, err
 	}

@@ -39,6 +39,12 @@ func RDBSAdd(rdb *redis.Client, key string, value string, expireTSDuration time.
 	if err != nil {
 		return err
 	}
+	if expireTSDuration > 0 {
+		err = rdb.Expire(ctx, key, expireTSDuration).Err()
+		if err != nil {
+			return err
+		}
+	}
 	if val == 0 {
 		return ErrRDBAlreadyExists
 	}
