@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"crypto/subtle"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -189,12 +190,9 @@ func verifyAccessToken(token string) (userID bbs.UUserID, expireTS int, newClien
 		return bbs.UUserID(pttbbsapi.GUEST), 0, "", types.CLIENT_TYPE_WEB, false, nil
 	}
 
-	ctxTodo := context.TODO()
-	ctx := op.ContextWithIssuer(ctxTodo, types.OIDC_OP_ISSUER)
-
-	claim, err := op.VerifyAccessToken[*oidc.AccessTokenClaims](ctx, token, oidcop.PROVIDER.AccessTokenVerifier(ctx))
+	claim, err := parseAccessToken(token)
 	if err != nil {
-		return "", 0, "", types.CLIENT_TYPE_WEB, false, ErrInvalidToken
+		return "", 0, "", types.CLIENT_TYPE_WEB, false, err
 	}
 
 	username := claim.Subject
@@ -211,6 +209,71 @@ func verifyAccessToken(token string) (userID bbs.UUserID, expireTS int, newClien
 	}
 
 	return userUsernameOver18.UserID, expireTS, claim.ClientID, clientType, userUsernameOver18.Over18, nil
+}
+
+// parseAccessToken verifies the signature / expiration of the access token,
+// and checks that the token is not revoked (still exists in the token store).
+func parseAccessToken(token string) (claim *oidc.AccessTokenClaims, err error) {
+	ctx := op.ContextWithIssuer(context.TODO(), types.OIDC_OP_ISSUER)
+
+	claim, err = op.VerifyAccessToken[*oidc.AccessTokenClaims](ctx, token, oidcop.PROVIDER.AccessTokenVerifier(ctx))
+	if err != nil {
+		return nil, ErrInvalidToken
+	}
+
+	if claim.JWTID == "" {
+		return nil, ErrInvalidToken
+	}
+
+	accessToken_db, err := schema.GetOIDCAccessToken(claim.JWTID)
+	if errors.Is(err, schema.ErrNotFound) {
+		return nil, ErrInvalidToken
+	}
+	if err != nil {
+		return nil, err
+	}
+	if accessToken_db.Subject != claim.Subject {
+		return nil, ErrInvalidToken
+	}
+
+	return claim, nil
+}
+
+// revokeAccessToken removes the access token and its refresh token from the token store.
+func revokeAccessToken(tokenID string) (err error) {
+	accessToken_db, err := schema.GetOIDCAccessToken(tokenID)
+	if errors.Is(err, schema.ErrNotFound) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	if accessToken_db.RefreshTokenID != "" {
+		err = schema.DeleteOIDCRefreshToken(accessToken_db.RefreshTokenID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return schema.DeleteOIDCAccessToken(tokenID)
+}
+
+// revokeRefreshToken removes the refresh token and the access token issued with it from the token store.
+func revokeRefreshToken(refreshTokenID string) (err error) {
+	refreshToken_db, err := schema.GetOIDCRefreshToken(refreshTokenID)
+	if err != nil { // not found or already removed.
+		return nil
+	}
+
+	if refreshToken_db.AccessToken != "" {
+		err = schema.DeleteOIDCAccessToken(refreshToken_db.AccessToken)
+		if err != nil && !errors.Is(err, schema.ErrNotFound) {
+			return err
+		}
+	}
+
+	return schema.DeleteOIDCRefreshToken(refreshTokenID)
 }
 
 func loginInputToUsernameEmail(input string) (userID bbs.UUserID, username string, email string, err error) {
