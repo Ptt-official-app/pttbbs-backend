@@ -108,6 +108,7 @@ var (
 	IS_2FA                         = true
 	MAX_2FA_TOKEN            int64 = 1000000
 	MAX_2FA_TOKEN_STR_PROMPT       = "%06d"
+	MAX_2FA_ATTEMPT          int64 = 5 // max verification attempts per user within EXPIRE_ATTEMPT_LOGIN_EMAIL_TS
 
 	// big5
 	BIG5_TO_UTF8 = "types/uao250-b2u.big5.txt"

@@ -151,3 +151,32 @@ func RDBDel(rdb *redis.Client, key string) (err error) {
 
 	return nil
 }
+
+// RDBIncrWithExpire increments key and sets its TTL when the key is newly created.
+//
+// The TTL is set only when the counter goes from 0 to 1, so subsequent increments
+// do not extend the window.
+func RDBIncrWithExpire(rdb *redis.Client, key string, expireTSDuration time.Duration) (value int64, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), REDIS_TIMEOUT_MILLI_TS*time.Millisecond)
+	defer func() {
+		ctxErr := ctx.Err()
+		cancel()
+		if err == nil {
+			err = ctxErr
+		}
+	}()
+
+	value, err = rdb.Incr(ctx, key).Result()
+	if err != nil {
+		return 0, err
+	}
+
+	if value == 1 && expireTSDuration > 0 {
+		err = rdb.Expire(ctx, key, expireTSDuration).Err()
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return value, nil
+}

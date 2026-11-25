@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -96,6 +97,9 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 	}
 
 	oidcID, err := check2FAToken(userID, theParams.VerifyCode)
+	if errors.Is(err, ErrTooManyAttempts) {
+		return nil, 429, err
+	}
 	if err != nil {
 		return nil, 401, err
 	}

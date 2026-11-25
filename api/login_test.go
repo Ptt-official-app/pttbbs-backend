@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -198,5 +199,72 @@ func TestLoginWrapper(t *testing.T) {
 			setCookie := w.Header().Get("Set-Cookie")
 			logrus.Infof("setCookie: %v", setCookie)
 		})
+	}
+}
+
+func TestLoginTokenIsOneTimeAndRateLimited(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	_, err := oidcop.NewProvider()
+	if err != nil {
+		logrus.Errorf("TestLoginTokenIsOneTimeAndRateLimited: unable to oidcop.NewProvider: e: %v", err)
+	}
+	defer func() {
+		oidcop.PROVIDER = nil
+	}()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	_ = schema.CreateUserEmail("SYSOP", "root@localhost.dev", false, 123456890000000000)
+
+	client := schema.NewClient(types.WEB_CLIENT_ID, types.CLIENT_TYPE_APP, nil, "localhost")
+	_ = schema.UpdateClient(client)
+
+	userInfo := &UserInfo{UserID: "SYSOP", IsOver18: true}
+
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(w)
+
+	login := func(code string) (int, error) {
+		params := &LoginParams{Input: "SYSOP", VerifyCode: code}
+		_, statusCode, err := Login("localhost", userInfo, params, ctx)
+		return statusCode, err
+	}
+
+	// 1. the token can be used only once.
+	AttemptLogin("127.0.0.1", userInfo, &AttemptLoginParams{Input: "SYSOP"}, nil)
+	token_db, err := schema.Get2FA("SYSOP")
+	if err != nil {
+		t.Fatalf("Get2FA: e: %v", err)
+	}
+
+	if statusCode, err := login(token_db.Token); statusCode != 200 || err != nil {
+		t.Fatalf("Login() first use: statusCode: %v e: %v", statusCode, err)
+	}
+	if statusCode, err := login(token_db.Token); statusCode != 401 || !errors.Is(err, ErrInvalidToken) {
+		t.Errorf("Login() reuse: statusCode: %v e: %v, want 401 ErrInvalidToken", statusCode, err)
+	}
+
+	// 2. too many wrong attempts invalidates the token, even with a new token.
+	_ = schema.Reset2FAAttempt("SYSOP")
+	AttemptLogin("127.0.0.1", userInfo, &AttemptLoginParams{Input: "SYSOP"}, nil)
+	token_db, _ = schema.Get2FA("SYSOP")
+	wrongCode := "wrong"
+
+	for i := int64(0); i < types.MAX_2FA_ATTEMPT; i++ {
+		if statusCode, err := login(wrongCode); statusCode != 401 || !errors.Is(err, ErrInvalidToken) {
+			t.Errorf("Login() wrong code (%v): statusCode: %v e: %v", i, statusCode, err)
+		}
+	}
+	if statusCode, err := login(token_db.Token); statusCode != 429 || !errors.Is(err, ErrTooManyAttempts) {
+		t.Errorf("Login() after too many attempts: statusCode: %v e: %v, want 429 ErrTooManyAttempts", statusCode, err)
+	}
+
+	// requesting a new token does not reset the attempt counter.
+	AttemptLogin("127.0.0.1", userInfo, &AttemptLoginParams{Input: "SYSOP"}, nil)
+	token_db, _ = schema.Get2FA("SYSOP")
+	if statusCode, err := login(token_db.Token); statusCode != 429 || !errors.Is(err, ErrTooManyAttempts) {
+		t.Errorf("Login() with new token after too many attempts: statusCode: %v e: %v, want 429", statusCode, err)
 	}
 }
