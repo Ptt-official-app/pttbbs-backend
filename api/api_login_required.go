@@ -3,8 +3,6 @@ package api
 import (
 	"strings"
 
-	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
-	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,9 +27,9 @@ func LoginRequiredQuery(theFunc LoginRequiredAPIFunc, params any, c *gin.Context
 }
 
 func loginRequiredProcess(theFunc LoginRequiredAPIFunc, params any, c *gin.Context) {
-	remoteAddr, user, err := loginRequiredCore(c)
+	remoteAddr, user, statusCode, err := loginRequiredCore(c)
 	if err != nil {
-		processResult(c, nil, 403, ErrInvalidRemoteAddr, "")
+		processResult(c, nil, statusCode, err, "")
 		return
 	}
 
@@ -39,18 +37,18 @@ func loginRequiredProcess(theFunc LoginRequiredAPIFunc, params any, c *gin.Conte
 	processResult(c, result, statusCode, err, user.UserID)
 }
 
-func loginRequiredCore(c *gin.Context) (remoteAddr string, user *UserInfo, err error) {
+func loginRequiredCore(c *gin.Context) (remoteAddr string, user *UserInfo, statusCode int, err error) {
 	remoteAddr = strings.TrimSpace(c.ClientIP())
 	if !isValidRemoteAddr(remoteAddr) {
-		return "", nil, ErrInvalidRemoteAddr
+		return "", nil, 403, ErrInvalidRemoteAddr
 	}
 
-	userID, isOver18, err := verifyJwt(c)
+	userID, isOver18, statusCode, err := getLoginUser(c)
 	if err != nil {
-		userID = bbs.UUserID(pttbbsapi.GUEST)
+		return "", nil, statusCode, err
 	}
 
 	user = &UserInfo{IsOver18: isOver18, UserID: userID}
 
-	return remoteAddr, user, nil
+	return remoteAddr, user, 200, nil
 }

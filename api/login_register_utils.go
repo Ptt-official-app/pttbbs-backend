@@ -206,6 +206,9 @@ func verifyAccessToken(token string) (userID bbs.UUserID, expireTS int, newClien
 	if err != nil {
 		return "", 0, "", types.CLIENT_TYPE_WEB, false, err
 	}
+	if userUsernameOver18 == nil {
+		return "", 0, "", types.CLIENT_TYPE_WEB, false, ErrInvalidToken
+	}
 
 	expireTS = int(claim.Expiration.AsTime().Unix())
 

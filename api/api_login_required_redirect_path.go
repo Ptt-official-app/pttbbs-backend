@@ -3,8 +3,6 @@ package api
 import (
 	"strings"
 
-	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
-	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,9 +29,10 @@ func loginRequiredRedirectPathProcess(theFunc LoginRequiredRedirectPathAPIFunc, 
 		return
 	}
 
-	userID, isOver18, err := verifyJwt(c)
+	userID, isOver18, statusCode, err := getLoginUser(c)
 	if err != nil {
-		userID = bbs.UUserID(pttbbsapi.GUEST)
+		processResult(c, nil, statusCode, err, "")
+		return
 	}
 
 	user := &UserInfo{IsOver18: isOver18, UserID: userID}
