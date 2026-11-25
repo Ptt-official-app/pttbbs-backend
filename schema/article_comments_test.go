@@ -7,6 +7,8 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -134,4 +136,35 @@ func TestUpdateArticleCommentsByArticleID(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+func TestUpdateArticleCommentsByArticleID_countError(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	articleSummaries0 := []*ArticleSummary{
+		{
+			BBoardID:     "test",
+			ArticleID:    "test",
+			UpdateNanoTS: 1234567890000000000,
+		},
+	}
+	require.NoError(t, UpdateArticleSummaries(articleSummaries0, 1234567890000000000))
+	require.NoError(t, UpdateComments(testComments0, types.NanoTS(1334567890000000000)))
+	require.NoError(t, UpdateArticleCommentsByArticleID("test", "test", 1334567890000000000))
+
+	// a collection with an invalid name makes CountComments fail.
+	origComment_c := Comment_c
+	Comment_c = client.Collection("")
+	defer func() { Comment_c = origComment_c }()
+
+	err := UpdateArticleCommentsByArticleID("test", "test", 1434567890000000000)
+	require.Error(t, err)
+
+	Comment_c = origComment_c
+
+	got, err := GetArticleSummary("test", "test")
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, 5, got.NComments)
 }
