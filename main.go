@@ -185,7 +185,8 @@ func initGinCore() (*gin.Engine, error) {
 }
 
 func initGinCORS(router *gin.Engine) {
-	isAllowAllOrigins := len(types.ALLOW_ORIGINS) == 1 && types.ALLOW_ORIGINS[0] == "*"
+	// empty ALLOW_ORIGINS means allowing all origins, as documented in the config template.
+	isAllowAllOrigins := len(types.ALLOW_ORIGINS) == 0 || (len(types.ALLOW_ORIGINS) == 1 && types.ALLOW_ORIGINS[0] == "*")
 	var allowOrigins []string
 	if !isAllowAllOrigins {
 		allowOrigins = types.ALLOW_ORIGINS
