@@ -85,6 +85,9 @@ func SetOIDCAccessToken(accessToken *OIDCAccessToken) (err error) {
 
 func DeleteOIDCAccessToken(accessTokenID string) (err error) {
 	accessToken, err := GetOIDCAccessToken(accessTokenID)
+	if errors.Is(err, ErrNotFound) { // already expired or deleted.
+		return nil
+	}
 	if err != nil {
 		return err
 	}

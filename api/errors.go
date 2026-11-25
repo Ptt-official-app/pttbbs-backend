@@ -18,6 +18,7 @@ var (
 	ErrNotImplemented           = errors.New("not implemented")
 	ErrInvalidPath              = errors.New("invalid path")
 	ErrInvalidToken             = errors.New("invalid token")
+	ErrTooManyAttempts          = errors.New("too many attempts")
 	ErrInvalidOrigin            = errors.New("invalid origin")
 	ErrInvalidBackendStatusCode = errors.New("invalid backend status code")
 	ErrNoUser                   = errors.New("no user")

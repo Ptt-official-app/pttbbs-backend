@@ -1,4 +1,4 @@
-FROM golang:1.26.10-trixie
+FROM golang:1.26.11-trixie
 
 ENV GOROOT=/usr/local/go
 ENV PATH=${PATH}:/usr/local/go/bin
