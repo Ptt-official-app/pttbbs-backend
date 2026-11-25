@@ -43,7 +43,7 @@ func LoadManArticles(remoteAddr string, user *UserInfo, params any, path any, c 
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 
 	// check board permission

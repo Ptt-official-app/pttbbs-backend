@@ -57,7 +57,7 @@ func LoadClassBoards(remoteAddr string, user *UserInfo, params any, path any, c 
 
 	boardID, err := bidToBoardID(thePath.ClsID)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 
 	// is board-valid-user
