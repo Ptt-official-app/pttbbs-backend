@@ -273,6 +273,10 @@ func (s *Storage) DeleteAuthRequest(ctx context.Context, requestID string) (err 
 		return err
 	}
 
+	if authReq.CodeChallenge == nil {
+		return nil
+	}
+
 	return schema.DeleteOIDCCodeByCode(authReq.CodeChallenge.Challenge)
 }
 
