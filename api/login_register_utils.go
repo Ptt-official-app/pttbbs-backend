@@ -2,8 +2,8 @@ package api
 
 import (
 	"context"
-	"errors"
 	"crypto/subtle"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
