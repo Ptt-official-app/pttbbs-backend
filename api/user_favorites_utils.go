@@ -90,6 +90,10 @@ func tryGetUserFavoritesCore(userID bbs.UUserID, c *gin.Context) (newDoubleBuffe
 	// check mtime
 	backendMTime := types.Time4ToNanoTS(result_b.MTime)
 	if backendMTime <= dbMTime {
+		// no meta in db means the user has no favorites yet (backend mtime is 0).
+		if userFavoritesMeta == nil {
+			return 0, 0, 200, nil
+		}
 		return userFavoritesMeta.DoubleBufferIdx, dbMTime, 200, nil
 	}
 
