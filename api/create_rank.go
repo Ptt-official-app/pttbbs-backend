@@ -1,6 +1,7 @@
 package api
 
 import (
+	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/apitypes"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
@@ -41,7 +42,17 @@ func CreateRank(remoteAddr string, user *UserInfo, params any, path any, c *gin.
 		return nil, 400, ErrInvalidPath
 	}
 
+	// rank is -1 (dislike), 0 (cancel) or 1 (like).
+	if theParams.Rank < -1 || theParams.Rank > 1 {
+		return nil, 400, ErrInvalidParams
+	}
+
 	userID := user.UserID
+	// all the guests share the same guest-record, so ranking requires login.
+	if userID == bbs.UUserID(pttbbsapi.GUEST) {
+		return nil, 403, ErrInvalidUser
+	}
+
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
 		return nil, 500, err
@@ -61,12 +72,9 @@ func CreateRank(remoteAddr string, user *UserInfo, params any, path any, c *gin.
 		return nil, 403, ErrInvalidUser
 	}
 
-	isValid, statusCode, err := isBoardValidUser(boardID, userID)
+	_, err = CheckUserBoardPermReadable(user, boardID, c)
 	if err != nil {
-		return nil, statusCode, err
-	}
-	if !isValid {
-		return nil, 403, ErrInvalidUser
+		return nil, 403, err
 	}
 
 	// update rank
