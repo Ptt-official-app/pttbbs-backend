@@ -134,6 +134,8 @@ func GetBottomArticleSummaries(boardID bbs.BBoardID) (result []*ArticleSummary, 
 	query := bson.M{
 		ARTICLE_BBOARD_ID_b: boardID,
 		ARTICLE_IS_BOTTOM_b: true,
+		// a deleted article keeps is_bottom, so it must be filtered out explicitly.
+		ARTICLE_IS_DELETED_b: bson.M{"$exists": false},
 	}
 	sortOpts := bson.D{
 		{Key: ARTICLE_CREATE_TIME_b, Value: 1},
