@@ -64,6 +64,10 @@ func LoginWrapper(c *gin.Context) {
 
 func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoginParams)
+	if !ok {
+		return nil, 400, ErrInvalidParams
+	}
+
 	// record user login
 	loginLog := &LoginLog{
 		ClientInfo: ClientInfo{
@@ -77,10 +81,6 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 	defer func() {
 		logrus.Infof("%v", loginLog)
 	}()
-
-	if !ok {
-		return nil, 400, ErrInvalidParams
-	}
 
 	// XXX skip client-info for now.
 	/*
