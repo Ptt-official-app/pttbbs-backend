@@ -224,6 +224,18 @@ func Init() (err error) {
 		return err
 	}
 
+	// oidc-key
+	OIDCKey_c = client.Collection("oidc_key")
+	keys = &bson.D{
+		{Key: OIDC_KEY_CLIENT_ID_b, Value: 1},
+		{Key: OIDC_KEY_KEY_ID_b, Value: 1},
+	}
+	err = OIDCKey_c.CreateUniqueIndex(keys)
+	if err != nil {
+		logrus.Errorf("OIDCKey_c: unable to create idx: e: %v", err)
+		return err
+	}
+
 	// rank
 	Rank_c = client.Collection("rank")
 	keys = &bson.D{

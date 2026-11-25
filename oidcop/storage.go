@@ -296,10 +296,15 @@ func (s *Storage) GetKeyByIDAndClientID(ctx context.Context, keyID string, clien
 		return nil, err
 	}
 
+	// go-jose only accepts ed25519.PublicKey by value.
+	if key_db.Key == nil {
+		return nil, schema.ErrNotFound
+	}
+
 	return &jose.JSONWebKey{
 		KeyID: keyID,
 		Use:   "sig",
-		Key:   key_db.Key,
+		Key:   *key_db.Key,
 	}, nil
 }
 
