@@ -27,8 +27,8 @@ func setTokenToCookie(c *gin.Context, accessToken string, refreshToken string) {
 }
 
 func removeTokenFromCookie(c *gin.Context) {
-	removeCookie(c, types.ACCESS_TOKEN_NAME, true)
-	removeCookie(c, types.REFRESH_TOKEN_NAME, true)
+	removeCookie(c, types.ACCESS_TOKEN_NAME, true, "")
+	removeCookie(c, types.REFRESH_TOKEN_NAME, true, "")
 }
 
 func gen2FATokenAndSendEmail(userID bbs.UUserID, username string, email string, oidcID string, title string, template string, expireTS time.Duration) (err error) {
