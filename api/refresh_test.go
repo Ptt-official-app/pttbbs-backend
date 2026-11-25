@@ -1,14 +1,16 @@
 package api
 
 import (
-	"net/http"
-	"reflect"
-	"sync"
+	"context"
+	"errors"
+	"net/http/httptest"
 	"testing"
 
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
-
+	"github.com/Ptt-official-app/pttbbs-backend/oidcop"
+	"github.com/Ptt-official-app/pttbbs-backend/schema"
+	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,70 +18,72 @@ func TestRefresh(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
-	jwt, _, _ := pttbbsapi.CreateToken("SYSOP", "")
-	refreshJwt, _, _ := pttbbsapi.CreateRefreshToken("SYSOP", "")
-
-	req, _ := http.NewRequest("POST", "http://localhost/refresh", nil)
-	req.Header = map[string][]string{
-		"Authorization": {"bearer " + jwt},
+	_, err := oidcop.NewProvider()
+	if err != nil {
+		t.Fatalf("unable to oidcop.NewProvider: e: %v", err)
 	}
-	c0 := &gin.Context{}
-	c0.Request = req
+	defer func() {
+		oidcop.PROVIDER = nil
+	}()
 
-	params0 := &RefreshParams{
-		ClientID:     "default_client_id",
-		ClientSecret: "test_client_secret",
-		RefreshToken: refreshJwt,
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	client := schema.NewClient(types.WEB_CLIENT_ID, types.CLIENT_TYPE_APP, nil, "localhost")
+	_ = schema.UpdateClient(client)
+
+	_, refreshToken, _, err := genAccessAndRefreshTokens(context.Background(), "SYSOP", types.WEB_CLIENT_ID, "")
+	if err != nil {
+		t.Fatalf("unable to genAccessAndRefreshTokens: e: %v", err)
+	}
+	if refreshToken == "" {
+		t.Fatalf("genAccessAndRefreshTokens() did not issue a refresh token")
 	}
 
-	expected0 := &RefreshResult{
-		Username:  "SYSOP",
-		TokenType: "bearer",
+	gin.SetMode(gin.TestMode)
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	user := &UserInfo{UserID: bbs.UUserID(pttbbsapi.GUEST), IsOver18: true}
+
+	// wrong client.
+	_, statusCode, err := Refresh("localhost", user, &RefreshParams{ClientID: "other-client", RefreshToken: refreshToken}, c)
+	if statusCode != 401 || !errors.Is(err, ErrInvalidToken) {
+		t.Errorf("Refresh() wrong client: statusCode: %v e: %v, want 401", statusCode, err)
 	}
 
-	type args struct {
-		remoteAddr string
-		params     any
-		c          *gin.Context
+	// empty refresh token.
+	_, statusCode, _ = Refresh("localhost", user, &RefreshParams{}, c)
+	if statusCode != 400 {
+		t.Errorf("Refresh() empty token: statusCode: %v, want 400", statusCode)
 	}
-	tests := []struct {
-		name           string
-		args           args
-		wantResult     any
-		wantStatusCode int
-		wantErr        bool
-	}{
-		// TODO: Add test cases.
-		{
-			args:           args{params: params0, c: c0},
-			wantStatusCode: 200,
-			wantResult:     expected0,
-		},
-	}
-	var wg sync.WaitGroup
-	for _, tt := range tests {
-		wg.Add(1)
-		t.Run(tt.name, func(t *testing.T) {
-			defer wg.Done()
 
-			user := &UserInfo{UserID: bbs.UUserID(pttbbsapi.GUEST), IsOver18: true}
-			gotResult, gotStatusCode, err := Refresh(tt.args.remoteAddr, user, tt.args.params, tt.args.c)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Refresh() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			result, _ := gotResult.(*RefreshResult)
-			result.AccessToken = ""
-			result.RefreshToken = ""
-			result.AccessExpireTS = 0
-			result.RefreshExpireTS = 0
-			if !reflect.DeepEqual(gotResult, tt.wantResult) {
-				t.Errorf("Refresh() gotResult = %v, want %v", gotResult, tt.wantResult)
-			}
-			if gotStatusCode != tt.wantStatusCode {
-				t.Errorf("Refresh() gotStatusCode = %v, want %v", gotStatusCode, tt.wantStatusCode)
-			}
-		})
-		wg.Wait()
+	// refresh.
+	gotResult, statusCode, err := Refresh("localhost", user, &RefreshParams{ClientID: types.WEB_CLIENT_ID, RefreshToken: refreshToken}, c)
+	if statusCode != 200 || err != nil {
+		t.Fatalf("Refresh(): statusCode: %v e: %v", statusCode, err)
+	}
+	result, ok := gotResult.(*RefreshResult)
+	if !ok {
+		t.Fatalf("Refresh() result is not *RefreshResult: %v", gotResult)
+	}
+	if result.Username != "SYSOP" || result.TokenType != "bearer" || result.AccessToken == "" || result.RefreshToken == "" || result.RefreshToken == refreshToken {
+		t.Errorf("Refresh() unexpected result: %+v", result)
+	}
+	if result.AccessExpireTS == 0 || result.RefreshExpireTS == 0 {
+		t.Errorf("Refresh() expire not set: %+v", result)
+	}
+
+	userID, _, _, _, _, err := verifyAccessToken(result.AccessToken)
+	if err != nil || userID != "SYSOP" {
+		t.Errorf("verifyAccessToken() new access token: userID: %v e: %v", userID, err)
+	}
+
+	// the old refresh token is rotated out.
+	_, statusCode, err = Refresh("localhost", user, &RefreshParams{RefreshToken: refreshToken}, c)
+	if statusCode != 401 || !errors.Is(err, ErrInvalidToken) {
+		t.Errorf("Refresh() reuse old refresh token: statusCode: %v e: %v, want 401", statusCode, err)
+	}
+
+	// the new refresh token works.
+	_, statusCode, err = Refresh("localhost", user, &RefreshParams{RefreshToken: result.RefreshToken}, c)
+	if statusCode != 200 || err != nil {
+		t.Errorf("Refresh() with new refresh token: statusCode: %v e: %v", statusCode, err)
 	}
 }

@@ -1,8 +1,12 @@
 package api
 
 import (
-	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
+	"time"
+
+	"github.com/Ptt-official-app/pttbbs-backend/schema"
+	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 const REFRESH_R = "/account/refresh"
@@ -11,7 +15,7 @@ type RefreshParams struct {
 	ClientID     string `json:"client_id" form:"client_id"`
 	ClientSecret string `json:"client_secret" form:"client_secret"`
 
-	RefreshToken string `json:"refresh_token"`
+	RefreshToken string `json:"refresh_token" form:"refresh_token"`
 }
 
 type RefreshResult LoginResult
@@ -21,45 +25,48 @@ func RefreshWrapper(c *gin.Context) {
 	FormJSON(Refresh, params, c)
 }
 
+// Refresh rotates the OIDC refresh token issued by Login:
+// a new access token and a new refresh token are issued,
+// and the old refresh token (and the access token issued with it) are revoked.
 func Refresh(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*RefreshParams)
 	if !ok {
 		return nil, 400, ErrInvalidParams
 	}
 
-	isValidClient, client := checkClient(theParams.ClientID, theParams.ClientSecret)
-
-	if !isValidClient {
+	if theParams.RefreshToken == "" {
 		return nil, 400, ErrInvalidParams
 	}
 
-	clientInfo := getClientInfo(client)
-
-	params_b := &pttbbsapi.RefreshParams{
-		ClientInfo: clientInfo,
-		Refresh:    theParams.RefreshToken,
+	refreshToken_db, err := schema.GetOIDCRefreshToken(theParams.RefreshToken)
+	if err != nil || refreshToken_db == nil {
+		return nil, 401, ErrInvalidToken
 	}
 
-	result_bi, err := pttbbsapi.Refresh(remoteAddr, params_b, c)
+	if theParams.ClientID != "" && theParams.ClientID != refreshToken_db.ApplicationID {
+		return nil, 401, ErrInvalidToken
+	}
+
+	if refreshToken_db.Expiration.Before(time.Now()) {
+		_ = schema.DeleteOIDCRefreshToken(theParams.RefreshToken)
+		return nil, 401, ErrInvalidToken
+	}
+
+	username := refreshToken_db.Subject
+	clientID := refreshToken_db.ApplicationID
+
+	accessToken, newRefreshToken, expireTS, err := genAccessAndRefreshTokens(c, username, clientID, theParams.RefreshToken)
 	if err != nil {
-		return nil, 500, err
+		logrus.Warnf("api.Refresh: unable to genAccessAndRefreshTokens: username: %v clientID: %v e: %v", username, clientID, err)
+		return nil, 401, ErrInvalidToken
 	}
 
-	result_b, ok := result_bi.(*pttbbsapi.RefreshResult)
-	if !ok {
-		return nil, 500, ErrInvalidBackendStatusCode
+	if clientID == types.WEB_CLIENT_ID {
+		setTokenToCookie(c, accessToken, newRefreshToken)
 	}
 
-	// setTokenToCookie(c, result_b.Jwt)
-
-	result = &RefreshResult{
-		Username:        string(result_b.UserID),
-		AccessToken:     result_b.Jwt,
-		TokenType:       result_b.TokenType,
-		RefreshToken:    result_b.Refresh,
-		AccessExpireTS:  uint64(result_b.AccessExpire),
-		RefreshExpireTS: uint64(result_b.RefreshExpire),
-	}
+	loginResult := NewLoginResult(username, accessToken, newRefreshToken, expireTS, "")
+	result = (*RefreshResult)(loginResult)
 
 	return result, 200, nil
 }

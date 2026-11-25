@@ -157,7 +157,7 @@ func (s *Storage) createRefreshToken(accessToken *schema.OIDCAccessToken, amr []
 		ApplicationID: accessToken.ApplicationID,
 		Subject:       accessToken.Subject,
 		Audience:      accessToken.Audience,
-		Expiration:    time.Now().Add(5 * time.Hour),
+		Expiration:    time.Now().Add(types.REFRESH_TOKEN_EXPIRE_TS_DURATION),
 		Scopes:        accessToken.Scopes,
 		AccessToken:   accessToken.ID,
 	}
@@ -214,7 +214,7 @@ func (s *Storage) renewRefreshToken(currentRefreshToken, newRefreshToken, newAcc
 	// creates a new refresh token based on the current one
 	refreshToken.Token = newRefreshToken
 	refreshToken.ID = newRefreshToken
-	refreshToken.Expiration = time.Now().Add(types.ACCESS_TOKEN_EXPIRE_TS_DURATION)
+	refreshToken.Expiration = time.Now().Add(types.REFRESH_TOKEN_EXPIRE_TS_DURATION)
 	refreshToken.AccessToken = newAccessToken
 
 	err = schema.SetOIDCRefreshToken(refreshToken)

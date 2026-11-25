@@ -54,7 +54,11 @@ func NewAuthRequestByUsername(username string, clientID string) *OIDCAuthRequest
 		ClientID:     clientID,
 		Subject:      username,
 		Username:     username,
-		Scopes:       []string{"openid", "offline_access"},
+		AuthTime:     time.Now(),
+		Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
+		// ResponseType code + offline_access is required by op.CreateAccessToken
+		// to issue a refresh token.
+		ResponseType: oidc.ResponseTypeCode,
 	}
 }
 
