@@ -41,6 +41,7 @@ var (
 
 	ALLOW_ORIGINS        = []string{"*"}
 	BLOCKED_REFERERS     = []string{}
+	TRUSTED_PROXIES      = []string{"127.0.0.1", "::1"} // only these peers may set X-Forwarded-For
 	IS_ALLOW_CROSSDOMAIN = true
 
 	COOKIE_DOMAIN       = "localhost"
