@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/Ptt-official-app/pttbbs-backend/db"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTryLock(t *testing.T) {
@@ -47,6 +49,7 @@ func TestTryLock(t *testing.T) {
 		},
 	}
 
+	tokens := map[string]string{}
 	var wg sync.WaitGroup // to sequentially exec the test.
 	for _, tt := range tests {
 		wg.Add(1)
@@ -56,9 +59,12 @@ func TestTryLock(t *testing.T) {
 				time.Sleep(time.Duration(tt.sleepTS) * time.Second)
 			}
 			if tt.isUnlock {
-				Unlock(tt.args.key)
+				_ = Unlock(tt.args.key, tokens[tt.args.key])
 			}
-			err := TryLock(tt.args.key, tt.args.expire)
+			token, err := TryLock(tt.args.key, tt.args.expire)
+			if err == nil {
+				tokens[tt.args.key] = token
+			}
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TryLock() error = %v, wantErr %v", err, tt.wantErr)
@@ -70,4 +76,31 @@ func TestTryLock(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+func TestUnlock_notOwner(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	key := "test-unlock-not-owner"
+
+	// A holds the lock, it expires, then B acquires it.
+	tokenA, err := TryLock(key, 100*time.Millisecond)
+	require.NoError(t, err)
+	time.Sleep(200 * time.Millisecond)
+	tokenB, err := TryLock(key, 10*time.Second)
+	require.NoError(t, err)
+	require.NotEqual(t, tokenA, tokenB)
+
+	// A's late Unlock must not release B's lock.
+	err = Unlock(key, tokenA)
+	require.NoError(t, err)
+	_, err = TryLock(key, 10*time.Second)
+	assert.ErrorIs(t, err, db.ErrRDBAlreadyExists)
+
+	// the owner can release it.
+	err = Unlock(key, tokenB)
+	require.NoError(t, err)
+	_, err = TryLock(key, 10*time.Second)
+	assert.NoError(t, err)
 }

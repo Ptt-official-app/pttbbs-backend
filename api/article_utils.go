@@ -249,7 +249,7 @@ func TryGetArticleContentInfo(userID bbs.UUserID, bboardID bbs.BBoardID, article
 
 	// 4. do lock. if failed, return the data in db.
 	lockKey := ArticleLockKey(bboardID, articleID)
-	err = schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
+	lockToken, err := schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
 	if err != nil {
 		if isForce {
 			return nil, nil, "", "", "", "", "", nil, nil, 0, 0, 500, err
@@ -263,7 +263,7 @@ func TryGetArticleContentInfo(userID bbs.UUserID, bboardID bbs.BBoardID, article
 		updateNanoTS = types.NowNanoTS()
 		return contentInfo.Content, contentInfo.ContentPrefix, contentInfo.ContentMD5, contentInfo.IP, contentInfo.Host, contentInfo.BBS, contentInfo.SignatureMD5, contentInfo.SignatureDBCS, articleDetailSummary, 0, 0, 200, nil
 	}
-	defer func() { _ = schema.Unlock(lockKey) }()
+	defer func() { _ = schema.Unlock(lockKey, lockToken) }()
 
 	// 5. get article from pttbbs
 	theParams_b := &pttbbsapi.GetArticleParams{

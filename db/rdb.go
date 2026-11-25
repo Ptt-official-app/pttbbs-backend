@@ -152,6 +152,27 @@ func RDBDel(rdb *redis.Client, key string) (err error) {
 	return nil
 }
 
+var rdbDelIfEqualScript = redis.NewScript(`
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+	return redis.call("DEL", KEYS[1])
+end
+return 0
+`)
+
+// RDBDelIfEqual deletes key only if its current value equals value (compare-and-delete).
+func RDBDelIfEqual(rdb *redis.Client, key string, value string) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), REDIS_TIMEOUT_MILLI_TS*time.Millisecond)
+	defer func() {
+		ctxErr := ctx.Err()
+		cancel()
+		if err == nil {
+			err = ctxErr
+		}
+	}()
+
+	return rdbDelIfEqualScript.Run(ctx, rdb, []string{key}, value).Err()
+}
+
 // RDBIncrWithExpire increments key and sets its TTL when the key is newly created.
 //
 // The TTL is set only when the counter goes from 0 to 1, so subsequent increments
