@@ -181,7 +181,7 @@ func NewBoardSummaryFromPBBoard(b_b *boardd.Board, updateNanoTS types.NanoTS) *B
 	}
 }
 
-func NewBoardSummaryFromPttWeb(boardName string, boardTitle string, boardType string, boardClass string, nUser int, total int, lastPostTime types.NanoTS, isOver18 bool, updateNanoTS types.NanoTS) (boardSummary *BoardSummary, err error) {
+func NewBoardSummaryFromPttWeb(boardName string, boardTitle string, boardType string, boardClass string, nUser int, total int, lastPostTime types.NanoTS, isOver18 bool, isOver18UpdateNanoTS types.NanoTS, updateNanoTS types.NanoTS) (boardSummary *BoardSummary, err error) {
 	return &BoardSummary{
 		BBoardID:  bbs.BBoardID(boardName),
 		Brdname:   boardName,
@@ -195,7 +195,7 @@ func NewBoardSummaryFromPttWeb(boardName string, boardTitle string, boardType st
 
 		IsPopular:            true,
 		IsOver18:             isOver18,
-		IsOver18UpdateNanoTS: updateNanoTS,
+		IsOver18UpdateNanoTS: isOver18UpdateNanoTS,
 
 		UpdateNanoTS: updateNanoTS,
 	}, nil
