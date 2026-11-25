@@ -126,6 +126,8 @@ func NewProvider(extraOptions ...op.Option) (provider *op.Provider, err error) {
 func setupProvider(provider *op.Provider) {
 	PROVIDER = provider
 	AUTH_CALLBACK_URL = func(ctx context.Context, oidcID string) string {
-		return types.URL_PREFIX + op.AuthCallbackURL(PROVIDER)(ctx, oidcID)
+		// the callers pass a *gin.Context that carries no issuer (the issuer interceptor only runs for requests
+		// served by the provider itself), and the OP routes are registered without types.URL_PREFIX.
+		return op.AuthCallbackURL(PROVIDER)(op.ContextWithIssuer(ctx, types.OIDC_OP_ISSUER), oidcID)
 	}
 }
