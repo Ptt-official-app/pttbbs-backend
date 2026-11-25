@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -20,13 +21,19 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+var errNoPopularBoards = errors.New("no popular boards from pttweb")
+
 func TryLoadPttWebPopularBoards(c *gin.Context) (boards []*schema.BoardSummary, err error) {
 	updateNanoTS := types.NowNanoTS()
 
-	// XXX silent err
-	popularBoards, _ := tryLoadPttWebPopularBoardsCore(c, updateNanoTS)
-	if popularBoards == nil {
-		popularBoards = []*schema.BoardSummary{}
+	// Bail out before ResetBoardIsPopular: a failed fetch must keep the previous popular list,
+	// otherwise /boards/popular is empty until the next successful run.
+	popularBoards, err := tryLoadPttWebPopularBoardsCore(c, updateNanoTS)
+	if err != nil {
+		return nil, err
+	}
+	if len(popularBoards) == 0 {
+		return nil, errNoPopularBoards
 	}
 
 	popularBoardMap := make(map[bbs.BBoardID]bool)
@@ -34,10 +41,9 @@ func TryLoadPttWebPopularBoards(c *gin.Context) (boards []*schema.BoardSummary, 
 		popularBoardMap[eachBoard.BBoardID] = true
 	}
 
-	// XXX silent err
-	whiteListBoards, _ := tryLoadPttWebWhiteListBoards(c, updateNanoTS)
-	if whiteListBoards == nil {
-		whiteListBoards = []*schema.BoardSummary{}
+	whiteListBoards, err := tryLoadPttWebWhiteListBoards(c, updateNanoTS)
+	if err != nil {
+		return nil, err
 	}
 
 	// dedupedListBoards
@@ -56,11 +62,6 @@ func TryLoadPttWebPopularBoards(c *gin.Context) (boards []*schema.BoardSummary, 
 
 	// XXX silent err
 	_ = schema.ResetBoardIsPopular()
-
-	// early return if no boards
-	if len(boards) == 0 {
-		return boards, nil
-	}
 
 	err = schema.UpdateBoardSummaries(boards, updateNanoTS)
 	if err != nil {
@@ -87,6 +88,12 @@ func tryLoadPttWebPopularBoardsCore(c *gin.Context, updateNanoTS types.NanoTS) (
 	if err != nil {
 		logrus.Errorf("unable to client.Do: e: %v", err)
 		return nil, err
+	}
+	defer func() { _ = res.Body.Close() }()
+
+	if res.StatusCode >= 400 {
+		logrus.Errorf("unable to get popular boards: statusCode: %v", res.StatusCode)
+		return nil, ErrInvalidStatusCode
 	}
 
 	doc, err := html.Parse(res.Body)
@@ -140,7 +147,14 @@ func tryLoadPttWebWhiteListBoards(c *gin.Context, updateNanoTS types.NanoTS) (bo
 			return nil, err
 		}
 
+		if res.StatusCode >= 400 {
+			_ = res.Body.Close()
+			logrus.Errorf("unable to get white-list board: %v statusCode: %v", brdname, res.StatusCode)
+			return nil, ErrInvalidStatusCode
+		}
+
 		doc, err := html.Parse(res.Body)
+		_ = res.Body.Close()
 		if err != nil {
 			logrus.Errorf("unable to Parse body: e: %v", err)
 			return nil, err
