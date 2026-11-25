@@ -3,6 +3,7 @@ package dbcs
 import (
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/sirupsen/logrus"
@@ -261,11 +262,11 @@ func dbcsToUtf8PerLineNextUtf8(contentDBCS string) (theUtf8 string) {
 		}
 	}
 
-	for _, each := range contentDBCS { // get the 1st rune
-		return string(each)
-	}
+	// slice by the bytes actually consumed: string(rune) turns an invalid byte
+	// into 3-byte U+FFFD, and callers use len(theUtf8) as the offset into contentDBCS.
+	_, size := utf8.DecodeRuneInString(contentDBCS)
 
-	return ""
+	return contentDBCS[:size]
 }
 
 func dbcsToUtf8PurifyColor(contentDBCS string) (purifiedDBCS string) {
