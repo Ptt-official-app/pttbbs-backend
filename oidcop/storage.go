@@ -12,6 +12,7 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	jose "github.com/go-jose/go-jose/v4"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"github.com/zitadel/oidc/v3/pkg/op"
 )
@@ -30,14 +31,28 @@ type Storage struct {
 	// serviceUsers map[string]*Client
 }
 
+const signingKeyID = "key_id"
+
 func NewStorage() (*Storage, error) {
+	if types.OIDC_OP_SIGNING_KEY_FILE != "" {
+		signingKey, err := LoadSigningKey(signingKeyID, types.OIDC_OP_SIGNING_KEY_FILE)
+		if err != nil {
+			return nil, err
+		}
+
+		return &Storage{signingKey: signingKey}, nil
+	}
+
+	// dev fallback: tokens signed by the previous process can no longer be verified after a restart.
+	logrus.Warn("oidcop.NewStorage: OIDC_OP_SIGNING_KEY_FILE is not set, generating a random signing key")
+
 	pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Storage{
-		signingKey: NewSigningKey("key_id", privKey, pubKey),
+		signingKey: NewSigningKey(signingKeyID, privKey, pubKey),
 	}, nil
 }
 

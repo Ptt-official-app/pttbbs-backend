@@ -29,6 +29,8 @@ var (
 	OIDC_OP_POST_LOGOUT_URL = "http://localhost:5173"
 	OIDC_OP_ISSUER          = "http://localhost:3457"
 	OIDC_OP_IS_ALLOW_HTTP   = true
+	// PEM (PKCS#8) ed25519 private key for signing access-tokens. empty: a random key is generated on every start.
+	OIDC_OP_SIGNING_KEY_FILE = ""
 
 	PTTSYSOP = bbs.UUserID("SYSOP")
 
