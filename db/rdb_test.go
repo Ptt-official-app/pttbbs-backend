@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
@@ -162,5 +163,36 @@ func TestRDBDel(t *testing.T) {
 			}
 		})
 		wg.Wait()
+	}
+}
+
+func TestRDBSAddExpire(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+	defer rdb.Close()
+
+	key := "test-sadd-expire"
+	defer func() { _ = RDBDel(rdb, key) }()
+
+	err := RDBSAdd(rdb, key, "member", 10*time.Second)
+	if err != nil {
+		t.Fatalf("RDBSAdd() failed: %v", err)
+	}
+
+	ttl, err := rdb.TTL(context.Background(), key).Result()
+	if err != nil {
+		t.Fatalf("TTL() failed: %v", err)
+	}
+	if ttl <= 0 || ttl > 10*time.Second {
+		t.Errorf("TTL() = %v, want in (0, 10s]", ttl)
+	}
+
+	err = RDBSAdd(rdb, key, "member", 10*time.Second)
+	if err != ErrRDBAlreadyExists {
+		t.Errorf("RDBSAdd(dup) err = %v, want %v", err, ErrRDBAlreadyExists)
 	}
 }
