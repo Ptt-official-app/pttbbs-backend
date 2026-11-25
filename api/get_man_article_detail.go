@@ -52,16 +52,16 @@ func GetManArticleDetail(remoteAddr string, user *UserInfo, params any, path any
 	}
 	articleID := farticleID.ToManArticleID()
 
-	// validate user
-	_, statusCode, err = isBoardValidUser(boardID, userID)
+	// check board permission
+	_, err = CheckUserBoardPermReadable(user, boardID, c)
 	if err != nil {
-		return nil, statusCode, err
+		return nil, 403, err
 	}
 
 	// ensure that we do have the article.
 	content, _, articleDetailSummary, err := TryGetManArticleContentInfo(userID, boardID, articleID, c, false, true)
 	if err != nil {
-		return nil, statusCode, err
+		return nil, 500, err
 	}
 
 	result = &GetManArticleDetailResult{
