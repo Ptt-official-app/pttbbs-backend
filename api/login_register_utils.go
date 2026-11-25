@@ -18,7 +18,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"github.com/zitadel/oidc/v3/pkg/op"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func setTokenToCookie(c *gin.Context, accessToken string, refreshToken string) {
@@ -170,10 +169,6 @@ func genAccessAndRefreshTokens(ctx context.Context, username string, clientID st
 	if err != nil {
 		logrus.Warnf("api.genAccessAndRefreshTokens: unable to GetClient: clientID: %v e: %v", clientID, err)
 		return "", "", 0, err
-	}
-	if client == nil {
-		logrus.Warnf("api.genAccessAndRefreshTokens: no client: clientID: %v", clientID)
-		return "", "", 0, mongo.ErrNoDocuments
 	}
 
 	authRequest := schema.NewAuthRequestByUsername(username, clientID)

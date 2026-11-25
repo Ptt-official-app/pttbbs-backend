@@ -188,7 +188,8 @@ func GetClient(clientID string) (ret *Client, err error) {
 	ret = &Client{}
 	err = Client_c.FindOne(query, ret, nil)
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, nil
+		// a (nil, nil) here would be wrapped as a non-nil op.Client holding a nil pointer by callers.
+		return nil, ErrNotFound
 	}
 	if err != nil {
 		return nil, err
