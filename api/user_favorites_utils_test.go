@@ -81,3 +81,17 @@ func Test_checkUserFavBoard(t *testing.T) {
 		wg.Wait()
 	}
 }
+
+func Test_tryGetUserFavoritesCore_noFavorites(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	// user without favorites meta in db and backend mtime 0 must not panic.
+	gotIdx, gotMTime, gotStatus, err := tryGetUserFavoritesCore("NoFavUser", nil)
+	if err != nil {
+		t.Fatalf("tryGetUserFavoritesCore() error = %v", err)
+	}
+	if gotIdx != 0 || gotMTime != 0 || gotStatus != 200 {
+		t.Errorf("tryGetUserFavoritesCore() = (%v, %v, %v), want (0, 0, 200)", gotIdx, gotMTime, gotStatus)
+	}
+}
