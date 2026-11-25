@@ -35,6 +35,7 @@ func CalculateUserVisit() {
 	count, err := schema.CalculateAllUserVisitCounts()
 	if err != nil {
 		logrus.Printf("get error in calculate user visit count %v", err)
+		return
 	}
 	// set to redis
 	err = schema.SetUserVisitCount(count)
