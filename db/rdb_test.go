@@ -229,3 +229,47 @@ func TestRDBIncrWithExpire(t *testing.T) {
 		t.Errorf("RDBIncrWithExpire() after expire = %v, want 1", got)
 	}
 }
+
+func TestRDBIncrWithExpire_restoreMissingTTL(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
+	key := "test-incr-no-ttl"
+	defer func() { _ = RDBDel(rdb, key) }()
+
+	// a counter left without TTL (e.g. EXPIRE failed after INCR).
+	ctx := context.Background()
+	if err := rdb.Set(ctx, key, "2", 0).Err(); err != nil {
+		t.Fatalf("Set() failed: %v", err)
+	}
+
+	got, err := RDBIncrWithExpire(rdb, key, 10*time.Second)
+	if err != nil {
+		t.Fatalf("RDBIncrWithExpire() failed: %v", err)
+	}
+	if got != 3 {
+		t.Errorf("RDBIncrWithExpire() = %v, want 3", got)
+	}
+
+	ttl, err := rdb.PTTL(ctx, key).Result()
+	if err != nil {
+		t.Fatalf("PTTL() failed: %v", err)
+	}
+	if ttl <= 0 {
+		t.Errorf("PTTL() = %v, want a positive TTL", ttl)
+	}
+
+	// an existing TTL is not extended.
+	time.Sleep(200 * time.Millisecond)
+	if _, err := RDBIncrWithExpire(rdb, key, 10*time.Second); err != nil {
+		t.Fatalf("RDBIncrWithExpire() failed: %v", err)
+	}
+	ttl2, _ := rdb.PTTL(ctx, key).Result()
+	if ttl2 >= ttl {
+		t.Errorf("PTTL() = %v after incr, want < %v", ttl2, ttl)
+	}
+}
