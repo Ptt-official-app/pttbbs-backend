@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	SERVICE_MODE = DEV // can be DEV, PRODUCTION, STAGING, INFO, DEBUG
+	SERVICE_MODE = PRODUCTION // can be DEV, PRODUCTION, STAGING, INFO, DEBUG. DEV skips CSRF / client-register ip checks, local development only.
 
 	HTTP_SCHEME      = "http://"
 	HTTP_HOST        = "localhost:3457"            // serving http-host

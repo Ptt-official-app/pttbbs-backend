@@ -21,3 +21,13 @@ func TestInitConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestServiceModeDefault(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	// DEV skips CSRF and client-register ip checks, so it must be opt-in.
+	if origServiceMode != PRODUCTION {
+		t.Errorf("default SERVICE_MODE = %v, want %v", origServiceMode, PRODUCTION)
+	}
+}
