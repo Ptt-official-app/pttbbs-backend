@@ -50,6 +50,10 @@ func LoadClassBoards(remoteAddr string, user *UserInfo, params any, path any, c 
 		return nil, 400, ErrInvalidParams
 	}
 
+	if !isValidLimit(theParams.Max) {
+		return nil, 400, ErrInvalidLimit
+	}
+
 	thePath, ok := path.(*LoadClassBoardsPath)
 	if !ok {
 		return nil, 400, ErrInvalidPath
@@ -78,7 +82,7 @@ func LoadClassBoards(remoteAddr string, user *UserInfo, params any, path any, c 
 }
 
 func loadClassBoards(userID bbs.UUserID, clsID ptttype.Bid, startIdx string, asc bool, limit int, sortBy ptttype.BSortBy, c *gin.Context) (boardSummaries_db []*schema.BoardSummary, userBoardInfoMap map[bbs.BBoardID]*apitypes.UserBoardInfo, nextIdx string, err error) {
-	boardSummaries_db = make([]*schema.BoardSummary, 0, limit)
+	boardSummaries_db = []*schema.BoardSummary{}
 	userBoardInfoMap = make(map[bbs.BBoardID]*apitypes.UserBoardInfo)
 
 	nextIdx = startIdx

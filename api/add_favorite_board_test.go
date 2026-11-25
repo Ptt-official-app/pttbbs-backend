@@ -26,6 +26,7 @@ func TestAddFavoriteBoard(t *testing.T) {
 
 	paramsLoad0 := &LoadGeneralBoardsParams{
 		StartIdx: "vFSt-Q@WhoAmI",
+		Max:      DEFAULT_MAX_LIST,
 	}
 
 	user := &UserInfo{UserID: "SYSOP", IsOver18: true}

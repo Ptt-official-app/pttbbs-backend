@@ -191,7 +191,7 @@ func GetArticleSummaries(boardID bbs.BBoardID, startIdx string, descending bool,
 }
 
 func GetArticleSummariesByRegex(boardID bbs.BBoardID, keywordList []string, createNanoTS types.NanoTS, articleID bbs.ArticleID, descending bool, limit int) (result []*ArticleSummary, err error) {
-	result = make([]*ArticleSummary, 0, limit)
+	result = []*ArticleSummary{}
 
 	// keyword-list
 	runeList := make([][]rune, len(keywordList))
