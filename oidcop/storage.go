@@ -67,7 +67,7 @@ func (s *Storage) ClientCredentialsTokenRequest(ctx context.Context, clientID st
 
 // AuthRequestByCode implements [op.Storage].
 func (s *Storage) AuthRequestByCode(ctx context.Context, code string) (op.AuthRequest, error) {
-	requestID, err := schema.GetRequestIDByOIDCCode(code)
+	requestID, err := schema.ConsumeOIDCCode(code)
 	if err != nil {
 		return nil, err
 	}
@@ -122,6 +122,8 @@ func (s *Storage) CreateAccessAndRefreshTokens(ctx context.Context, request op.T
 	}
 
 	if err := s.renewRefreshToken(currentRefreshToken, newRefreshToken, accessToken.ID); err != nil {
+		// the refresh token was already rotated (or is invalid): do not leave the new access token behind.
+		_ = schema.DeleteOIDCAccessToken(accessToken.ID)
 		return "", "", time.Time{}, err
 	}
 
@@ -190,13 +192,8 @@ func (s *Storage) accessToken(applicationID, refreshTokenID, subject string, aud
 }
 
 func (s *Storage) renewRefreshToken(currentRefreshToken, newRefreshToken, newAccessToken string) (err error) {
-	refreshToken, err := schema.GetOIDCRefreshToken(currentRefreshToken)
-	if err != nil {
-		return err
-	}
-
-	// deletes the refresh token
-	err = schema.DeleteOIDCRefreshToken(currentRefreshToken)
+	// get and delete the refresh token in one step: a refresh token can be exchanged only once.
+	refreshToken, err := schema.ConsumeOIDCRefreshToken(currentRefreshToken)
 	if err != nil {
 		return err
 	}
@@ -264,20 +261,8 @@ func (s *Storage) CreateAuthRequest(ctx context.Context, authReq *oidc.AuthReque
 
 // DeleteAuthRequest implements [op.Storage].
 func (s *Storage) DeleteAuthRequest(ctx context.Context, requestID string) (err error) {
-	authReq, err := schema.GetOIDCAuthRequestByRequestID(requestID)
-	if err != nil {
-		return err
-	}
-	err = schema.DeleteOIDCAuthRequest(requestID)
-	if err != nil {
-		return err
-	}
-
-	if authReq.CodeChallenge == nil {
-		return nil
-	}
-
-	return schema.DeleteOIDCCodeByCode(authReq.CodeChallenge.Challenge)
+	// the code was already consumed in AuthRequestByCode.
+	return schema.DeleteOIDCAuthRequest(requestID)
 }
 
 // GetClientByClientID implements [op.Storage].
