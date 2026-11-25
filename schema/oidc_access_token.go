@@ -7,6 +7,7 @@ import (
 
 	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
+	"github.com/go-redis/redis/v8"
 )
 
 type OIDCAccessToken struct {
@@ -47,6 +48,9 @@ func GetOIDCAccessTokensBySubjectAndClientID(subject string, clientID string) (a
 
 func GetOIDCAccessToken(accessTokenID string) (accessToken *OIDCAccessToken, err error) {
 	val, err := db.RDBGet(rdb, RDB_PREFIX_OIDC_OP_ACCESS_TOKEN+accessTokenID)
+	if errors.Is(err, redis.Nil) {
+		return nil, ErrNotFound
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -81,6 +85,9 @@ func SetOIDCAccessToken(accessToken *OIDCAccessToken) (err error) {
 
 func DeleteOIDCAccessToken(accessTokenID string) (err error) {
 	accessToken, err := GetOIDCAccessToken(accessTokenID)
+	if errors.Is(err, ErrNotFound) { // already expired or deleted.
+		return nil
+	}
 	if err != nil {
 		return err
 	}
