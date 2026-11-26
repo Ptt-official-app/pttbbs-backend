@@ -45,7 +45,7 @@ func TestTryLoadPttWebPopularBoards_fetchFailureKeepsPopularBoards(t *testing.T)
 			defer func() { types.PTTWEB_HOTBOARD_URL = origURL }()
 
 			now := types.NowNanoTS()
-			board, err := schema.NewBoardSummaryFromPttWeb("test1", "title", "◎", "class", 1, 1, 1, false, now)
+			board, err := schema.NewBoardSummaryFromPttWeb("test1", "title", "◎", "class", 1, 1, 1, false, now, now)
 			require.NoError(t, err)
 			err = schema.UpdateBoardSummaries([]*schema.BoardSummary{board}, now)
 			require.NoError(t, err)
