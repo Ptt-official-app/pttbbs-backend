@@ -301,6 +301,27 @@ func Init() (err error) {
 		return err
 	}
 
+	// point lookup of the upserts in UpdateUserReadArticle(s) and FindUserReadArticles.
+	keys = &bson.D{
+		{Key: USER_ARTICLE_USER_ID_b, Value: 1},
+		{Key: USER_ARTICLE_BOARD_ID_b, Value: 1},
+		{Key: USER_ARTICLE_ARTICLE_ID_b, Value: 1},
+	}
+	err = UserArticle_c.CreateIndex(keys, nil)
+	if err != nil {
+		return err
+	}
+
+	// FindUserReadArticlesByBoardArticleIDs.
+	keys = &bson.D{
+		{Key: USER_ARTICLE_USER_ID_b, Value: 1},
+		{Key: USER_ARTICLE_BOARD_ARTICLE_ID_b, Value: 1},
+	}
+	err = UserArticle_c.CreateIndex(keys, nil)
+	if err != nil {
+		return err
+	}
+
 	// UserReadBoard
 	UserBoard_c = client.Collection("user_read_board")
 	keys = &bson.D{

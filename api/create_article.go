@@ -88,7 +88,7 @@ func CreateArticle(remoteAddr string, user *UserInfo, params any, path any, c *g
 
 	dummyContent := [][]*types.Rune{}
 
-	setUserReadArticle(dummyContent, userID, articleSummary_db.ArticleID, updateNanoTS)
+	setUserReadArticle(dummyContent, userID, boardID, articleSummary_db.ArticleID, updateNanoTS)
 
 	articleSummary := apitypes.NewArticleSummaryFromWithRegex(articleSummary_db, userID)
 

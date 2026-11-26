@@ -85,7 +85,7 @@ func CrossPost(remoteAddr string, user *UserInfo, params any, path any, c *gin.C
 	articleSummary_db := articleSummaries_db[0]
 	dummyContent := [][]*types.Rune{}
 
-	setUserReadArticle(dummyContent, userID, articleSummary_db.ArticleID, updateNanoTS)
+	setUserReadArticle(dummyContent, userID, boardID, articleSummary_db.ArticleID, updateNanoTS)
 
 	articleSummary := apitypes.NewArticleSummaryFromWithRegex(articleSummary_db, "")
 
