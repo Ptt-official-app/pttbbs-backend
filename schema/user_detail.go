@@ -113,6 +113,20 @@ func GetUserDetailByUsername(username string) (userDetail *UserDetail, err error
 	return userDetail, nil
 }
 
+func GetUserDetailByUserID(userID bbs.UUserID) (userDetail *UserDetail, err error) {
+	query := bson.M{
+		USER_USER_ID_b: userID,
+	}
+
+	userDetail = &UserDetail{}
+	err = User_c.FindOne(query, userDetail, userDetailFields)
+	if err != nil {
+		return nil, err
+	}
+
+	return userDetail, nil
+}
+
 func NewUserDetail(user_b pttbbsapi.GetUserResult, updateNanoTS types.NanoTS) (user *UserDetail) {
 	return &UserDetail{
 		UserID:   user_b.UUserID,
