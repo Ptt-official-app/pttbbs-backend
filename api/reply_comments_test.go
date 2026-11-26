@@ -8,9 +8,12 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
 	"github.com/Ptt-official-app/pttbbs-backend/apitypes"
+	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestReplyComments(t *testing.T) {
@@ -143,4 +146,25 @@ func TestReplyComments(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+func TestReplyComments_notOwner(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	boardID, articleID, deletePath, commentID := setupArticleWithComment(t)
+	path := &ReplyCommentsPath{FBoardID: deletePath.FBoardID, FArticleID: deletePath.FArticleID}
+
+	content := [][]*types.Rune{{{Utf8: "reply", Color0: types.DefaultColor, Color1: types.DefaultColor}}}
+	params := &ReplyCommentsParams{TheList: []*apitypes.ReplyCommentParams{{CommentID: commentID, Content: content}}}
+
+	// a user who is not the article owner must be rejected before anything is written to the db.
+	other := &UserInfo{UserID: "chhsiao123", IsOver18: true}
+	_, statusCode, err := ReplyComments(testIP, other, params, path, nil)
+	assert.Error(t, err)
+	assert.Equal(t, 403, statusCode)
+
+	comments, err := schema.GetAllCommentDBCSs(boardID, articleID)
+	require.NoError(t, err)
+	assert.Len(t, comments, 1)
 }
