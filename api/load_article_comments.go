@@ -65,7 +65,7 @@ func LoadArticleComments(remoteAddr string, user *UserInfo, params any, path any
 	// check permission
 	err = CheckUserArticlePermReadable(user, boardID, articleID, true, c)
 	if err != nil {
-		return nil, statusCode, err
+		return nil, 403, err
 	}
 
 	// get comments

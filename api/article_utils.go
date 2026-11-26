@@ -229,7 +229,7 @@ func TryGetArticleContentInfo(userID bbs.UUserID, bboardID bbs.BBoardID, article
 
 	// preliminarily checking article-detail-summary.
 	if articleDetailSummary.IsDeleted {
-		return nil, nil, "", "", "", "", "", nil, nil, 500, 0, 0, ErrAlreadyDeleted
+		return nil, nil, "", "", "", "", "", nil, nil, 0, 0, 404, ErrAlreadyDeleted
 	}
 
 	if articleDetailSummary.CreateTime == 0 {
