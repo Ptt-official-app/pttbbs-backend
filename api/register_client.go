@@ -1,6 +1,8 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -38,7 +40,10 @@ func RegisterClient(remoteAddr string, user *UserInfo, params any, c *gin.Contex
 		return nil, 401, ErrInvalidRemoteAddr
 	}
 
-	client, err := deserializeClientAndUpdateDB(registerClientParams, remoteAddr)
+	client, err := deserializeClientAndCreateDB(registerClientParams, remoteAddr)
+	if errors.Is(err, schema.ErrClientAlreadyExists) {
+		return nil, 409, ErrAlreadyExists
+	}
 	if err != nil {
 		return nil, 500, err
 	}
@@ -49,10 +54,10 @@ func RegisterClient(remoteAddr string, user *UserInfo, params any, c *gin.Contex
 	return result, 200, nil
 }
 
-func deserializeClientAndUpdateDB(registerClientParams *RegisterClientParams, remoteAddr string) (client *schema.Client, err error) {
+func deserializeClientAndCreateDB(registerClientParams *RegisterClientParams, remoteAddr string) (client *schema.Client, err error) {
 	client = schema.NewClient(registerClientParams.ClientID, registerClientParams.ClientType, registerClientParams.RedirectURIs, remoteAddr)
 
-	err = schema.UpdateClient(client)
+	err = schema.CreateClient(client)
 	if err != nil {
 		return nil, err
 	}

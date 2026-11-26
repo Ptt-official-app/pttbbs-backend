@@ -109,6 +109,8 @@ func ParseComments(
 			}
 		}
 
+		// p_commentsDBCS[0] is '\n': always consume it so the loop makes progress.
+		nextCommentIdx = max(nextCommentIdx, 1)
 		p_commentsDBCS = p_commentsDBCS[nextCommentIdx:]
 		p_allCommentsDBCS = p_allCommentsDBCS[nextCommentIdx:]
 
@@ -188,6 +190,9 @@ func parseCommentEditOwnerID(commentDBCS []byte) (ownerID bbs.UUserID, newCommen
 }
 
 func parseCommentEditIPCreateTime(commentDBCS []byte) (ip string, host string, theDate string) {
+	if len(commentDBCS) == 0 {
+		return "", "", ""
+	}
 	if commentDBCS[0] != '(' { // old
 		theIdx := bytes.Index(commentDBCS, MATCH_COMMENT_EDIT_FROM_BYTES)
 		if theIdx == -1 {
@@ -214,6 +219,9 @@ func parseCommentEditIPCreateTime(commentDBCS []byte) (ip string, host string, t
 		commentDBCS = commentDBCS[theIdx+1:]
 
 		theIdx = bytes.Index(commentDBCS, []byte(")"))
+		if theIdx == -1 {
+			return ip, "", ""
+		}
 		theDate = string(commentDBCS[:theIdx])
 
 		return ip, "", theDate
@@ -221,6 +229,9 @@ func parseCommentEditIPCreateTime(commentDBCS []byte) (ip string, host string, t
 
 	// ip
 	theIdx := bytes.Index(commentDBCS, []byte(")"))
+	if theIdx == -1 || len(commentDBCS) < theIdx+3 {
+		return "", "", ""
+	}
 	ipList := bytes.Split(commentDBCS[1:theIdx], []byte(" "))
 	ip = string(ipList[0])
 	if len(ipList) == 2 {
@@ -271,10 +282,8 @@ func parseCommentForwardContent(commentDBCS []byte) (contentDBCS []byte, newComm
 		return nil, nil
 	}
 
-	p_commentDBCS := commentDBCS[len(MATCH_COMMENT_FORWARD_BYTES):]
-	if bytes.Equal(p_commentDBCS[:len(MATCH_COMMENT_FORWARD_BOARD_BYTES)], MATCH_COMMENT_FORWARD_BOARD_BYTES) {
-		p_commentDBCS = p_commentDBCS[len(MATCH_COMMENT_FORWARD_BOARD_BYTES):]
-	}
+	// the board prefix is optional (hidden boards omit it).
+	p_commentDBCS := bytes.TrimPrefix(commentDBCS[len(MATCH_COMMENT_FORWARD_BYTES):], MATCH_COMMENT_FORWARD_BOARD_BYTES)
 
 	idx := bytes.Index(p_commentDBCS, []byte{'\x1b'})
 	if idx == -1 {
@@ -402,7 +411,11 @@ func parseCommentContent(p_commmentDBCS []byte) (contentDBCS []byte, nextComment
 		return p_commmentDBCS[1:], nil
 	}
 
-	contentDBCS, nextCommentDBCS = p_commmentDBCS[1:idx], p_commmentDBCS[idx:]
+	if idx < 1 { // nothing between the leading byte and the color code.
+		contentDBCS, nextCommentDBCS = nil, p_commmentDBCS[idx:]
+	} else {
+		contentDBCS, nextCommentDBCS = p_commmentDBCS[1:idx], p_commmentDBCS[idx:]
+	}
 	if len(contentDBCS) > 0 && contentDBCS[0] == ' ' {
 		contentDBCS = contentDBCS[1:]
 	}
@@ -539,7 +552,7 @@ func parseReplyUserIPHost(editDBCS []byte) (editUserID bbs.UUserID, editNanoTS t
 	p_editDBCS = p_editDBCS[theIdx+len(MATCH_COMMENT_EDIT_BYTES):]
 
 	theIdx = bytes.Index(p_editDBCS, []byte{'('})
-	if theIdx == -1 {
+	if theIdx < 1 {
 		return "", 0, "", "", ""
 	}
 	editUserID = bbs.UUserID(p_editDBCS[:theIdx-1])
@@ -565,9 +578,12 @@ func parseReplyUserIPHost(editDBCS []byte) (editUserID bbs.UUserID, editNanoTS t
 	p_editDBCS = p_editDBCS[theIdx:]
 
 	theIdx = bytes.Index(p_editDBCS, []byte(", "))
+	if theIdx == -1 || len(p_editDBCS) < theIdx+2+LEN_EDIT_DATE_TIME {
+		return "", 0, "", "", ""
+	}
 	p_editDBCS = p_editDBCS[theIdx+2:]
 
-	editDateTimeStr = string(p_editDBCS[:19])
+	editDateTimeStr = string(p_editDBCS[:LEN_EDIT_DATE_TIME])
 	editNanoTS = types.NanoTS(0)
 	theTime, err := types.DateYearTimeStrToTime(editDateTimeStr)
 	if err == nil {

@@ -18,7 +18,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"github.com/zitadel/oidc/v3/pkg/op"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func setTokenToCookie(c *gin.Context, accessToken string, refreshToken string) {
@@ -27,8 +26,8 @@ func setTokenToCookie(c *gin.Context, accessToken string, refreshToken string) {
 }
 
 func removeTokenFromCookie(c *gin.Context) {
-	removeCookie(c, types.ACCESS_TOKEN_NAME, true)
-	removeCookie(c, types.REFRESH_TOKEN_NAME, true)
+	removeCookie(c, types.ACCESS_TOKEN_NAME, true, "")
+	removeCookie(c, types.REFRESH_TOKEN_NAME, true, "")
 }
 
 func gen2FATokenAndSendEmail(userID bbs.UUserID, username string, email string, oidcID string, title string, template string, expireTS time.Duration) (err error) {
@@ -170,10 +169,6 @@ func genAccessAndRefreshTokens(ctx context.Context, username string, clientID st
 	if err != nil {
 		logrus.Warnf("api.genAccessAndRefreshTokens: unable to GetClient: clientID: %v e: %v", clientID, err)
 		return "", "", 0, err
-	}
-	if client == nil {
-		logrus.Warnf("api.genAccessAndRefreshTokens: no client: clientID: %v", clientID)
-		return "", "", 0, mongo.ErrNoDocuments
 	}
 
 	authRequest := schema.NewAuthRequestByUsername(username, clientID)

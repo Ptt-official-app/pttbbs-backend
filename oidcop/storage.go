@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	jose "github.com/go-jose/go-jose/v4"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"github.com/zitadel/oidc/v3/pkg/op"
 )
@@ -30,14 +30,28 @@ type Storage struct {
 	// serviceUsers map[string]*Client
 }
 
+const signingKeyID = "key_id"
+
 func NewStorage() (*Storage, error) {
+	if types.OIDC_OP_SIGNING_KEY_FILE != "" {
+		signingKey, err := LoadSigningKey(signingKeyID, types.OIDC_OP_SIGNING_KEY_FILE)
+		if err != nil {
+			return nil, err
+		}
+
+		return &Storage{signingKey: signingKey}, nil
+	}
+
+	// dev fallback: tokens signed by the previous process can no longer be verified after a restart.
+	logrus.Warn("oidcop.NewStorage: OIDC_OP_SIGNING_KEY_FILE is not set, generating a random signing key")
+
 	pubKey, privKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Storage{
-		signingKey: NewSigningKey("key_id", privKey, pubKey),
+		signingKey: NewSigningKey(signingKeyID, privKey, pubKey),
 	}, nil
 }
 
@@ -296,10 +310,15 @@ func (s *Storage) GetKeyByIDAndClientID(ctx context.Context, keyID string, clien
 		return nil, err
 	}
 
+	// go-jose only accepts ed25519.PublicKey by value.
+	if key_db.Key == nil {
+		return nil, schema.ErrNotFound
+	}
+
 	return &jose.JSONWebKey{
 		KeyID: keyID,
 		Use:   "sig",
-		Key:   key_db.Key,
+		Key:   *key_db.Key,
 	}, nil
 }
 
@@ -419,20 +438,31 @@ func (s *Storage) SetIntrospectionFromToken(ctx context.Context, introspection *
 	return fmt.Errorf("token is not valid for this client")
 }
 
-func (s *Storage) setUserinfo(ctx context.Context, userInfo *oidc.UserInfo, userID, clientID string, scopes []string) (err error) {
-	userEmail, err := schema.GetUserEmailByUserID(bbs.UUserID(userID))
+// setUserinfo fills userInfo for the token subject.
+// The subject of the tokens issued by this OP is the username (see schema.NewAuthRequestByUsername), not the user-id.
+func (s *Storage) setUserinfo(ctx context.Context, userInfo *oidc.UserInfo, subject, clientID string, scopes []string) (err error) {
+	userUsername, err := schema.GetUserUsernameByUsername(subject)
+	if err != nil {
+		return err
+	}
+	if userUsername == nil {
+		return schema.ErrNotFound
+	}
+	userID := userUsername.UserID
+
+	userEmail, err := schema.GetUserEmailByUserID(userID)
 	if err != nil {
 		return err
 	}
 	if userEmail == nil {
 		return schema.ErrNotFound
 	}
-	userProfile, err := schema.GetUserProfile(bbs.UUserID(userID))
+	userProfile, err := schema.GetUserProfile(userID)
 
 	for _, scope := range scopes {
 		switch scope {
 		case oidc.ScopeOpenID:
-			userInfo.Subject = string(userEmail.UserID)
+			userInfo.Subject = subject
 		case oidc.ScopeEmail:
 			userInfo.Email = userEmail.Email
 			userInfo.EmailVerified = oidc.Bool(true)

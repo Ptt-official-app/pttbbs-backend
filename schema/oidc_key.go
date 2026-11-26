@@ -2,9 +2,11 @@ package schema
 
 import (
 	"crypto/ed25519"
+	"errors"
 
 	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var OIDCKey_c *db.Collection
@@ -34,6 +36,9 @@ func GetOIDCKey(clientID string, keyID string) (key *OIDCKey, err error) {
 	key = &OIDCKey{}
 
 	err = OIDCKey_c.FindOne(query, key, nil)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, ErrNotFound
+	}
 	if err != nil {
 		return nil, err
 	}

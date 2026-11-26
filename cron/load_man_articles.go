@@ -2,7 +2,6 @@ package cron
 
 import (
 	"context"
-	"runtime/debug"
 	"time"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -14,24 +13,16 @@ import (
 )
 
 func RetryLoadManArticles(ctx context.Context) error {
-	defer func() {
-		if r := recover(); r != nil {
-			logrus.Errorf("RetryLoadManArticles: Recovered r: %v stack: %v", r, string(debug.Stack()))
-		}
-	}()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		default:
 			logrus.Infof("RetryLoadManArticles: to LoadManArticles")
-			_ = LoadManArticles()
-			select {
-			case <-ctx.Done():
+			runRecovered("RetryLoadManArticles", LoadManArticles)
+			logrus.Infof("RetryLoadManArticles: to sleep 1 min")
+			if !sleepCtx(ctx, 1*time.Minute) {
 				return nil
-			default:
-				logrus.Infof("RetryLoadManArticles: to sleep 1 min")
-				time.Sleep(1 * time.Minute)
 			}
 		}
 	}
@@ -86,7 +77,9 @@ func loadManArticles(boardID bbs.BBoardID) (err error) {
 func loadManArticlesCore(boardID bbs.BBoardID, levelIdx types.ManArticleID) (count int, err error) {
 	// backend load-general-articles
 	brdname := boardID.ToBrdname()
-	ctx := context.Background()
+	// a hung mand must not block the cron forever.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.EXPIRE_HTTP_REQUEST_TS)*time.Second)
+	defer cancel()
 	req := &mand.ListRequest{
 		BoardName: brdname,
 		Path:      string(levelIdx),

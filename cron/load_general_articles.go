@@ -15,7 +15,9 @@ import (
 )
 
 func RetryLoadGeneralArticles(ctx context.Context) error {
-	time.Sleep(10 * time.Second)
+	if !sleepCtx(ctx, 10*time.Second) {
+		return nil
+	}
 
 	for {
 		select {
@@ -24,12 +26,9 @@ func RetryLoadGeneralArticles(ctx context.Context) error {
 		default:
 			logrus.Infof("RetryLoadGeneralArticles: to LoadGeneralArticles")
 			_ = LoadGeneralArticles()
-			select {
-			case <-ctx.Done():
+			logrus.Infof("RetryLoadGeneralArticles: to sleep %v seconds", types.SLEEP_RETRY_LOAD_GENERAL_ARTICLES_TS_DURATION.Seconds())
+			if !sleepCtx(ctx, types.SLEEP_RETRY_LOAD_GENERAL_ARTICLES_TS_DURATION) {
 				return nil
-			default:
-				logrus.Infof("RetryLoadGeneralArticles: to sleep %v seconds", types.SLEEP_RETRY_LOAD_GENERAL_ARTICLES_TS_DURATION.Seconds())
-				time.Sleep(types.SLEEP_RETRY_LOAD_GENERAL_ARTICLES_TS_DURATION)
 			}
 		}
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -529,6 +530,35 @@ func TestGetBottomArticleSummaries(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+func TestGetBottomArticleSummaries_deleted(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	articleSummary := &ArticleSummaryWithRegex{
+		BBoardID:       "board0",
+		ArticleID:      "1VtW-QXT",
+		BoardArticleID: "board0:1VtW-QXT",
+		CreateTime:     1608388506000000000,
+		Owner:          "SYSOP",
+		Idx:            "1608388506@1VtW-QXT",
+		UpdateNanoTS:   1734567890000000000,
+		IsBottom:       true,
+	}
+	err := UpdateArticleSummaryWithRegexes([]*ArticleSummaryWithRegex{articleSummary}, 1734567890000000000)
+	require.NoError(t, err)
+
+	got, err := GetBottomArticleSummaries("board0")
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+
+	err = DeleteArticles("board0", []bbs.ArticleID{"1VtW-QXT"}, 1734567891000000000)
+	require.NoError(t, err)
+
+	got, err = GetBottomArticleSummaries("board0")
+	require.NoError(t, err)
+	assert.Empty(t, got)
 }
 
 func TestGetArticleSummaries(t *testing.T) {

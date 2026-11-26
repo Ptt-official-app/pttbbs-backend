@@ -25,7 +25,7 @@ func TestLoadGeneralBoardsByClass(t *testing.T) {
 	_, _ = schema.UserBoard_c.Update(update0, update0)
 	_, _ = schema.UserBoard_c.Update(update1, update1)
 
-	params := &LoadGeneralBoardsParams{}
+	params := &LoadGeneralBoardsParams{Max: DEFAULT_MAX_LIST}
 	expectedResult := &LoadGeneralBoardsResult{
 		List: []*apitypes.BoardSummary{
 			{

@@ -90,9 +90,7 @@ func CalcEDBlocks(newComments []*schema.Comment, origComments []*schema.CommentM
 
 	// 1. do edit-distance
 
-	scoreMat := calcEditDistance(newComments, origComments)
-
-	edInfos := calcEditDistanceBacktracking(scoreMat, newComments, origComments)
+	edInfos := calcEDInfos(newComments, origComments)
 
 	edInfoMetas := calcEDInfoMetas(edInfos, articleCreateTime, articleMTime)
 
@@ -104,6 +102,42 @@ func CalcEDBlocks(newComments []*schema.Comment, origComments []*schema.CommentM
 	}
 
 	return edBlocks, nil
+}
+
+// calcEDInfos
+//
+// Comments are append-mostly, so the common prefix is peeled off before the O(N*M) DP.
+// Backtracking walks from the end and prefers add/delete over same, which pairs the
+// earliest candidates; this is why only the prefix (not the suffix) is trimmed: it
+// yields exactly the same edInfos as running the DP on the whole lists.
+func calcEDInfos(newComments []*schema.Comment, origComments []*schema.CommentMD5) (edInfos []*EDInfo) {
+	nPrefix := 0
+	for nPrefix < len(newComments) && nPrefix < len(origComments) && newComments[nPrefix].MD5 == origComments[nPrefix].MD5 {
+		nPrefix++
+	}
+	newTail := newComments[nPrefix:]
+	origTail := origComments[nPrefix:]
+
+	edInfos = make([]*EDInfo, 0, len(newComments)+len(origComments)-nPrefix)
+	for idx := range nPrefix {
+		edInfos = append(edInfos, NewEDInfoFromSameComment(newComments[idx], origComments[idx]))
+	}
+
+	switch {
+	case len(newTail) == 0:
+		for _, each := range origTail {
+			edInfos = append(edInfos, NewEDInfoFromDeleteComment(each))
+		}
+	case len(origTail) == 0:
+		for _, each := range newTail {
+			edInfos = append(edInfos, NewEDInfoFromAddComment(each))
+		}
+	default:
+		scoreMat := calcEditDistance(newTail, origTail)
+		edInfos = append(edInfos, calcEditDistanceBacktracking(scoreMat, newTail, origTail)...)
+	}
+
+	return edInfos
 }
 
 // calcEditDistance

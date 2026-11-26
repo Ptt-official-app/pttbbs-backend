@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"os"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
@@ -11,6 +12,7 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.yaml.in/yaml/v3"
 
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
@@ -61,6 +63,22 @@ func validateBoardID(boardID bbs.BBoardID) (err error) {
 
 func bidToBoardID(bid ptttype.Bid) (boardID bbs.BBoardID, err error) {
 	return schema.GetBoardIDByPttbid(bid)
+}
+
+// boardIDErrToStatusCode maps the error of toBoardID / bidToBoardID to a status code:
+// an unknown board is 404, a board that is not open to guests is 403,
+// a malformed board id is 400, and anything else is an internal error.
+func boardIDErrToStatusCode(err error) int {
+	switch {
+	case errors.Is(err, mongo.ErrNoDocuments):
+		return 404
+	case errors.Is(err, ErrBoardNotPopular):
+		return 403
+	case errors.Is(err, schema.ErrInvalidPTTBID):
+		return 400
+	default:
+		return 500
+	}
 }
 
 // DeserializeBoards

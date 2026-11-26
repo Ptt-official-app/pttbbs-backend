@@ -46,7 +46,7 @@ func CreateArticle(remoteAddr string, user *UserInfo, params any, path any, c *g
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
 		logrus.Errorf("CreateArticle: unable to find boardID: boardID: %v e: %v", thePath.FBoardID, err)
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 
 	err = CheckUserBoardPermPostable(user, boardID, c)
@@ -88,7 +88,7 @@ func CreateArticle(remoteAddr string, user *UserInfo, params any, path any, c *g
 
 	dummyContent := [][]*types.Rune{}
 
-	setUserReadArticle(dummyContent, userID, articleSummary_db.ArticleID, updateNanoTS)
+	setUserReadArticle(dummyContent, userID, boardID, articleSummary_db.ArticleID, updateNanoTS)
 
 	articleSummary := apitypes.NewArticleSummaryFromWithRegex(articleSummary_db, userID)
 

@@ -29,6 +29,8 @@ var (
 	OIDC_OP_POST_LOGOUT_URL = "http://localhost:5173"
 	OIDC_OP_ISSUER          = "http://localhost:3457"
 	OIDC_OP_IS_ALLOW_HTTP   = true
+	// PEM (PKCS#8) ed25519 private key for signing access-tokens. empty: a random key is generated on every start.
+	OIDC_OP_SIGNING_KEY_FILE = ""
 
 	PTTSYSOP = bbs.UUserID("SYSOP")
 
@@ -41,6 +43,7 @@ var (
 
 	ALLOW_ORIGINS        = []string{"*"}
 	BLOCKED_REFERERS     = []string{}
+	TRUSTED_PROXIES      = []string{"127.0.0.1", "::1"} // only these peers may set X-Forwarded-For
 	IS_ALLOW_CROSSDOMAIN = true
 
 	COOKIE_DOMAIN       = "localhost"

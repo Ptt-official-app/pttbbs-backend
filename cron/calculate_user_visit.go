@@ -18,12 +18,9 @@ func RetryCalculateUserVisit(ctx context.Context) error {
 		default:
 			logrus.Infof("RetryCalculateUserVisit: to calculate user visit")
 			CalculateUserVisit()
-			select {
-			case <-ctx.Done():
+			logrus.Infof("RetryCalculateUserVisit: to sleep 10 mins")
+			if !sleepCtx(ctx, 10*time.Minute) {
 				return nil
-			default:
-				logrus.Infof("RetryCalculateUserVisit: to sleep 10 mins")
-				time.Sleep(10 * time.Minute)
 			}
 		}
 	}
