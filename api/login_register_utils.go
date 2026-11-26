@@ -30,13 +30,13 @@ func removeTokenFromCookie(c *gin.Context) {
 	removeCookie(c, types.REFRESH_TOKEN_NAME, true, "")
 }
 
-func gen2FATokenAndSendEmail(userID bbs.UUserID, username string, email string, oidcID string, title string, template string, expireTS time.Duration) (err error) {
+func gen2FATokenAndSendEmail(userID bbs.UUserID, username string, email string, title string, template string, expireTS time.Duration) (err error) {
 	token, err := gen2FAToken()
 	if err != nil {
 		return err
 	}
 
-	err = schema.Set2FA(userID, email, token, oidcID, expireTS)
+	err = schema.Set2FA(userID, email, token, expireTS)
 	if err != nil {
 		return err
 	}
@@ -65,32 +65,32 @@ func gen2FAToken() (token string, err error) {
 // After MAX_2FA_ATTEMPT attempts the token is removed and the user needs to
 // wait until the attempt window expires.
 // The token is removed after a successful verification, so it can be used only once.
-func check2FAToken(userID bbs.UUserID, token string) (oidcID string, err error) {
+func check2FAToken(userID bbs.UUserID, token string) (err error) {
 	attempts, err := schema.Incr2FAAttempt(userID, types.EXPIRE_ATTEMPT_LOGIN_EMAIL_TS_DURATION)
 	if err != nil {
-		return "", err
+		return err
 	}
 	if attempts > types.MAX_2FA_ATTEMPT {
 		_ = schema.Delete2FA(userID)
-		return "", ErrTooManyAttempts
+		return ErrTooManyAttempts
 	}
 
 	twoFA_db, err := schema.Get2FA(userID)
 	if err != nil {
-		return "", ErrInvalidToken
+		return ErrInvalidToken
 	}
 
 	if token == "" || subtle.ConstantTimeCompare([]byte(token), []byte(twoFA_db.Token)) != 1 {
-		return "", ErrInvalidToken
+		return ErrInvalidToken
 	}
 
 	err = schema.Delete2FA(userID)
 	if err != nil {
-		return "", err
+		return err
 	}
 	_ = schema.Reset2FAAttempt(userID)
 
-	return twoFA_db.OIDCID, nil
+	return nil
 }
 
 func genEmailVerificationTokenAndSendEmail(email string, title string, url string, template string) (err error) {

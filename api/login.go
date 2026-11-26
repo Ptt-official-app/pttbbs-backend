@@ -22,6 +22,11 @@ type LoginParams struct {
 	Input string `json:"input" form:"input"`
 
 	VerifyCode string `json:"verify_code" form:"verify_code"`
+
+	// OIDCID is the OIDC auth request to complete. It must come from the request
+	// that carries the verify code: a value stored by the unauthenticated
+	// attemptlogin would let anyone bind the victim's code to their own auth request.
+	OIDCID string `json:"oidc_id" form:"oidc_id"`
 }
 
 func NewLoginParams() *LoginParams {
@@ -99,7 +104,16 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 		return nil, 401, ErrLoginFailed
 	}
 
-	oidcID, err := check2FAToken(userID, theParams.VerifyCode)
+	oidcID := theParams.OIDCID
+	if oidcID != "" {
+		// fail before check2FAToken, so a wrong oidc_id does not consume the code.
+		_, err = schema.GetOIDCAuthRequestByRequestID(oidcID)
+		if err != nil {
+			return nil, 400, ErrInvalidParams
+		}
+	}
+
+	err = check2FAToken(userID, theParams.VerifyCode)
 	if errors.Is(err, ErrTooManyAttempts) {
 		return nil, 429, err
 	}

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +13,9 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
 )
 
 func TestLogin(t *testing.T) {
@@ -268,6 +272,86 @@ func TestLoginTokenIsOneTimeAndRateLimited(t *testing.T) {
 		t.Errorf("Login() with new token after too many attempts: statusCode: %v e: %v, want 429", statusCode, err)
 	}
 }
+
+func TestLoginOIDCIDComesFromLoginRequest(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	_, err := oidcop.NewProvider()
+	if err != nil {
+		logrus.Errorf("TestLoginOIDCIDComesFromLoginRequest: unable to oidcop.NewProvider: e: %v", err)
+	}
+	defer func() {
+		oidcop.PROVIDER = nil
+	}()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	_ = schema.CreateUserEmail("SYSOP", "root@localhost.dev", false, 123456890000000000)
+
+	client := schema.NewClient(types.WEB_CLIENT_ID, types.CLIENT_TYPE_APP, nil, "localhost")
+	_ = schema.UpdateClient(client)
+
+	userInfo := &UserInfo{UserID: "SYSOP", IsOver18: true}
+
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(w)
+
+	authReq := schema.NewAuthRequest(&oidc.AuthRequest{ClientID: types.WEB_CLIENT_ID}, "")
+	authReq.ID = "test-login-oidc-id"
+	require.NoError(t, schema.SaveAuthRequest(authReq))
+	defer func() { _ = schema.DeleteOIDCAuthRequest(authReq.ID) }()
+
+	attemptLogin := func(body string) {
+		params := &AttemptLoginParams{}
+		require.NoError(t, json.Unmarshal([]byte(body), params))
+		_ = schema.Reset2FAAttempt("SYSOP")
+		_, statusCode, err := AttemptLogin("127.0.0.1", userInfo, params, nil)
+		require.NoError(t, err)
+		require.Equal(t, 200, statusCode)
+	}
+	login := func(body string) (*LoginResult, int, error) {
+		params := &LoginParams{}
+		require.NoError(t, json.Unmarshal([]byte(body), params))
+		result, statusCode, err := Login("localhost", userInfo, params, ctx)
+		if result == nil {
+			return nil, statusCode, err
+		}
+		return result.(*LoginResult), statusCode, err
+	}
+
+	// 1. an oidc_id sent to the unauthenticated attemptlogin must not be bound to the code.
+	attemptLogin(`{"input":"SYSOP","oidc_id":"` + authReq.ID + `"}`)
+	token_db, err := schema.Get2FA("SYSOP")
+	require.NoError(t, err)
+
+	result, statusCode, err := login(`{"input":"SYSOP","verify_code":"` + token_db.Token + `"}`)
+	require.NoError(t, err)
+	assert.Equal(t, 200, statusCode)
+	assert.Empty(t, result.RedirectURI)
+	assert.NotEmpty(t, result.AccessToken)
+	got, err := schema.GetOIDCAuthRequestByRequestID(authReq.ID)
+	require.NoError(t, err)
+	assert.False(t, got.Done(), "auth request must not be authenticated by attemptlogin's oidc_id")
+
+	// 2. an unknown oidc_id is rejected and does not consume the code.
+	attemptLogin(`{"input":"SYSOP"}`)
+	token_db, _ = schema.Get2FA("SYSOP")
+	_, statusCode, err = login(`{"input":"SYSOP","verify_code":"` + token_db.Token + `","oidc_id":"no-such-request"}`)
+	assert.Equal(t, 400, statusCode)
+	assert.ErrorIs(t, err, ErrInvalidParams)
+
+	// 3. the oidc_id of the login request is the one that gets authenticated.
+	result, statusCode, err = login(`{"input":"SYSOP","verify_code":"` + token_db.Token + `","oidc_id":"` + authReq.ID + `"}`)
+	require.NoError(t, err)
+	assert.Equal(t, 200, statusCode)
+	assert.NotEmpty(t, result.RedirectURI)
+	assert.Empty(t, result.AccessToken)
+	got, err = schema.GetOIDCAuthRequestByRequestID(authReq.ID)
+	require.NoError(t, err)
+	assert.True(t, got.Done())
+}
+
 
 func TestLoginDoesNotRevealAccountExistence(t *testing.T) {
 	setupTest()
