@@ -176,6 +176,10 @@ func ReadFavrec(file io.ReadSeeker, parent *Fav, root *Fav, depth int) (favrec *
 		return nil, ErrInvalidFavRecord
 	}
 
+	if favrec.NBoards < 0 || favrec.NLines < 0 || favrec.NFolders < 0 {
+		return nil, ErrInvalidFavRecord
+	}
+
 	nFavh := favrec.getDataNumber()
 	favrec.LineID = 0
 	favrec.FolderID = 0
@@ -343,7 +347,7 @@ func (f *Fav) AddFolder(title string) (idx int, favType *FavType, err error) {
 		return -1, nil, ErrTooManyFavs
 	}
 
-	if f.NLines >= MAX_FOLDER {
+	if f.NFolders >= MAX_FOLDER {
 		return -1, nil, ErrTooManyFolders
 	}
 
@@ -472,6 +476,10 @@ func (f *Fav) LocateFav(levelIdxList []string) (newFav *Fav, err error) {
 		}
 	}
 
+	if theIdx < 0 || theIdx >= len(f.Favh) {
+		return nil, ErrInvalidLevelIdx
+	}
+
 	ftype := f.Favh[theIdx]
 	if ftype.TheType != pttbbsfav.FAVT_FOLDER {
 		return nil, ErrInvalidLevelIdx
@@ -483,7 +491,7 @@ func (f *Fav) LocateFav(levelIdxList []string) (newFav *Fav, err error) {
 }
 
 func (f *Fav) DeleteIdx(idx int) (err error) {
-	if len(f.Favh) <= idx {
+	if idx < 0 || idx >= len(f.Favh) {
 		return ErrInvalidFavRecord
 	}
 
