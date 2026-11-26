@@ -6,7 +6,10 @@ import (
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
+	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetUserInfo(t *testing.T) {
@@ -63,4 +66,55 @@ func TestGetUserInfo(t *testing.T) {
 		})
 	}
 	wg.Wait()
+}
+
+func TestGetUserInfo_otherUser(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserChhsiao123_b, 123456891000000000)
+	_ = schema.SetUserIsGovernmentIDOver18("SYSOP", 123456892000000000)
+
+	// chhsiao123 is a normal user querying SYSOP.
+	user := &UserInfo{UserID: "chhsiao123", IsOver18: true}
+	gotResult, statusCode, err := GetUserInfo(testIP, user, nil, &GetUserInfoPath{Username: "SYSOP"}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, 200, statusCode)
+
+	got := gotResult.(*GetUserInfoResult)
+	assert.Equal(t, bbs.UUserID("SYSOP"), got.UserID)
+	assert.Equal(t, "神", got.Nickname)
+
+	assert.Empty(t, got.Realname)
+	assert.False(t, got.IsGovernmentID)
+	assert.Empty(t, got.LastIP)
+	assert.False(t, got.Over18)
+	assert.False(t, got.Invisible)
+	assert.Empty(t, got.Career)
+	assert.Zero(t, got.Role)
+	assert.Zero(t, got.Userlevel)
+
+	// the owner still sees everything.
+	self := &UserInfo{UserID: "SYSOP", IsOver18: true}
+	gotResult, _, err = GetUserInfo(testIP, self, nil, &GetUserInfoPath{Username: "SYSOP"}, nil)
+	require.NoError(t, err)
+	gotSelf := gotResult.(*GetUserInfoResult)
+	assert.Equal(t, "CodingMan", gotSelf.Realname)
+	assert.True(t, gotSelf.Over18)
+	assert.True(t, gotSelf.IsGovernmentID)
+	assert.Equal(t, "全景軟體", gotSelf.Career)
+	assert.NotZero(t, gotSelf.Userlevel)
+}
+
+func TestGetUserInfo_notFound(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+
+	user := &UserInfo{UserID: "SYSOP", IsOver18: true}
+	_, statusCode, err := GetUserInfo(testIP, user, nil, &GetUserInfoPath{Username: "nosuchuser"}, nil)
+	assert.Error(t, err)
+	assert.Equal(t, 404, statusCode)
 }
