@@ -71,10 +71,10 @@ func GetManArticleBlocks(remoteAddr string, user *UserInfo, params any, path any
 	}
 	articleID := farticleID.ToManArticleID()
 
-	// validate user
-	_, statusCode, err = isBoardValidUser(boardID, userID)
+	// check board permission
+	_, err = CheckUserBoardPermReadable(user, boardID, c)
 	if err != nil {
-		return nil, statusCode, err
+		return nil, 403, err
 	}
 
 	if theParams.StartIdx == "" {
