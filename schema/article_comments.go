@@ -23,7 +23,11 @@ var (
 )
 
 func UpdateArticleCommentsByArticleID(boardID bbs.BBoardID, articleID bbs.ArticleID, updateNanoTS types.NanoTS) (err error) {
-	nComments, _ := CountComments(boardID, articleID)
+	nComments, err := CountComments(boardID, articleID)
+	if err != nil {
+		// do not persist a bogus n_comments with a newer timestamp.
+		return err
+	}
 
 	articleComments := &ArticleComments{
 		BBoardID:             boardID,
