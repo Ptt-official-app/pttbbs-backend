@@ -85,11 +85,11 @@ func TryGetManArticleContentInfo(userID bbs.UUserID, bboardID bbs.BBoardID, arti
 	}
 
 	lockKey := ManArticleLockKey(bboardID, articleID)
-	err = schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
+	lockToken, err := schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
 	if err != nil {
 		return nil, "", nil, err
 	}
-	defer func() { _ = schema.Unlock(lockKey) }()
+	defer func() { _ = schema.Unlock(lockKey, lockToken) }()
 
 	// 5. get article from pttbbs
 	ctx := context.Background()
