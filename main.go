@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Ptt-official-app/pttbbs-backend/api"
@@ -31,8 +32,31 @@ func initGin() (*gin.Engine, error) {
 	return initGinCore()
 }
 
-func initGinAllGuest() (*gin.Engine, error) {
+// newGinEngine creates the engine with an explicit trusted-proxy list.
+// gin trusts every proxy by default, which lets any client choose its
+// c.ClientIP() through X-Forwarded-For.
+func newGinEngine() (*gin.Engine, error) {
 	router := gin.Default()
+
+	proxies := make([]string, 0, len(types.TRUSTED_PROXIES))
+	for _, each := range types.TRUSTED_PROXIES {
+		each = strings.TrimSpace(each)
+		if each != "" {
+			proxies = append(proxies, each)
+		}
+	}
+	if err := router.SetTrustedProxies(proxies); err != nil {
+		return nil, err
+	}
+
+	return router, nil
+}
+
+func initGinAllGuest() (*gin.Engine, error) {
+	router, err := newGinEngine()
+	if err != nil {
+		return nil, err
+	}
 
 	initGinCORS(router)
 
@@ -76,11 +100,14 @@ func initGinCore() (*gin.Engine, error) {
 
 	zkLinkVerifyProxy := zk.NewZKLinkVerifyProxy()
 
-	router := gin.Default()
+	router, err := newGinEngine()
+	if err != nil {
+		return nil, err
+	}
 
 	initGinCORS(router)
 
-	err := oidcop.InitGinRouter(router)
+	err = oidcop.InitGinRouter(router)
 	if err != nil {
 		return nil, err
 	}
