@@ -10,6 +10,11 @@ router = APIRouter(
 )
 
 
+@router.get('/user/me')
+def get_my_user_info() -> UserDetail:
+    ...
+
+
 @router.get('/user/{username}')
 def get_user_info(username: Username) -> UserDetail:
     ...

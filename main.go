@@ -181,6 +181,7 @@ func initGinCore() (*gin.Engine, error) {
 	// router.GET(withPrefix(api.GET_MAN_ARTICLE_BLOCKS_R), api.GetManArticleBlocksWrapper)
 
 	// user
+	router.GET(withPrefix(api.GET_MY_USER_INFO_R), api.GetMyUserInfoWrapper)
 	router.GET(withPrefix(api.GET_USER_INFO_R), api.GetUserInfoWrapper)
 	// router.GET(withPrefix(api.LOAD_FAVORITE_BOARDS_R), api.LoadFavoriteBoardsWrapper)
 	// router.GET(withPrefix(api.LOAD_USER_ARTICLES_R), api.LoadUserArticlesWrapper)

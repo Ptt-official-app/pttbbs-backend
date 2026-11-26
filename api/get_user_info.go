@@ -119,6 +119,14 @@ func GetUserInfo(remoteAddr string, user *UserInfo, params any, path any, c *gin
 		return nil, 400, ErrInvalidPath
 	}
 
+	getUserDetail := func() (*schema.UserDetail, error) {
+		return schema.GetUserDetailByUsername(thePath.Username)
+	}
+
+	return getUserInfo(user, getUserDetail, c)
+}
+
+func getUserInfo(user *UserInfo, getUserDetail func() (*schema.UserDetail, error), c *gin.Context) (result any, statusCode int, err error) {
 	userID := user.UserID
 	userPermInfo, err := getUserPermInfo(userID, c)
 	if err != nil {
@@ -130,7 +138,7 @@ func GetUserInfo(remoteAddr string, user *UserInfo, params any, path any, c *gin
 
 	updateNanoTS := types.NowNanoTS()
 
-	userDetail, statusCode, err := tryGetUserInfo(userID, thePath.Username, updateNanoTS, c)
+	userDetail, statusCode, err := tryGetUserInfo(userID, getUserDetail, updateNanoTS)
 	if err != nil {
 		return nil, statusCode, err
 	}
@@ -157,7 +165,7 @@ func GetUserInfo(remoteAddr string, user *UserInfo, params any, path any, c *gin
 	return result, 200, nil
 }
 
-func tryGetUserInfo(userID bbs.UUserID, queryUsername string, updateNanoTS types.NanoTS, c *gin.Context) (userDetail *schema.UserDetail, statusCode int, err error) {
+func tryGetUserInfo(userID bbs.UUserID, getUserDetail func() (*schema.UserDetail, error), updateNanoTS types.NanoTS) (userDetail *schema.UserDetail, statusCode int, err error) {
 	// special treatment to pttbbsapi.GUEST
 	if userID == bbs.UUserID(pttbbsapi.GUEST) {
 		userDetail, err = deserializeUserDetailAndUpdateDBGuest(updateNanoTS)
@@ -169,7 +177,7 @@ func tryGetUserInfo(userID bbs.UUserID, queryUsername string, updateNanoTS types
 	}
 
 	// get backend data
-	userDetail, err = schema.GetUserDetailByUsername(queryUsername)
+	userDetail, err = getUserDetail()
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		return nil, 404, err
 	}
