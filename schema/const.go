@@ -30,12 +30,6 @@ const (
 
 	EMAIL_VERIFICATION_TOKEN_LEN = 32
 
-	ARGON2_SALT_LEN = 32
-	ARGON2_TIME     = 1
-	ARGON2_MEMORY   = 64 * 1024
-	ARGON2_THREADS  = 4
-	ARGON2_KEYLEN   = 32
-
 	RDB_PREFIX_SEPARATOR                             = ":"
 	RDB_PREFIX_2FA                                   = "2fa" + RDB_PREFIX_SEPARATOR
 	RDB_PREFIX_2FA_ATTEMPT                           = "2faattempt" + RDB_PREFIX_SEPARATOR
