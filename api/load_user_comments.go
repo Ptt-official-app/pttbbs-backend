@@ -55,7 +55,7 @@ func LoadUserComments(remoteAddr string, user *UserInfo, params any, path any, c
 		return nil, 400, ErrInvalidPath
 	}
 
-	commentSummaries_db, nextIdx, err := loadUserComments(thePath.UserID, theParams.StartIdx, theParams.Descending, theParams.Max)
+	commentSummaries_db, nextIdx, err := loadUserComments(user, thePath.UserID, theParams.StartIdx, theParams.Descending, theParams.Max, c)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -71,7 +71,7 @@ func LoadUserComments(remoteAddr string, user *UserInfo, params any, path any, c
 	return r, 200, nil
 }
 
-func loadUserComments(ownerID bbs.UUserID, startIdx string, descending bool, theMax int) (commentSummaries_db []*schema.CommentSummary, nextIdx string, err error) {
+func loadUserComments(user *UserInfo, ownerID bbs.UUserID, startIdx string, descending bool, theMax int, c *gin.Context) (commentSummaries_db []*schema.CommentSummary, nextIdx string, err error) {
 	commentSummaries_db = make([]*schema.CommentSummary, 0, theMax+1)
 
 	var nextSortTime types.NanoTS
@@ -82,6 +82,8 @@ func loadUserComments(ownerID bbs.UUserID, startIdx string, descending bool, the
 		}
 		nextSortTime, _ = apitypes.DeserializeCommentIdx(startIdx)
 	}
+
+	isReadable := newBoardReadableChecker(user, c)
 
 	isEndLoop := false
 	remaining := theMax
@@ -108,7 +110,7 @@ func loadUserComments(ownerID bbs.UUserID, startIdx string, descending bool, the
 		}
 
 		// is-valid
-		validCommentSummaries_db, err := isValidCommentSummaries(eachCommentSummaries_db)
+		validCommentSummaries_db, err := isValidCommentSummaries(eachCommentSummaries_db, isReadable)
 		if err != nil {
 			return nil, "", err
 		}
@@ -130,9 +132,17 @@ func loadUserComments(ownerID bbs.UUserID, startIdx string, descending bool, the
 }
 
 // isValidCommentSummaries
-// XXX TODO
-func isValidCommentSummaries(commentSummaries_db []*schema.CommentSummary) ([]*schema.CommentSummary, error) {
-	return commentSummaries_db, nil
+//
+// drops the comments in the boards that the user is not allowed to read.
+func isValidCommentSummaries(commentSummaries_db []*schema.CommentSummary, isReadable func(bbs.BBoardID) bool) ([]*schema.CommentSummary, error) {
+	valid := make([]*schema.CommentSummary, 0, len(commentSummaries_db))
+	for _, each := range commentSummaries_db {
+		if isReadable(each.BBoardID) {
+			valid = append(valid, each)
+		}
+	}
+
+	return valid, nil
 }
 
 func getArticleSummaryMapFromCommentSummaries(userID bbs.UUserID, commentSummaries_db []*schema.CommentSummary) (articleSummaryMap map[types.BoardArticleID]*schema.ArticleSummary, userReadBoardArticleMap map[types.BoardArticleID]types.NanoTS, err error) {
