@@ -72,7 +72,16 @@ func SetListStringConfig(configPrefix string, idx string, orig []string) []strin
 		return orig
 	}
 
-	return strings.Split(myViper.GetString(idx), ",")
+	// "KEY =" in ini yields "", which must be an empty list, not [""].
+	items := strings.Split(myViper.GetString(idx), ",")
+	ret := make([]string, 0, len(items))
+	for _, each := range items {
+		each = strings.TrimSpace(each)
+		if each != "" {
+			ret = append(ret, each)
+		}
+	}
+	return ret
 }
 
 func SetBytesConfig(configPrefix string, idx string, orig []byte) []byte {
