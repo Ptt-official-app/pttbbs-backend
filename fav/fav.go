@@ -491,7 +491,7 @@ func (f *Fav) LocateFav(levelIdxList []string) (newFav *Fav, err error) {
 }
 
 func (f *Fav) DeleteIdx(idx int) (err error) {
-	if idx < 0 || len(f.Favh) <= idx {
+	if idx < 0 || idx >= len(f.Favh) {
 		return ErrInvalidFavRecord
 	}
 
