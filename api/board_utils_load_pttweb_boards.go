@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -20,13 +21,19 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
+var errNoPopularBoards = errors.New("no popular boards from pttweb")
+
 func TryLoadPttWebPopularBoards(c *gin.Context) (boards []*schema.BoardSummary, err error) {
 	updateNanoTS := types.NowNanoTS()
 
-	// XXX silent err
-	popularBoards, _ := tryLoadPttWebPopularBoardsCore(c, updateNanoTS)
-	if popularBoards == nil {
-		popularBoards = []*schema.BoardSummary{}
+	// Bail out before ResetBoardIsPopular: a failed fetch must keep the previous popular list,
+	// otherwise /boards/popular is empty until the next successful run.
+	popularBoards, err := tryLoadPttWebPopularBoardsCore(c, updateNanoTS)
+	if err != nil {
+		return nil, err
+	}
+	if len(popularBoards) == 0 {
+		return nil, errNoPopularBoards
 	}
 
 	popularBoardMap := make(map[bbs.BBoardID]bool)
@@ -34,10 +41,9 @@ func TryLoadPttWebPopularBoards(c *gin.Context) (boards []*schema.BoardSummary, 
 		popularBoardMap[eachBoard.BBoardID] = true
 	}
 
-	// XXX silent err
-	whiteListBoards, _ := tryLoadPttWebWhiteListBoards(c, updateNanoTS)
-	if whiteListBoards == nil {
-		whiteListBoards = []*schema.BoardSummary{}
+	whiteListBoards, err := tryLoadPttWebWhiteListBoards(c, updateNanoTS)
+	if err != nil {
+		return nil, err
 	}
 
 	// dedupedListBoards
@@ -56,11 +62,6 @@ func TryLoadPttWebPopularBoards(c *gin.Context) (boards []*schema.BoardSummary, 
 
 	// XXX silent err
 	_ = schema.ResetBoardIsPopular()
-
-	// early return if no boards
-	if len(boards) == 0 {
-		return boards, nil
-	}
 
 	err = schema.UpdateBoardSummaries(boards, updateNanoTS)
 	if err != nil {
@@ -87,6 +88,12 @@ func tryLoadPttWebPopularBoardsCore(c *gin.Context, updateNanoTS types.NanoTS) (
 	if err != nil {
 		logrus.Errorf("unable to client.Do: e: %v", err)
 		return nil, err
+	}
+	defer func() { _ = res.Body.Close() }()
+
+	if res.StatusCode >= 400 {
+		logrus.Errorf("unable to get popular boards: statusCode: %v", res.StatusCode)
+		return nil, ErrInvalidStatusCode
 	}
 
 	doc, err := html.Parse(res.Body)
@@ -140,7 +147,14 @@ func tryLoadPttWebWhiteListBoards(c *gin.Context, updateNanoTS types.NanoTS) (bo
 			return nil, err
 		}
 
+		if res.StatusCode >= 400 {
+			_ = res.Body.Close()
+			logrus.Errorf("unable to get white-list board: %v statusCode: %v", brdname, res.StatusCode)
+			return nil, ErrInvalidStatusCode
+		}
+
 		doc, err := html.Parse(res.Body)
+		_ = res.Body.Close()
 		if err != nil {
 			logrus.Errorf("unable to Parse body: e: %v", err)
 			return nil, err
@@ -235,13 +249,13 @@ func loadPttWebBoardsParseBoard(node *html.Node, c *gin.Context, updateNanoTS ty
 		logrus.Warnf("unable to get total/lastPosTime from go-pttbbs: boardName: %v e: %v", boardName, err)
 	}
 
-	isOver18, err := loadPttWebBoardsGetIsOver18(boardName, c)
+	isOver18, isOver18UpdateNanoTS, err := loadPttWebBoardsGetIsOver18(boardName, updateNanoTS, c)
 	if err != nil {
 		logrus.Warnf("unable to get isOver18 from pttweb: boardName: %v e: %v", boardName, err)
 		return nil, err
 	}
 
-	board, err = schema.NewBoardSummaryFromPttWeb(boardName, boardTitle, boardType, boardClass, nUser, total, lastPostTime, isOver18, updateNanoTS)
+	board, err = schema.NewBoardSummaryFromPttWeb(boardName, boardTitle, boardType, boardClass, nUser, total, lastPostTime, isOver18, isOver18UpdateNanoTS, updateNanoTS)
 	if err != nil {
 		return nil, err
 	}
@@ -273,17 +287,18 @@ func loadPttWebBoardsGetBoardInfo(boardName string, c *gin.Context) (total int, 
 	return total, lastPostTime, nil
 }
 
-func loadPttWebBoardsGetIsOver18(boardName string, c *gin.Context) (isOver18 bool, err error) {
+func loadPttWebBoardsGetIsOver18(boardName string, updateNanoTS types.NanoTS, c *gin.Context) (isOver18 bool, isOver18UpdateNanoTS types.NanoTS, err error) {
+	// isOver18UpdateNanoTS is the time the flag was actually fetched from pttweb.
+	// A cache hit must keep the stored value, or the cache never expires.
 	board, err := schema.GetBoardSummary(bbs.BBoardID(boardName))
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
 	if board != nil {
 		nowNanoTS := types.NowNanoTS()
-		isOver18UpdateNanoTS := board.IsOver18UpdateNanoTS
-		if nowNanoTS-isOver18UpdateNanoTS < REFRESH_IS_OVER18_NANO_TS {
-			return board.IsOver18, nil
+		if nowNanoTS-board.IsOver18UpdateNanoTS < REFRESH_IS_OVER18_NANO_TS {
+			return board.IsOver18, board.IsOver18UpdateNanoTS, nil
 		}
 	}
 
@@ -292,7 +307,7 @@ func loadPttWebBoardsGetIsOver18(boardName string, c *gin.Context) (isOver18 boo
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		logrus.Errorf("api.loadPttWebBoardsGetIsOver18: %v: unable to NewRequest: e: %v", boardName, err)
-		return false, err
+		return false, 0, err
 	}
 
 	ctx, cancel := context.WithTimeout(req.Context(), time.Duration(types.EXPIRE_HTTP_REQUEST_TS)*time.Second)
@@ -307,18 +322,18 @@ func loadPttWebBoardsGetIsOver18(boardName string, c *gin.Context) (isOver18 boo
 	res, err := client.Do(req)
 	if err != nil {
 		logrus.Errorf("api.loadPttWebBoardsGetIsOver18: %v: unable to client.Do: e: %v", boardName, err)
-		return false, err
+		return false, 0, err
 	}
 
 	if res.StatusCode >= 400 {
 		logrus.Errorf("api.loadPttWebBoardsGetIsOver18: %v: status code >= 400 statusCode: %v", boardName, res.StatusCode)
-		return false, ErrInvalidStatusCode
+		return false, 0, ErrInvalidStatusCode
 	}
 
 	doc, err := html.Parse(res.Body)
 	if err != nil {
 		logrus.Errorf("unable to Parse body: e: %v", err)
-		return false, err
+		return false, 0, err
 	}
 
 	for node := range doc.Descendants() {
@@ -335,10 +350,10 @@ func loadPttWebBoardsGetIsOver18(boardName string, c *gin.Context) (isOver18 boo
 			continue
 		}
 
-		return true, nil
+		return true, updateNanoTS, nil
 	}
 
-	return false, nil
+	return false, updateNanoTS, nil
 }
 
 func setupLemmyBoard(board *schema.BoardSummary, c *gin.Context) (err error) {

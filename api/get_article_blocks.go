@@ -66,6 +66,10 @@ func GetArticleBlocks(remoteAddr string, user *UserInfo, params any, path any, c
 		return nil, 400, ErrInvalidParams
 	}
 
+	if !isValidLimit(theParams.Max) {
+		return nil, 400, ErrInvalidLimit
+	}
+
 	thePath, ok := path.(*GetArticleBlocksPath)
 	if !ok {
 		return nil, 400, ErrInvalidPath
@@ -74,7 +78,7 @@ func GetArticleBlocks(remoteAddr string, user *UserInfo, params any, path any, c
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 	articleID := thePath.FArticleID.ToArticleID()
 

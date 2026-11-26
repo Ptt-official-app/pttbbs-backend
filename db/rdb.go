@@ -152,10 +152,66 @@ func RDBDel(rdb *redis.Client, key string) (err error) {
 	return nil
 }
 
-// RDBIncrWithExpire increments key and sets its TTL when the key is newly created.
+var rdbDelIfEqualScript = redis.NewScript(`
+if redis.call("GET", KEYS[1]) == ARGV[1] then
+	return redis.call("DEL", KEYS[1])
+end
+return 0
+`)
+
+// RDBDelIfEqual deletes key only if its current value equals value (compare-and-delete).
+func RDBDelIfEqual(rdb *redis.Client, key string, value string) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), REDIS_TIMEOUT_MILLI_TS*time.Millisecond)
+	defer func() {
+		ctxErr := ctx.Err()
+		cancel()
+		if err == nil {
+			err = ctxErr
+		}
+	}()
+
+	return rdbDelIfEqualScript.Run(ctx, rdb, []string{key}, value).Err()
+}
+
+// rdbIncrWithExpireScript runs INCR and the TTL assignment as one atomic step.
 //
 // The TTL is set only when the counter goes from 0 to 1, so subsequent increments
 // do not extend the window.
+// RDBDelExisting deletes the key and reports whether this call was the one that removed it.
+// Redis executes DEL atomically, so concurrent callers see isDeleted = true exactly once.
+func RDBDelExisting(rdb *redis.Client, key string) (isDeleted bool, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), REDIS_TIMEOUT_MILLI_TS*time.Millisecond)
+	defer func() {
+		ctxErr := ctx.Err()
+		cancel()
+		if err == nil {
+			err = ctxErr
+		}
+	}()
+
+	n, err := rdb.Del(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+
+	return n == 1, nil
+}
+
+// The TTL is set whenever the key has none, not only when the counter is created.
+// A separate INCR then EXPIRE can be interrupted (timeout, crash) between the two
+// calls and leave a counter without TTL, which would never expire.
+// Keys that already have a TTL are not extended, so the window stays fixed.
+var rdbIncrWithExpireScript = redis.NewScript(`
+local value = redis.call('INCR', KEYS[1])
+if tonumber(ARGV[1]) > 0 and redis.call('PTTL', KEYS[1]) < 0 then
+	redis.call('PEXPIRE', KEYS[1], ARGV[1])
+end
+return value
+`)
+
+// RDBIncrWithExpire increments key and makes sure it has a TTL.
+//
+// Subsequent increments do not extend the window.
 func RDBIncrWithExpire(rdb *redis.Client, key string, expireTSDuration time.Duration) (value int64, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), REDIS_TIMEOUT_MILLI_TS*time.Millisecond)
 	defer func() {
@@ -166,16 +222,9 @@ func RDBIncrWithExpire(rdb *redis.Client, key string, expireTSDuration time.Dura
 		}
 	}()
 
-	value, err = rdb.Incr(ctx, key).Result()
+	value, err = rdbIncrWithExpireScript.Run(ctx, rdb, []string{key}, expireTSDuration.Milliseconds()).Int64()
 	if err != nil {
 		return 0, err
-	}
-
-	if value == 1 && expireTSDuration > 0 {
-		err = rdb.Expire(ctx, key, expireTSDuration).Err()
-		if err != nil {
-			return 0, err
-		}
 	}
 
 	return value, nil

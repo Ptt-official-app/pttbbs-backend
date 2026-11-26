@@ -1,12 +1,15 @@
 package api
 
 import (
+	"errors"
+
 	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const GET_USER_INFO_R = "/user/:username"
@@ -167,6 +170,9 @@ func tryGetUserInfo(userID bbs.UUserID, queryUsername string, updateNanoTS types
 
 	// get backend data
 	userDetail, err = schema.GetUserDetailByUsername(queryUsername)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, 404, err
+	}
 	if err != nil {
 		return nil, 500, err
 	}
@@ -214,6 +220,16 @@ func NewUserInfoResult(userDetail_db *schema.UserDetail, userNewInfo_db *schema.
 
 		userDetail_db.TimeRemoveBadPost = 0
 		userDetail_db.TimeViolateLaw = 0
+
+		// private to the user and admins.
+		userDetail_db.Realname = ""
+		userDetail_db.IsGovernmentID = false
+		userDetail_db.LastIP = ""
+		userDetail_db.Over18 = false
+		userDetail_db.Invisible = false
+		userDetail_db.Career = ""
+		userDetail_db.Role = 0
+		userDetail_db.Userlevel = 0
 	}
 
 	result = &GetUserInfoResult{

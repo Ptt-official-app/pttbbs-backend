@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
+	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -14,6 +15,14 @@ import (
 func TestCreateRank(t *testing.T) {
 	setupTest()
 	defer teardownTest()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	for _, userID := range []bbs.UUserID{"SYSOP1", "SYSOP2", "SYSOP3"} {
+		user_b := *testUserChhsiao123_b
+		user_b.UUserID = userID
+		user_b.Username = string(userID)
+		_, _ = DeserializeUserDetailAndUpdateDBForTest(&user_b, 123456891000000000)
+	}
 
 	boardSummaries_b := []*bbs.BoardSummary{testBoardSummaryWhoAmI_b}
 	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", boardSummaries_b, 123456890000000000)
@@ -40,6 +49,18 @@ func TestCreateRank(t *testing.T) {
 		wantErr            bool
 	}{
 		// TODO: Add test cases.
+		{
+			name:               "invalid rank",
+			args:               args{remoteAddr: testIP, userID: "SYSOP", params: &CreateRankParams{Rank: 1000000000}, path: path0},
+			wantErr:            true,
+			expectedStatusCode: 400,
+		},
+		{
+			name:               "guest cannot do rank",
+			args:               args{remoteAddr: testIP, userID: "guest", params: &CreateRankParams{Rank: 1}, path: path0},
+			wantErr:            true,
+			expectedStatusCode: 403,
+		},
 		{
 			name:               "owner cannot do rank",
 			args:               args{remoteAddr: testIP, userID: "test", params: &CreateRankParams{Rank: 1}, path: path0},
@@ -106,4 +127,31 @@ func TestCreateRank(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+func TestCreateRank_boardNotReadable(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserChhsiao123_b, 123456891000000000)
+
+	board_b := *testBoardSummaryWhoAmI_b
+	board_b.BrdAttr = ptttype.BRD_OVER18
+	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", []*bbs.BoardSummary{&board_b}, 123456890000000000)
+
+	_ = schema.UpdateArticleSummaries([]*schema.ArticleSummary{{BBoardID: "10_WhoAmI", ArticleID: "1VrooM21", Owner: "test"}}, 1234567890000000000)
+
+	path := &CreateRankPath{FBoardID: "WhoAmI", FArticleID: "M.1607937174.A.081"}
+
+	// no over-18 cookie.
+	user := &UserInfo{UserID: "chhsiao123", IsOver18: false}
+	gotResult, statusCode, err := CreateRank(testIP, user, &CreateRankParams{Rank: 1}, path, nil)
+	assert.Error(t, err)
+	assert.Nil(t, gotResult)
+	assert.Equal(t, 403, statusCode)
+
+	// the rank must not be recorded.
+	total, err := schema.GetArticleSummary("10_WhoAmI", "1VrooM21")
+	assert.NoError(t, err)
+	assert.Zero(t, total.Rank)
 }

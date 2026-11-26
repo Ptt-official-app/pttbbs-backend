@@ -134,6 +134,8 @@ func GetBottomArticleSummaries(boardID bbs.BBoardID) (result []*ArticleSummary, 
 	query := bson.M{
 		ARTICLE_BBOARD_ID_b: boardID,
 		ARTICLE_IS_BOTTOM_b: true,
+		// a deleted article keeps is_bottom, so it must be filtered out explicitly.
+		ARTICLE_IS_DELETED_b: bson.M{"$exists": false},
 	}
 	sortOpts := bson.D{
 		{Key: ARTICLE_CREATE_TIME_b, Value: 1},
@@ -190,8 +192,12 @@ func GetArticleSummaries(boardID bbs.BBoardID, startIdx string, descending bool,
 	return result, nil
 }
 
-func GetArticleSummariesByRegex(boardID bbs.BBoardID, keywordList []string, createNanoTS types.NanoTS, articleID bbs.ArticleID, descending bool, limit int) (result []*ArticleSummary, err error) {
-	result = make([]*ArticleSummary, 0, limit)
+// GetArticleSummariesByRegex
+//
+// scans at most MAX_ARTICLE_SUMMARIES_BY_REGEX_ROUNDS rounds. If the limit is not reached
+// when the scan stops, nextIdx is the idx (inclusive) to continue the scan from.
+func GetArticleSummariesByRegex(boardID bbs.BBoardID, keywordList []string, createNanoTS types.NanoTS, articleID bbs.ArticleID, descending bool, limit int) (result []*ArticleSummary, nextIdx string, err error) {
+	result = []*ArticleSummary{}
 
 	// keyword-list
 	runeList := make([][]rune, len(keywordList))
@@ -220,15 +226,23 @@ func GetArticleSummariesByRegex(boardID bbs.BBoardID, keywordList []string, crea
 
 	nextCreateTS := createNanoTS
 	nextArticleID := articleID
+	scanIdx := ""
 
 	isEndLoop := false
 	remaining := limit
-	for !isEndLoop && remaining > 0 {
+	for round := 0; !isEndLoop && remaining > 0; round++ {
+		// a title which passes the n-gram regex but not the keyword check is dropped after the db read,
+		// so without a cap one request could scan all the articles of the board.
+		if round == MAX_ARTICLE_SUMMARIES_BY_REGEX_ROUNDS {
+			nextIdx = scanIdx
+			break
+		}
+
 		// find
 		var eachResult []*ArticleSummary
 		err = Article_c.Find(query, int64(limit+1), &eachResult, articleSummaryFields, sortOpts)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		if len(eachResult) < limit+1 {
 			isEndLoop = true
@@ -238,6 +252,7 @@ func GetArticleSummariesByRegex(boardID bbs.BBoardID, keywordList []string, crea
 
 			nextCreateTS = nextArticleSummary.CreateTime
 			nextArticleID = nextArticleSummary.ArticleID
+			scanIdx = nextArticleSummary.Idx
 		}
 
 		validResult := eachResult
@@ -256,7 +271,7 @@ func GetArticleSummariesByRegex(boardID bbs.BBoardID, keywordList []string, crea
 		query = getArticleSummariesByRegexSetQuery(boardID, firstPattern, patternList, nextCreateTS, nextArticleID, descending)
 	}
 
-	return result, nil
+	return result, nextIdx, nil
 }
 
 func getArticleSummariesByRegexSetQuery(boardID bbs.BBoardID, firstPattern string, patternList bson.A, createNanoTS types.NanoTS, articleID bbs.ArticleID, descending bool) (query bson.M) {

@@ -96,9 +96,12 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 
 		clientInfo := getClientInfo(client)
 	*/
+	// All lookup / verification failures return the same ErrLoginFailed,
+	// so the response does not reveal whether the username or email exists.
 	userID, username, _, err := loginInputToUsernameEmail(theParams.Input)
 	if err != nil {
-		return nil, 401, err
+		logrus.Warnf("api.Login: unable to loginInputToUsernameEmail: input: %v e: %v", theParams.Input, err)
+		return nil, 401, ErrLoginFailed
 	}
 
 	oidcID := theParams.OIDCID
@@ -115,7 +118,8 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 		return nil, 429, err
 	}
 	if err != nil {
-		return nil, 401, err
+		logrus.Warnf("api.Login: unable to check2FAToken: userID: %v e: %v", userID, err)
+		return nil, 401, ErrLoginFailed
 	}
 
 	if oidcID != "" {

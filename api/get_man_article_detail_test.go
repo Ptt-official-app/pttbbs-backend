@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
+	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
 	"github.com/Ptt-official-app/pttbbs-backend/apitypes"
 	"github.com/Ptt-official-app/pttbbs-backend/mand"
@@ -12,11 +13,14 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetManArticleDetail(t *testing.T) {
 	setupTest()
 	defer teardownTest()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
 
 	boardSummaries_b := []*bbs.BoardSummary{testBoardSummaryWhoAmI_b}
 	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", boardSummaries_b, 123456890000000000)
@@ -127,4 +131,40 @@ func TestGetManArticleDetail(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+// setupOver18ManBoard creates an over-18 board with man articles, and a normal user chhsiao123.
+func setupOver18ManBoard(t *testing.T) {
+	t.Helper()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserChhsiao123_b, 123456891000000000)
+
+	board_b := *testBoardSummaryWhoAmI_b
+	board_b.BrdAttr = ptttype.BRD_OVER18
+	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", []*bbs.BoardSummary{&board_b}, 123456890000000000)
+
+	resp, _ := mand.Cli.List(t.Context(), &mand.ListRequest{BoardName: "WhoAmI", Path: ""})
+	_, _ = DeserializePBManArticlesAndUpdateDB("10_WhoAmI", "", resp.Entries, types.NowNanoTS())
+}
+
+func TestGetManArticleDetail_boardNotReadable(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	setupOver18ManBoard(t)
+
+	// no over-18 cookie.
+	user := &UserInfo{UserID: "chhsiao123", IsOver18: false}
+	path := &GetManArticleDetailPath{FBoardID: "WhoAmI", FArticleID: "M.1608386280.A.BC9"}
+	gotResult, statusCode, err := GetManArticleDetail(testIP, user, nil, path, nil)
+	assert.Error(t, err)
+	assert.Nil(t, gotResult)
+	assert.Equal(t, 403, statusCode)
+
+	pathBlocks := &GetManArticleBlocksPath{FBoardID: "WhoAmI", FArticleID: "M.1608386280.A.BC9"}
+	gotResult, statusCode, err = GetManArticleBlocks(testIP, user, NewGetManArticleBlocksParams(), pathBlocks, nil)
+	assert.Error(t, err)
+	assert.Nil(t, gotResult)
+	assert.Equal(t, 403, statusCode)
 }

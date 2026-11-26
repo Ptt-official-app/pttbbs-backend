@@ -47,7 +47,7 @@ func (c *Client) Ping() (err error) {
 	defer func() {
 		ctxErr := ctx.Err()
 		cancel()
-		if ctxErr == nil {
+		if err == nil {
 			err = ctxErr
 		}
 	}()

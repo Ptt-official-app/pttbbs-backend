@@ -47,7 +47,7 @@ func AddFavoriteBoard(remoteAddr string, user *UserInfo, params any, path any, c
 
 	boardID, err := toBoardID(theParams.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 
 	_, err = CheckUserBoardPermReadable(user, boardID, c)

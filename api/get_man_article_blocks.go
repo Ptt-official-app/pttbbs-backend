@@ -51,6 +51,10 @@ func GetManArticleBlocks(remoteAddr string, user *UserInfo, params any, path any
 		return nil, 400, ErrInvalidParams
 	}
 
+	if !isValidLimit(theParams.Max) {
+		return nil, 400, ErrInvalidLimit
+	}
+
 	thePath, ok := path.(*GetManArticleBlocksPath)
 	if !ok {
 		return nil, 400, ErrInvalidPath
@@ -59,7 +63,7 @@ func GetManArticleBlocks(remoteAddr string, user *UserInfo, params any, path any
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 	farticleID := thePath.FArticleID
 	if farticleID[0] == '/' {
@@ -67,10 +71,10 @@ func GetManArticleBlocks(remoteAddr string, user *UserInfo, params any, path any
 	}
 	articleID := farticleID.ToManArticleID()
 
-	// validate user
-	_, statusCode, err = isBoardValidUser(boardID, userID)
+	// check board permission
+	_, err = CheckUserBoardPermReadable(user, boardID, c)
 	if err != nil {
-		return nil, statusCode, err
+		return nil, 403, err
 	}
 
 	if theParams.StartIdx == "" {

@@ -149,7 +149,7 @@ class Comment(BaseModel):
 class LoadGeneralArticlesParams(BaseModel):
     title: str = Field(default='', description='title (match)')
     start_idx: str = ''
-    limit: int = Field(default=0, description="limit. 0: no limit.")
+    limit: int = Field(default=200, description="limit. 1 to 200.")
     desc: bool = Field(default=False, description='descending')
 
 
@@ -167,13 +167,13 @@ class LoadBottomArticlesResult(BaseModel):
 
 class GetArticleBlocksParams(BaseModel):
     start_idx: str = ''
-    limit: int = Field(default=0, description='limit. 0: no limit.')
+    limit: int = Field(default=1, description='limit. 1 to 200.')
 
 
 class LoadArticleCommentsParams(BaseModel):
     start_idx: str = ''
     desc: bool = Field(default=False, description='is descending')
-    limit: int = Field(default=0, description='limit. 0: no limit.')
+    limit: int = Field(default=200, description='limit. 1 to 200.')
 
 
 class LoadArticleCommentsResult(BaseModel):

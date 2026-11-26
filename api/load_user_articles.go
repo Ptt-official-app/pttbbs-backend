@@ -47,12 +47,16 @@ func LoadUserArticles(remoteAddr string, user *UserInfo, params any, path any, c
 		return nil, 400, ErrInvalidParams
 	}
 
+	if !isValidLimit(theParams.Max) {
+		return nil, 400, ErrInvalidLimit
+	}
+
 	thePath, ok := path.(*LoadUserArticlesPath)
 	if !ok {
 		return nil, 400, ErrInvalidPath
 	}
 
-	articleSummaries_db, nextIdx, err := loadUserArticles(thePath.UserID, theParams.StartIdx, theParams.Descending, theParams.Max)
+	articleSummaries_db, nextIdx, err := loadUserArticles(user, thePath.UserID, theParams.StartIdx, theParams.Descending, theParams.Max, c)
 	if err != nil {
 		return nil, 500, err
 	}
@@ -68,7 +72,7 @@ func LoadUserArticles(remoteAddr string, user *UserInfo, params any, path any, c
 }
 
 // loadUserArticles
-func loadUserArticles(ownerID bbs.UUserID, startIdx string, descending bool, limit int) (articleSummaries_db []*schema.ArticleSummary, nextIdx string, err error) {
+func loadUserArticles(user *UserInfo, ownerID bbs.UUserID, startIdx string, descending bool, limit int, c *gin.Context) (articleSummaries_db []*schema.ArticleSummary, nextIdx string, err error) {
 	articleSummaries_db = make([]*schema.ArticleSummary, 0, limit+1)
 
 	var nextCreateTime4 pttbbstypes.Time4
@@ -79,6 +83,8 @@ func loadUserArticles(ownerID bbs.UUserID, startIdx string, descending bool, lim
 		}
 	}
 	nextCreateTime := types.Time4ToNanoTS(nextCreateTime4)
+
+	isReadable := newBoardReadableChecker(user, c)
 
 	isEndLoop := false
 	remaining := limit
@@ -106,7 +112,7 @@ func loadUserArticles(ownerID bbs.UUserID, startIdx string, descending bool, lim
 		}
 
 		// is-valid
-		validArticleSummaries_db, err := isValidArticleSummaries(eachArticleSummaries_db)
+		validArticleSummaries_db, err := isValidArticleSummaries(eachArticleSummaries_db, isReadable)
 		if err != nil {
 			return nil, "", err
 		}
@@ -128,9 +134,36 @@ func loadUserArticles(ownerID bbs.UUserID, startIdx string, descending bool, lim
 }
 
 // isValidArticleSummaries
-// XXX TODO
-func isValidArticleSummaries(articleSummaries_db []*schema.ArticleSummary) ([]*schema.ArticleSummary, error) {
-	return articleSummaries_db, nil
+//
+// drops the articles in the boards that the user is not allowed to read.
+func isValidArticleSummaries(articleSummaries_db []*schema.ArticleSummary, isReadable func(bbs.BBoardID) bool) ([]*schema.ArticleSummary, error) {
+	valid := make([]*schema.ArticleSummary, 0, len(articleSummaries_db))
+	for _, each := range articleSummaries_db {
+		if isReadable(each.BBoardID) {
+			valid = append(valid, each)
+		}
+	}
+
+	return valid, nil
+}
+
+// newBoardReadableChecker returns a checker that caches CheckUserBoardPermReadable per board.
+// Any error (including db errors) is treated as not readable.
+func newBoardReadableChecker(user *UserInfo, c *gin.Context) func(bbs.BBoardID) bool {
+	readableMap := make(map[bbs.BBoardID]bool)
+
+	return func(boardID bbs.BBoardID) bool {
+		isReadable, ok := readableMap[boardID]
+		if ok {
+			return isReadable
+		}
+
+		_, err := CheckUserBoardPermReadable(user, boardID, c)
+		isReadable = err == nil
+		readableMap[boardID] = isReadable
+
+		return isReadable
+	}
 }
 
 func checkReadUserBoardArticles(userID bbs.UUserID, theList []*schema.ArticleSummary) (userReadBoardArticleMap map[types.BoardArticleID]bool, err error) {

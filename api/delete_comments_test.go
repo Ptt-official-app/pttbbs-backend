@@ -8,9 +8,12 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
 	"github.com/Ptt-official-app/pttbbs-backend/apitypes"
+	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeleteComments(t *testing.T) {
@@ -125,4 +128,80 @@ func TestDeleteComments(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+// setupArticleWithComment creates an article and a comment owned by SYSOP, and registers another user chhsiao123.
+func setupArticleWithComment(t *testing.T) (boardID bbs.BBoardID, articleID bbs.ArticleID, deletePath *DeleteCommentsPath, commentID types.CommentID) {
+	t.Helper()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserChhsiao123_b, 123456891000000000)
+
+	boardSummaries_b := []*bbs.BoardSummary{testBoardSummarySYSOP_b}
+	_, _, _ = deserializeBoardsAndUpdateDB("SYSOP", boardSummaries_b, 123456890000000000)
+
+	user := &UserInfo{UserID: "SYSOP", IsOver18: true}
+
+	createArticleParams := &CreateArticleParams{
+		PostType: "測試",
+		Title:    "this is a test",
+		Content: [][]*types.Rune{
+			{{Utf8: "測試0", Color0: types.DefaultColor, Color1: types.DefaultColor}},
+		},
+	}
+	gotCreateArticleResult, _, err := CreateArticle(testIP, user, createArticleParams, &CreateArticlePath{FBoardID: "SYSOP"}, nil)
+	require.NoError(t, err)
+	createArticle := gotCreateArticleResult.(CreateArticleResult)
+
+	createCommentParams := &CreateCommentParams{
+		CommentType: ptttype.COMMENT_TYPE_RECOMMEND,
+		Content:     "test123",
+	}
+	createCommentPath := &CreateCommentPath{FBoardID: createArticle.FBoardID, FArticleID: createArticle.ArticleID}
+	gotCreateCommentResult, _, err := CreateComment(testIP, user, createCommentParams, createCommentPath, nil)
+	require.NoError(t, err)
+	createComment := gotCreateCommentResult.(CreateCommentResult)
+
+	boardID, err = toBoardID(createArticle.FBoardID, testIP, "SYSOP", nil)
+	require.NoError(t, err)
+	articleID = createArticle.ArticleID.ToArticleID()
+	deletePath = &DeleteCommentsPath{FBoardID: createArticle.FBoardID, FArticleID: createArticle.ArticleID}
+
+	return boardID, articleID, deletePath, createComment.CommentID
+}
+
+func TestDeleteComments_notOwner(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	boardID, articleID, path, commentID := setupArticleWithComment(t)
+
+	params := &DeleteCommentsParams{TheList: []*apitypes.DeleteCommentParams{{CommentID: commentID, Reason: "x"}}}
+
+	// a user who is not the article owner must be rejected, and the cached comment must stay untouched.
+	other := &UserInfo{UserID: "chhsiao123", IsOver18: true}
+	_, statusCode, err := DeleteComments(testIP, other, params, path, nil)
+	assert.Error(t, err)
+	assert.Equal(t, 403, statusCode)
+
+	commentMap, err := schema.GetCommentMapByCommentIDs(boardID, articleID, []types.CommentID{commentID})
+	require.NoError(t, err)
+	require.Contains(t, commentMap, commentID)
+	assert.Equal(t, ptttype.COMMENT_TYPE_RECOMMEND, commentMap[commentID].TheType)
+}
+
+func TestDeleteComments_unknownCommentID(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	_, _, path, _ := setupArticleWithComment(t)
+
+	params := &DeleteCommentsParams{TheList: []*apitypes.DeleteCommentParams{{CommentID: "no-such-cid", Reason: "x"}}}
+
+	owner := &UserInfo{UserID: "SYSOP", IsOver18: true}
+	assert.NotPanics(t, func() {
+		_, statusCode, err := DeleteComments(testIP, owner, params, path, nil)
+		assert.Error(t, err)
+		assert.Equal(t, 400, statusCode)
+	})
 }

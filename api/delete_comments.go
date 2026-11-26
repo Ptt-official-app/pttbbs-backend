@@ -44,18 +44,25 @@ func DeleteComments(remoteAddr string, user *UserInfo, params any, path any, c *
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 	articleID := thePath.FArticleID.ToArticleID()
+
+	// comments are written back through go-pttbbs edit-article, which only allows the article owner (or SYSOP).
+	// check it before touching the db.
+	err = CheckUserArticlePermEditable(user, boardID, articleID, true, c)
+	if err != nil {
+		return nil, 403, err
+	}
 
 	oldContent, oldContentPrefix, oldSignatureDBCS, articleDetailSummary_db, oldSZ, oldsum, statusCode, err := editArticleGetArticleContentInfo(userID, boardID, articleID, c, true)
 	if err != nil {
 		return nil, statusCode, err
 	}
 
-	err = deleteCommentsUpdateComments(userID, remoteAddr, boardID, articleID, theParams.TheList)
+	statusCode, err = deleteCommentsUpdateComments(userID, remoteAddr, boardID, articleID, theParams.TheList)
 	if err != nil {
-		return nil, 500, err
+		return nil, statusCode, err
 	}
 
 	statusCode, err = postUpdateComments(userID, remoteAddr, boardID, articleID, oldContent, oldContentPrefix, oldSignatureDBCS, articleDetailSummary_db, oldSZ, oldsum, c)
@@ -70,7 +77,7 @@ func DeleteComments(remoteAddr string, user *UserInfo, params any, path any, c *
 	return result, 200, nil
 }
 
-func deleteCommentsUpdateComments(userID bbs.UUserID, remoteAddr string, boardID bbs.BBoardID, articleID bbs.ArticleID, deletes []*apitypes.DeleteCommentParams) (err error) {
+func deleteCommentsUpdateComments(userID bbs.UUserID, remoteAddr string, boardID bbs.BBoardID, articleID bbs.ArticleID, deletes []*apitypes.DeleteCommentParams) (statusCode int, err error) {
 	commentIDs := make([]types.CommentID, len(deletes))
 	for idx, each := range deletes {
 		commentIDs[idx] = each.CommentID
@@ -79,15 +86,23 @@ func deleteCommentsUpdateComments(userID bbs.UUserID, remoteAddr string, boardID
 	updateNanoTS := types.NowNanoTS()
 	commentMap, err := schema.GetCommentMapByCommentIDs(boardID, articleID, commentIDs)
 	if err != nil {
-		return nil
+		return 500, err
 	}
 
 	comments := make([]*schema.Comment, 0, len(deletes))
 	for _, each := range deletes {
-		comment := commentMap[each.CommentID]
+		comment, ok := commentMap[each.CommentID]
+		if !ok {
+			return 400, ErrInvalidParams
+		}
 		newComment := each.ToComment(comment, userID, remoteAddr, updateNanoTS)
 		comments = append(comments, newComment)
 	}
 
-	return schema.UpdateComments(comments, updateNanoTS)
+	err = schema.UpdateComments(comments, updateNanoTS)
+	if err != nil {
+		return 500, err
+	}
+
+	return 200, nil
 }

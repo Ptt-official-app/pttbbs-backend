@@ -55,7 +55,7 @@ func EditArticleDetail(remoteAddr string, user *UserInfo, params any, path any, 
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 	articleID := thePath.FArticleID.ToArticleID()
 
@@ -77,11 +77,11 @@ func EditArticleDetail(remoteAddr string, user *UserInfo, params any, path any, 
 
 	// 4. do lock. if failed, return the data in db.
 	lockKey := ArticleLockKey(boardID, articleID)
-	err = schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
+	lockToken, err := schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
 	if err != nil {
 		return nil, 500, err
 	}
-	defer func() { _ = schema.Unlock(lockKey) }()
+	defer func() { _ = schema.Unlock(lockKey, lockToken) }()
 
 	// edit article
 	var theType []byte

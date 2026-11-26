@@ -40,7 +40,7 @@ class LoadFavoriteBoardsParams(BaseModel):
     level_idx: str = ''
     start_idx: str = ''
     asc: bool = Field(default=False, description='ascending')
-    limit: int = Field(default=0, description='limit. 0: no limit.')
+    limit: int = Field(default=200, description='limit. 1 to 200.')
 
 
 class LoadFavoriteBoardsResult(BaseModel):

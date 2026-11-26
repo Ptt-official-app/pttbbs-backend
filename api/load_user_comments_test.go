@@ -11,6 +11,8 @@ import (
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLoadUserComments(t *testing.T) {
@@ -164,4 +166,38 @@ func TestLoadUserComments(t *testing.T) {
 		})
 		wg.Wait()
 	}
+}
+
+func TestLoadUserComments_restrictedBoard(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	setupOver18AndNormalBoards()
+
+	_ = schema.UpdateArticleSummaries([]*schema.ArticleSummary{
+		{BBoardID: "10_WhoAmI", ArticleID: "1VrooM21", BoardArticleID: "10_WhoAmI:1VrooM21", Owner: "teemo", CreateTime: 1607937174000000000},
+		{BBoardID: "1_SYSOP", ArticleID: "19bWBI4Z", BoardArticleID: "1_SYSOP:19bWBI4Z", Owner: "teemo", CreateTime: 1607937175000000000},
+	}, 1234567890000000000)
+
+	_ = schema.UpdateComments([]*schema.Comment{
+		{BBoardID: "10_WhoAmI", ArticleID: "1VrooM21", CommentID: "c1", TheType: ptttype.COMMENT_TYPE_RECOMMEND, Owner: "teemo", SortTime: 1607937176000000000},
+		{BBoardID: "1_SYSOP", ArticleID: "19bWBI4Z", CommentID: "c2", TheType: ptttype.COMMENT_TYPE_RECOMMEND, Owner: "teemo", SortTime: 1607937177000000000},
+	}, 1234567890000000000)
+
+	path := &LoadUserCommentsPath{UserID: "teemo"}
+
+	// no over-18 cookie: the comment in the over-18 board must be filtered out.
+	user := &UserInfo{UserID: "chhsiao123", IsOver18: false}
+	gotResult, statusCode, err := LoadUserComments(testIP, user, NewLoadUserCommentsParams(), path, nil)
+	require.NoError(t, err)
+	assert.Equal(t, 200, statusCode)
+	got := gotResult.(*LoadUserCommentsResult)
+	require.Len(t, got.List, 1)
+	assert.Equal(t, apitypes.FBoardID("SYSOP"), got.List[0].FBoardID)
+
+	// SYSOP can read both.
+	sysop := &UserInfo{UserID: "SYSOP", IsOver18: true}
+	gotResult, _, err = LoadUserComments(testIP, sysop, NewLoadUserCommentsParams(), path, nil)
+	require.NoError(t, err)
+	assert.Len(t, gotResult.(*LoadUserCommentsResult).List, 2)
 }

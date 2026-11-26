@@ -12,7 +12,9 @@ import (
 )
 
 func RetryLoadArticleDetails(ctx context.Context) error {
-	time.Sleep(20 * time.Second)
+	if !sleepCtx(ctx, 20*time.Second) {
+		return nil
+	}
 
 	for {
 		select {
@@ -21,12 +23,9 @@ func RetryLoadArticleDetails(ctx context.Context) error {
 		default:
 			logrus.Infof("RetryLoadArticleDetails: to LoadArticleDetails")
 			_ = LoadArticleDetails()
-			select {
-			case <-ctx.Done():
+			logrus.Infof("RetryLoadArticleDetails: to sleep %v seconds", types.SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS_DURATION.Seconds())
+			if !sleepCtx(ctx, types.SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS_DURATION) {
 				return nil
-			default:
-				logrus.Infof("RetryLoadArticleDetails: to sleep %v seconds", types.SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS_DURATION.Seconds())
-				time.Sleep(types.SLEEP_RETRY_LOAD_ARTICLE_DETAILS_TS_DURATION)
 			}
 		}
 	}
