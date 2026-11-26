@@ -44,6 +44,25 @@ func GetOIDCRefreshToken(refreshTokenID string) (refreshToken *OIDCRefreshToken,
 	return refreshToken, nil
 }
 
+// ConsumeOIDCRefreshToken returns the refresh token and deletes it, so that a refresh token can be rotated only once.
+// Concurrent consumers of the same token get ErrNotFound except for one.
+func ConsumeOIDCRefreshToken(refreshTokenID string) (refreshToken *OIDCRefreshToken, err error) {
+	refreshToken, err = GetOIDCRefreshToken(refreshTokenID)
+	if err != nil {
+		return nil, err
+	}
+
+	isDeleted, err := db.RDBDelExisting(rdb, RDB_PREFIX_OIDC_OP_REFRESH_TOKEN+refreshTokenID)
+	if err != nil {
+		return nil, err
+	}
+	if !isDeleted {
+		return nil, ErrNotFound
+	}
+
+	return refreshToken, nil
+}
+
 func SetOIDCRefreshToken(refreshToken *OIDCRefreshToken) (err error) {
 	//nolint:gosec // marshal to internal db.
 	val, err := json.Marshal(refreshToken)

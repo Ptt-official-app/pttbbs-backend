@@ -154,6 +154,28 @@ func RDBDel(rdb *redis.Client, key string) (err error) {
 
 // rdbIncrWithExpireScript runs INCR and the TTL assignment as one atomic step.
 //
+// The TTL is set only when the counter goes from 0 to 1, so subsequent increments
+// do not extend the window.
+// RDBDelExisting deletes the key and reports whether this call was the one that removed it.
+// Redis executes DEL atomically, so concurrent callers see isDeleted = true exactly once.
+func RDBDelExisting(rdb *redis.Client, key string) (isDeleted bool, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), REDIS_TIMEOUT_MILLI_TS*time.Millisecond)
+	defer func() {
+		ctxErr := ctx.Err()
+		cancel()
+		if err == nil {
+			err = ctxErr
+		}
+	}()
+
+	n, err := rdb.Del(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+
+	return n == 1, nil
+}
+
 // The TTL is set whenever the key has none, not only when the counter is created.
 // A separate INCR then EXPIRE can be interrupted (timeout, crash) between the two
 // calls and leave a counter without TTL, which would never expire.
