@@ -242,8 +242,8 @@ func TestLoginTokenIsOneTimeAndRateLimited(t *testing.T) {
 	if statusCode, err := login(token_db.Token); statusCode != 200 || err != nil {
 		t.Fatalf("Login() first use: statusCode: %v e: %v", statusCode, err)
 	}
-	if statusCode, err := login(token_db.Token); statusCode != 401 || !errors.Is(err, ErrInvalidToken) {
-		t.Errorf("Login() reuse: statusCode: %v e: %v, want 401 ErrInvalidToken", statusCode, err)
+	if statusCode, err := login(token_db.Token); statusCode != 401 || !errors.Is(err, ErrLoginFailed) {
+		t.Errorf("Login() reuse: statusCode: %v e: %v, want 401 ErrLoginFailed", statusCode, err)
 	}
 
 	// 2. too many wrong attempts invalidates the token, even with a new token.
@@ -253,7 +253,7 @@ func TestLoginTokenIsOneTimeAndRateLimited(t *testing.T) {
 	wrongCode := "wrong"
 
 	for i := int64(0); i < types.MAX_2FA_ATTEMPT; i++ {
-		if statusCode, err := login(wrongCode); statusCode != 401 || !errors.Is(err, ErrInvalidToken) {
+		if statusCode, err := login(wrongCode); statusCode != 401 || !errors.Is(err, ErrLoginFailed) {
 			t.Errorf("Login() wrong code (%v): statusCode: %v e: %v", i, statusCode, err)
 		}
 	}
@@ -266,5 +266,39 @@ func TestLoginTokenIsOneTimeAndRateLimited(t *testing.T) {
 	token_db, _ = schema.Get2FA("SYSOP")
 	if statusCode, err := login(token_db.Token); statusCode != 429 || !errors.Is(err, ErrTooManyAttempts) {
 		t.Errorf("Login() with new token after too many attempts: statusCode: %v e: %v, want 429", statusCode, err)
+	}
+}
+
+func TestLoginDoesNotRevealAccountExistence(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+	_ = schema.CreateUserEmail("SYSOP", "root@localhost.dev", false, 123456890000000000)
+
+	userInfo := &UserInfo{UserID: "SYSOP", IsOver18: true}
+
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(w)
+
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{"unknown username", "no_such_user"},
+		{"unknown email", "nobody@localhost.dev"},
+		{"existing username, wrong code", "SYSOP"},
+		{"existing email, wrong code", "root@localhost.dev"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_ = schema.Reset2FAAttempt("SYSOP")
+			params := &LoginParams{Input: tt.input, VerifyCode: "wrong"}
+			_, statusCode, err := Login("localhost", userInfo, params, ctx)
+			if statusCode != 401 || !errors.Is(err, ErrLoginFailed) {
+				t.Errorf("Login() statusCode: %v e: %v, want 401 ErrLoginFailed", statusCode, err)
+			}
+		})
 	}
 }

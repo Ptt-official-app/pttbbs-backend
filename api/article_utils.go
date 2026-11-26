@@ -92,6 +92,7 @@ func deserializeArticlesAndUpdateDB(userID bbs.UUserID, bboardID bbs.BBoardID, a
 		if each_b.Read {
 			each_db := &schema.UserReadArticle{
 				UserID:           userID,
+				BoardID:          bboardID,
 				ArticleID:        each_b.ArticleID,
 				ReadUpdateNanoTS: updateNanoTS,
 			}
@@ -101,9 +102,12 @@ func deserializeArticlesAndUpdateDB(userID bbs.UUserID, bboardID bbs.BBoardID, a
 		}
 	}
 
-	err = schema.UpdateUserReadArticles(userReadArticles, updateNanoTS)
-	if err != nil {
-		return nil, nil, err
+	// guest has no read state; persisting it only grows one hot index key.
+	if userID != bbs.UUserID(pttbbsapi.GUEST) {
+		err = schema.UpdateUserReadArticles(userReadArticles, updateNanoTS)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// get n-comments
@@ -192,7 +196,7 @@ func TryGetArticleContentInfo(userID bbs.UUserID, bboardID bbs.BBoardID, article
 	defer func() {
 		if err == nil && !isSystem {
 			// set user-read-article-id
-			setUserReadArticle(content, userID, articleID, updateNanoTS)
+			setUserReadArticle(content, userID, bboardID, articleID, updateNanoTS)
 		}
 	}()
 
@@ -229,7 +233,7 @@ func TryGetArticleContentInfo(userID bbs.UUserID, bboardID bbs.BBoardID, article
 
 	// preliminarily checking article-detail-summary.
 	if articleDetailSummary.IsDeleted {
-		return nil, nil, "", "", "", "", "", nil, nil, 500, 0, 0, ErrAlreadyDeleted
+		return nil, nil, "", "", "", "", "", nil, nil, 0, 0, 404, ErrAlreadyDeleted
 	}
 
 	if articleDetailSummary.CreateTime == 0 {
@@ -249,7 +253,7 @@ func TryGetArticleContentInfo(userID bbs.UUserID, bboardID bbs.BBoardID, article
 
 	// 4. do lock. if failed, return the data in db.
 	lockKey := ArticleLockKey(bboardID, articleID)
-	err = schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
+	lockToken, err := schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
 	if err != nil {
 		if isForce {
 			return nil, nil, "", "", "", "", "", nil, nil, 0, 0, 500, err
@@ -263,7 +267,7 @@ func TryGetArticleContentInfo(userID bbs.UUserID, bboardID bbs.BBoardID, article
 		updateNanoTS = types.NowNanoTS()
 		return contentInfo.Content, contentInfo.ContentPrefix, contentInfo.ContentMD5, contentInfo.IP, contentInfo.Host, contentInfo.BBS, contentInfo.SignatureMD5, contentInfo.SignatureDBCS, articleDetailSummary, 0, 0, 200, nil
 	}
-	defer func() { _ = schema.Unlock(lockKey) }()
+	defer func() { _ = schema.Unlock(lockKey, lockToken) }()
 
 	// 5. get article from pttbbs
 	theParams_b := &pttbbsapi.GetArticleParams{
@@ -455,14 +459,20 @@ func tryGetArticleDetailSummary(userID bbs.UUserID, boardID bbs.BBoardID, articl
 	return articleDetailSummary, 200, nil
 }
 
-func setUserReadArticle(content [][]*types.Rune, userID bbs.UUserID, articleID bbs.ArticleID, updateNanoTS types.NanoTS) {
+func setUserReadArticle(content [][]*types.Rune, userID bbs.UUserID, boardID bbs.BBoardID, articleID bbs.ArticleID, updateNanoTS types.NanoTS) {
 	if content == nil {
+		return
+	}
+
+	// guest has no read state; persisting it only grows one hot index key.
+	if userID == bbs.UUserID(pttbbsapi.GUEST) {
 		return
 	}
 
 	// user read article
 	userReadArticle := &schema.UserReadArticle{
 		UserID:           userID,
+		BoardID:          boardID,
 		ArticleID:        articleID,
 		ReadUpdateNanoTS: updateNanoTS,
 	}

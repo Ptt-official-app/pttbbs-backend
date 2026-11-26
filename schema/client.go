@@ -153,6 +153,24 @@ func NewClient(clientID string, clientType types.ClientType, redirectURIs []stri
 	}
 }
 
+// CreateClient inserts a new client and never modifies an existing one:
+// redirect_uris of an existing client decide where OIDC codes are delivered.
+func CreateClient(c *Client) (err error) {
+	query := bson.M{
+		CLIENT_CLIENT_ID_b: c.ClientID,
+	}
+
+	r, err := Client_c.CreateOnly(query, c)
+	if err != nil {
+		return err
+	}
+	if r.UpsertedCount == 0 {
+		return ErrClientAlreadyExists
+	}
+
+	return nil
+}
+
 func UpdateClient(c *Client) (err error) {
 	query := bson.M{
 		CLIENT_CLIENT_ID_b: c.ClientID,
@@ -188,7 +206,8 @@ func GetClient(clientID string) (ret *Client, err error) {
 	ret = &Client{}
 	err = Client_c.FindOne(query, ret, nil)
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, nil
+		// a (nil, nil) here would be wrapped as a non-nil op.Client holding a nil pointer by callers.
+		return nil, ErrNotFound
 	}
 	if err != nil {
 		return nil, err

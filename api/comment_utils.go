@@ -80,11 +80,11 @@ func postUpdateComments(userID bbs.UUserID, remoteAddr string, boardID bbs.BBoar
 
 	// 4. do lock. if failed, return the data in db.
 	lockKey := ArticleLockKey(boardID, articleID)
-	err = schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
+	lockToken, err := schema.TryLock(lockKey, ARTICLE_LOCK_TS_DURATION)
 	if err != nil {
 		return 500, err
 	}
-	defer func() { _ = schema.Unlock(lockKey) }()
+	defer func() { _ = schema.Unlock(lockKey, lockToken) }()
 
 	// edit article
 	theParams_b := &pttbbsapi.EditArticleParams{

@@ -13,7 +13,7 @@ func TestDeleteFavorite(t *testing.T) {
 	setupTest()
 	defer teardownTest()
 
-	paramsLoad0 := &LoadGeneralBoardsParams{}
+	paramsLoad0 := &LoadGeneralBoardsParams{Max: DEFAULT_MAX_LIST}
 
 	user := &UserInfo{UserID: "SYSOP", IsOver18: true}
 	_, _, _ = LoadGeneralBoardsByClass("localhost", user, paramsLoad0, nil)

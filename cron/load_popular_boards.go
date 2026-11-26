@@ -10,7 +10,9 @@ import (
 )
 
 func RetryLoadPopularBoards(ctx context.Context) error {
-	time.Sleep(5 * time.Second)
+	if !sleepCtx(ctx, 5*time.Second) {
+		return nil
+	}
 
 	nBoardID, err := api.RefreshBrdnameWhiteListMap()
 	if err != nil {
@@ -31,12 +33,9 @@ func RetryLoadPopularBoards(ctx context.Context) error {
 		default:
 			logrus.Infof("RetryLoadPopularBoards: to LoadPopularBoards")
 			_ = LoadPopularBoards()
-			select {
-			case <-ctx.Done():
+			logrus.Infof("RetryLoadPopularBoards: to sleep %v seconds", types.SLEEP_RETRY_LOAD_POPULAR_BOARDS_TS_DURATION.Seconds())
+			if !sleepCtx(ctx, types.SLEEP_RETRY_LOAD_POPULAR_BOARDS_TS_DURATION) {
 				return nil
-			default:
-				logrus.Infof("RetryLoadPopularBoards: to sleep %v seconds", types.SLEEP_RETRY_LOAD_POPULAR_BOARDS_TS_DURATION.Seconds())
-				time.Sleep(types.SLEEP_RETRY_LOAD_POPULAR_BOARDS_TS_DURATION)
 			}
 		}
 	}

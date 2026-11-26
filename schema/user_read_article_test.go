@@ -8,6 +8,8 @@ import (
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -135,4 +137,37 @@ func TestUpdateUserReadArticle(t *testing.T) {
 			testutil.TDeepEqual(t, "got", got, tt.expected)
 		})
 	}
+}
+
+func TestUpdateUserReadArticles_sameArticleIDInOtherBoard(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	defer UserArticle_c.Drop()
+
+	newRow := func(boardID bbs.BBoardID, nanoTS types.NanoTS) *UserReadArticle {
+		return &UserReadArticle{
+			UserID:           "testuser0",
+			BoardID:          boardID,
+			ArticleID:        "samearticle",
+			ReadUpdateNanoTS: nanoTS,
+		}
+	}
+
+	err := UpdateUserReadArticles([]*UserReadArticle{newRow("10_WhoAmI", 1000), newRow("11_Other", 1000)}, 1000)
+	require.NoError(t, err)
+
+	// only the row of 11_Other is newer.
+	err = UpdateUserReadArticles([]*UserReadArticle{newRow("11_Other", 2000)}, 2000)
+	require.NoError(t, err)
+
+	got, err := FindUserReadArticles("testuser0", "10_WhoAmI", []bbs.ArticleID{"samearticle"})
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, types.NanoTS(1000), got[0].ReadUpdateNanoTS)
+
+	got, err = FindUserReadArticles("testuser0", "11_Other", []bbs.ArticleID{"samearticle"})
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	assert.Equal(t, types.NanoTS(2000), got[0].ReadUpdateNanoTS)
 }

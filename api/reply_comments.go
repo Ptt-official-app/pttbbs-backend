@@ -45,12 +45,13 @@ func ReplyComments(remoteAddr string, user *UserInfo, params any, path any, c *g
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 	articleID := thePath.FArticleID.ToArticleID()
 
 	// check permission
-	err = CheckUserArticlePermReadable(user, boardID, articleID, true, c)
+	// comments are written back through go-pttbbs edit-article, which only allows the article owner (or SYSOP).
+	err = CheckUserArticlePermEditable(user, boardID, articleID, true, c)
 	if err != nil {
 		return nil, 403, err
 	}
@@ -60,9 +61,9 @@ func ReplyComments(remoteAddr string, user *UserInfo, params any, path any, c *g
 		return nil, statusCode, err
 	}
 
-	err = replyCommentsUpdateReplies(userID, remoteAddr, boardID, articleID, theParams.TheList)
+	statusCode, err = replyCommentsUpdateReplies(userID, remoteAddr, boardID, articleID, theParams.TheList)
 	if err != nil {
-		return nil, 500, err
+		return nil, statusCode, err
 	}
 
 	statusCode, err = postUpdateComments(userID, remoteAddr, boardID, articleID, oldContent, oldContentPrefix, oldSignatureDBCS, articleDetailSummary_db, oldSZ, oldsum, c)
@@ -78,7 +79,7 @@ func ReplyComments(remoteAddr string, user *UserInfo, params any, path any, c *g
 	return result, 200, nil
 }
 
-func replyCommentsUpdateReplies(userID bbs.UUserID, remoteAddr string, boardID bbs.BBoardID, articleID bbs.ArticleID, replies []*apitypes.ReplyCommentParams) (err error) {
+func replyCommentsUpdateReplies(userID bbs.UUserID, remoteAddr string, boardID bbs.BBoardID, articleID bbs.ArticleID, replies []*apitypes.ReplyCommentParams) (statusCode int, err error) {
 	updateNanoTS := types.NowNanoTS()
 	replyComments := make([]*schema.Comment, len(replies))
 
@@ -88,13 +89,21 @@ func replyCommentsUpdateReplies(userID bbs.UUserID, remoteAddr string, boardID b
 	}
 	sortTimeMap, err := schema.GetCommentSortTimeMapByCommentIDs(boardID, articleID, commentIDs)
 	if err != nil {
-		return err
+		return 500, err
 	}
 
 	for idx, each := range replies {
-		sortTime := sortTimeMap[each.CommentID]
+		sortTime, ok := sortTimeMap[each.CommentID]
+		if !ok {
+			return 400, ErrInvalidParams
+		}
 		replyComments[idx] = each.ToComment(userID, remoteAddr, boardID, articleID, sortTime, updateNanoTS)
 	}
 
-	return schema.UpdateComments(replyComments, updateNanoTS)
+	err = schema.UpdateComments(replyComments, updateNanoTS)
+	if err != nil {
+		return 500, err
+	}
+
+	return 200, nil
 }

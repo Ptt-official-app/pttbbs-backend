@@ -49,11 +49,13 @@ type OIDCAuthRequestIsAuthInfo struct {
 }
 
 func NewAuthRequestByUsername(username string, clientID string) *OIDCAuthRequest {
+	// Audience is the client itself: introspection only accepts tokens whose audience contains the requesting client.
 	return &OIDCAuthRequest{
 		CreationDate: time.Now(),
 		ClientID:     clientID,
 		Subject:      username,
 		Username:     username,
+		Audience:     []string{clientID},
 		AuthTime:     time.Now(),
 		Scopes:       []string{oidc.ScopeOpenID, oidc.ScopeOfflineAccess},
 		// ResponseType code + offline_access is required by op.CreateAccessToken
@@ -82,6 +84,7 @@ func NewAuthRequest(authReq *oidc.AuthRequest, username string) *OIDCAuthRequest
 		MaxAuthAge:    MaxAgeToInternal(authReq.MaxAge),
 		Subject:       username,
 		Username:      username,
+		Audience:      []string{authReq.ClientID},
 		Scopes:        authReq.Scopes,
 		ResponseType:  authReq.ResponseType,
 		ResponseMode:  authReq.ResponseMode,

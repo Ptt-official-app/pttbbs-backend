@@ -34,7 +34,7 @@ func GetBoardSummary(remoteAddr string, user *UserInfo, params any, path any, c 
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 400, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 
 	_, err = CheckUserBoardPermReadable(user, boardID, c)

@@ -14,6 +14,10 @@ func LoadGeneralArticlesByKeyword(remoteAddr string, user *UserInfo, params any,
 		return nil, 400, ErrInvalidParams
 	}
 
+	if !isValidLimit(theParams.Max) {
+		return nil, 400, ErrInvalidLimit
+	}
+
 	thePath, ok := path.(*LoadGeneralArticlesPath)
 	if !ok {
 		return nil, 400, ErrInvalidPath
@@ -22,7 +26,7 @@ func LoadGeneralArticlesByKeyword(remoteAddr string, user *UserInfo, params any,
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 
 	// check board permission

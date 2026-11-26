@@ -49,6 +49,10 @@ func loadGeneralBoardsCore(remoteAddr string, user *UserInfo, params any, c *gin
 		return nil, 400, ErrInvalidParams
 	}
 
+	if !isValidLimit(theParams.Max) {
+		return nil, 400, ErrInvalidLimit
+	}
+
 	// backend load-general-baords
 	theParams_b := &pttbbsapi.LoadGeneralBoardsParams{
 		StartIdx: theParams.StartIdx,

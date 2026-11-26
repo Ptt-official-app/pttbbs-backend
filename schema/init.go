@@ -224,6 +224,18 @@ func Init() (err error) {
 		return err
 	}
 
+	// oidc-key
+	OIDCKey_c = client.Collection("oidc_key")
+	keys = &bson.D{
+		{Key: OIDC_KEY_CLIENT_ID_b, Value: 1},
+		{Key: OIDC_KEY_KEY_ID_b, Value: 1},
+	}
+	err = OIDCKey_c.CreateUniqueIndex(keys)
+	if err != nil {
+		logrus.Errorf("OIDCKey_c: unable to create idx: e: %v", err)
+		return err
+	}
+
 	// rank
 	Rank_c = client.Collection("rank")
 	keys = &bson.D{
@@ -289,6 +301,27 @@ func Init() (err error) {
 		return err
 	}
 
+	// point lookup of the upserts in UpdateUserReadArticle(s) and FindUserReadArticles.
+	keys = &bson.D{
+		{Key: USER_ARTICLE_USER_ID_b, Value: 1},
+		{Key: USER_ARTICLE_BOARD_ID_b, Value: 1},
+		{Key: USER_ARTICLE_ARTICLE_ID_b, Value: 1},
+	}
+	err = UserArticle_c.CreateIndex(keys, nil)
+	if err != nil {
+		return err
+	}
+
+	// FindUserReadArticlesByBoardArticleIDs.
+	keys = &bson.D{
+		{Key: USER_ARTICLE_USER_ID_b, Value: 1},
+		{Key: USER_ARTICLE_BOARD_ARTICLE_ID_b, Value: 1},
+	}
+	err = UserArticle_c.CreateIndex(keys, nil)
+	if err != nil {
+		return err
+	}
+
 	// UserReadBoard
 	UserBoard_c = client.Collection("user_read_board")
 	keys = &bson.D{
@@ -343,6 +376,14 @@ func Init() (err error) {
 		{Key: USER_EMAIL_EMAIL_b, Value: 1},
 	}
 	err = UserEmail_c.CreateUniqueIndex(keys)
+	if err != nil {
+		return err
+	}
+
+	keys = &bson.D{
+		{Key: CLIENT_CLIENT_ID_b, Value: 1},
+	}
+	err = Client_c.CreateUniqueIndex(keys)
 	if err != nil {
 		return err
 	}

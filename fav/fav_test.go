@@ -688,3 +688,74 @@ func TestFav_DeleteIdx(t *testing.T) {
 		wg.Wait()
 	}
 }
+
+func TestFavRaw_AddFolder_maxFolder(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	f, _ := NewFav(nil, nil, 0)
+	// NFolders is the limit to check, not NLines.
+	f.NFolders = MAX_FOLDER
+	_, _, err := f.AddFolder("")
+	assert.ErrorIs(t, err, ErrTooManyFolders)
+
+	f, _ = NewFav(nil, nil, 0)
+	f.NLines = MAX_FOLDER
+	_, _, err = f.AddFolder("")
+	assert.NoError(t, err)
+}
+
+func TestReadFavrec_negativeCount(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	tests := []struct {
+		name  string
+		bytes []byte
+	}{
+		{name: "negative boards", bytes: []byte{0xff, 0xff, 0, 0}},
+		{name: "negative lines", bytes: []byte{0, 0, 0xff, 0}},
+		{name: "negative folders", bytes: []byte{0, 0, 0, 0xff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotPanics(t, func() {
+				_, err := ReadFavrec(bytes.NewReader(tt.bytes), nil, nil, 0)
+				assert.ErrorIs(t, err, ErrInvalidFavRecord)
+			})
+		})
+	}
+}
+
+func TestFav_LocateFav_outOfRange(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	f, _ := NewFav(nil, nil, 0)
+	_, _, _ = f.AddFolder("")
+
+	for _, idx := range []string{"99", "-1", "1"} {
+		t.Run(idx, func(t *testing.T) {
+			assert.NotPanics(t, func() {
+				_, err := f.LocateFav([]string{"", idx})
+				assert.ErrorIs(t, err, ErrInvalidLevelIdx)
+			})
+		})
+	}
+
+	got, err := f.LocateFav([]string{"", "0"})
+	assert.NoError(t, err)
+	assert.NotNil(t, got)
+}
+
+func TestFav_DeleteIdx_negative(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	f, _ := NewFav(nil, nil, 0)
+	_, _, _ = f.AddFolder("")
+
+	assert.NotPanics(t, func() {
+		assert.ErrorIs(t, f.DeleteIdx(-1), ErrInvalidFavRecord)
+	})
+}

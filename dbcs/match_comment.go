@@ -129,31 +129,35 @@ func matchCommentIntegratedIdx(theIdx int, idx int) int {
 	return idx
 }
 
+// matchCommentForward returns the offset of the first forward comment in content, or -1.
+//
+// base tracks how much of content has already been skipped, so that the returned
+// offset is always relative to the original content.
 func matchCommentForward(content []byte) (idx int) {
-	for len(content) > 0 {
-		idx = bytes.Index(content, MATCH_COMMENT_FORWARD_BYTES)
-		if idx == -1 {
+	for base := 0; base < len(content); {
+		rel := bytes.Index(content[base:], MATCH_COMMENT_FORWARD_BYTES)
+		if rel == -1 {
 			return -1
 		}
 
-		skipIdx := idx
-		if idx < 3 {
-			content = content[skipIdx+len(MATCH_COMMENT_FORWARD_BYTES):]
+		pos := base + rel
+		next := pos + len(MATCH_COMMENT_FORWARD_BYTES)
+		if rel < 3 {
+			base = next
 			continue
 		}
 
-		idx--
+		idx = pos - 1
 		//nolint:revive
-		for ; idx >= 2 && content[idx] != ' '; idx-- {
+		for ; idx >= base+2 && content[idx] != ' '; idx-- {
 		}
-		if idx == 2 && content[idx-2] == '\xa1' && content[idx-1] == '\xb0' && content[idx] == ' ' {
-			return idx - 2
-		}
-		if content[idx-3] == '\n' && content[idx-2] == '\xa1' && content[idx-1] == '\xb0' && content[idx] == ' ' {
-			return idx - 2
+		start := idx - 2
+		if start >= base && content[idx] == ' ' && content[idx-1] == '\xb0' && content[idx-2] == '\xa1' &&
+			(start == 0 || content[start-1] == '\n') {
+			return start
 		}
 
-		content = content[skipIdx+len(MATCH_COMMENT_FORWARD_BYTES):]
+		base = next
 	}
 
 	return -1
@@ -179,30 +183,35 @@ func hasPrefixCommentForward(content []byte) (isForward bool, nextCommentDBCS []
 	return false, nil
 }
 
+// matchCommentDeleted returns the offset of the first deleted comment in content, or -1.
+//
+// base tracks how much of content has already been skipped, so that the returned
+// offset is always relative to the original content.
 func matchCommentDeleted(content []byte) (idx int) {
-	for len(content) > 0 {
-		idx = bytes.Index(content, MATCH_COMMENT_DELETED_PREFIX)
+	for base := 0; base < len(content); {
+		rest := content[base:]
+		idx = bytes.Index(rest, MATCH_COMMENT_DELETED_PREFIX)
 		if idx == -1 {
 			return -1
 		}
 		startIdx := idx
 		//nolint:revive
-		for ; idx < len(content) && content[idx] != ' '; idx++ {
+		for ; idx < len(rest) && rest[idx] != ' '; idx++ {
 		}
-		if !bytes.HasPrefix(content[idx:], MATCH_COMMENT_DELETED_INFIX0) {
-			content = content[idx:]
+		if !bytes.HasPrefix(rest[idx:], MATCH_COMMENT_DELETED_INFIX0) {
+			base += idx
 			continue
 		}
 		idx += len(MATCH_COMMENT_DELETED_INFIX0)
 		//nolint:revive
-		for ; idx < len(content) && content[idx] != ' '; idx++ {
+		for ; idx < len(rest) && rest[idx] != ' '; idx++ {
 		}
-		if !bytes.HasPrefix(content[idx:], MATCH_COMMENT_DELETED_INFIX1) {
-			content = content[idx:]
+		if !bytes.HasPrefix(rest[idx:], MATCH_COMMENT_DELETED_INFIX1) {
+			base += idx
 			continue
 		}
 
-		return startIdx
+		return base + startIdx
 	}
 
 	return -1
