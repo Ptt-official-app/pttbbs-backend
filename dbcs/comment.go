@@ -109,6 +109,8 @@ func ParseComments(
 			}
 		}
 
+		// p_commentsDBCS[0] is '\n': always consume it so the loop makes progress.
+		nextCommentIdx = max(nextCommentIdx, 1)
 		p_commentsDBCS = p_commentsDBCS[nextCommentIdx:]
 		p_allCommentsDBCS = p_allCommentsDBCS[nextCommentIdx:]
 
