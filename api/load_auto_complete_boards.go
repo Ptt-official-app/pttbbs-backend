@@ -33,6 +33,10 @@ func LoadAutoCompleteBoards(remoteAddr string, user *UserInfo, params any, c *gi
 		return nil, 400, ErrInvalidParams
 	}
 
+	if !isValidLimit(theParams.Max) {
+		return nil, 400, ErrInvalidLimit
+	}
+
 	// backend load-general-baords
 	theParams_b := &pttbbsapi.LoadAutoCompleteBoardsParams{
 		StartIdx: theParams.StartIdx,

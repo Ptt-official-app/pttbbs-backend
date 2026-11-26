@@ -142,7 +142,7 @@ class LoadGeneralBoardsParams(BaseModel):
     start_idx: str = ''
     asc: bool = Field(default=False, description='ascending')
     limit: int = Field(
-        default=0, description='limit of the boards. 0: no limit.')
+        default=200, description='limit of the boards. 1 to 200.')
 
 
 class LoadGeneralBoardsResult(BaseModel):
@@ -157,7 +157,7 @@ class LoadAutoCompleteBoardsParams(BaseModel):
     start_idx: str = ''
     asc: bool = Field(default=False, description='ascending')
     limit: int = Field(
-        default=0, description='limit of the boards. 0: no limit.')
+        default=200, description='limit of the boards. 1 to 200.')
 
 
 class CreateBoardParamsCore(BaseModel):
@@ -178,4 +178,4 @@ class LoadClassBoardsParams(BaseModel):
     sortby: SortBy = 'class'
     asc: bool = Field(default=False, description='is ascending')
     limit: int = Field(
-        default=0, description='limit of the boards. 0: no limit.')
+        default=200, description='limit of the boards. 1 to 200.')
