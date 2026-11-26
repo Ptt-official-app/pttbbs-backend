@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -342,8 +343,10 @@ func main() {
 	})
 
 	g.AddRunningJob(func(ctx context.Context) error {
-		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			return err
+		if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			// graceful only records a running-job error and keeps the other jobs
+			// alive, which would leave a process that serves nothing.
+			logrus.Fatalf("main: unable to ListenAndServe: addr: %s e: %v", s.Addr, err)
 		}
 		return nil
 	})
