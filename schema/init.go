@@ -359,6 +359,14 @@ func Init() (err error) {
 		return err
 	}
 
+	keys = &bson.D{
+		{Key: CLIENT_CLIENT_ID_b, Value: 1},
+	}
+	err = Client_c.CreateUniqueIndex(keys)
+	if err != nil {
+		return err
+	}
+
 	// assert-all-fields
 	err = assertAllFields()
 	if err != nil {

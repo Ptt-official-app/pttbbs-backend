@@ -153,6 +153,24 @@ func NewClient(clientID string, clientType types.ClientType, redirectURIs []stri
 	}
 }
 
+// CreateClient inserts a new client and never modifies an existing one:
+// redirect_uris of an existing client decide where OIDC codes are delivered.
+func CreateClient(c *Client) (err error) {
+	query := bson.M{
+		CLIENT_CLIENT_ID_b: c.ClientID,
+	}
+
+	r, err := Client_c.CreateOnly(query, c)
+	if err != nil {
+		return err
+	}
+	if r.UpsertedCount == 0 {
+		return ErrClientAlreadyExists
+	}
+
+	return nil
+}
+
 func UpdateClient(c *Client) (err error) {
 	query := bson.M{
 		CLIENT_CLIENT_ID_b: c.ClientID,
