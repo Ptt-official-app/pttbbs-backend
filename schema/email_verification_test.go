@@ -35,7 +35,8 @@ func TestSetEmailVerification(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEqual(t, got, got2)
 
-	time.Sleep(expireTSDuration)
+	// Sleep past the TTL: sleeping exactly the TTL races with Redis expiring got2.
+	time.Sleep(expireTSDuration + 500*time.Millisecond)
 
 	_, err = GetEmailVerification(got)
 	assert.Error(t, err)
