@@ -77,7 +77,9 @@ func loadManArticles(boardID bbs.BBoardID) (err error) {
 func loadManArticlesCore(boardID bbs.BBoardID, levelIdx types.ManArticleID) (count int, err error) {
 	// backend load-general-articles
 	brdname := boardID.ToBrdname()
-	ctx := context.Background()
+	// a hung mand must not block the cron forever.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(types.EXPIRE_HTTP_REQUEST_TS)*time.Second)
+	defer cancel()
 	req := &mand.ListRequest{
 		BoardName: brdname,
 		Path:      string(levelIdx),
