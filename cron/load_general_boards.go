@@ -21,12 +21,9 @@ func RetryLoadGeneralBoards(ctx context.Context) error {
 		default:
 			logrus.Infof("RetryLoadGeneralBoards: to LoadGeneralBoards")
 			_ = LoadGeneralBoards()
-			select {
-			case <-ctx.Done():
+			logrus.Infof("RetryLoadGeneralBoards: to sleep 1 min")
+			if !sleepCtx(ctx, 1*time.Minute) {
 				return nil
-			default:
-				logrus.Infof("RetryLoadGeneralBoards: to sleep 1 min")
-				time.Sleep(1 * time.Minute)
 			}
 		}
 	}

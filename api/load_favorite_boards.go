@@ -50,6 +50,10 @@ func LoadFavoriteBoards(remoteAddr string, user *UserInfo, params any, path any,
 		return nil, 400, ErrInvalidParams
 	}
 
+	if !isValidLimit(theParams.Max) {
+		return nil, 400, ErrInvalidLimit
+	}
+
 	thePath, ok := path.(*LoadFavoriteBoardsPath)
 	if !ok {
 		return nil, 400, ErrInvalidPath

@@ -46,6 +46,10 @@ func LoadArticleComments(remoteAddr string, user *UserInfo, params any, path any
 		return nil, 400, ErrInvalidParams
 	}
 
+	if !isValidLimit(theParams.Max) {
+		return nil, 400, ErrInvalidLimit
+	}
+
 	thePath, ok := path.(*LoadArticleCommentsPath)
 	if !ok {
 		return nil, 400, ErrInvalidPath
@@ -54,14 +58,14 @@ func LoadArticleComments(remoteAddr string, user *UserInfo, params any, path any
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 	articleID := thePath.FArticleID.ToArticleID()
 
 	// check permission
 	err = CheckUserArticlePermReadable(user, boardID, articleID, true, c)
 	if err != nil {
-		return nil, statusCode, err
+		return nil, 403, err
 	}
 
 	// get comments

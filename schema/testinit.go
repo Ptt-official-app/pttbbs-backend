@@ -44,6 +44,7 @@ func testResetDB() {
 	_ = BoardFriend_c.Drop()
 	_ = Client_c.Drop()
 	_ = Comment_c.Drop()
+	_ = OIDCKey_c.Drop()
 	_ = User_c.Drop()
 	_ = UserAloha_c.Drop()
 	_ = UserFavorites_c.Drop()

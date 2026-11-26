@@ -48,12 +48,12 @@ func CrossPost(remoteAddr string, user *UserInfo, params any, path any, c *gin.C
 	userID := user.UserID
 	boardID, err := toBoardID(thePath.FBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 
 	xBoardID, err := toBoardID(theParams.XBoardID, remoteAddr, userID, c)
 	if err != nil {
-		return nil, 500, err
+		return nil, boardIDErrToStatusCode(err), err
 	}
 
 	articleID := thePath.FArticleID.ToArticleID()
@@ -85,7 +85,7 @@ func CrossPost(remoteAddr string, user *UserInfo, params any, path any, c *gin.C
 	articleSummary_db := articleSummaries_db[0]
 	dummyContent := [][]*types.Rune{}
 
-	setUserReadArticle(dummyContent, userID, articleSummary_db.ArticleID, updateNanoTS)
+	setUserReadArticle(dummyContent, userID, boardID, articleSummary_db.ArticleID, updateNanoTS)
 
 	articleSummary := apitypes.NewArticleSummaryFromWithRegex(articleSummary_db, "")
 

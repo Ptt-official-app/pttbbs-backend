@@ -11,6 +11,7 @@ var (
 	ErrInvalidRemoteAddr = errors.New("invalid remote addr")
 
 	ErrInvalidParams = errors.New("invalid params")
+	ErrInvalidLimit  = errors.New("invalid limit")
 
 	ErrNoUserID                 = errors.New("no userid")
 	ErrNoUsername               = errors.New("no username")
