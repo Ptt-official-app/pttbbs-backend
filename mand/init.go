@@ -1,6 +1,7 @@
 package mand
 
 import (
+	"github.com/Ptt-official-app/pttbbs-backend/metrics"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -19,7 +20,11 @@ func Init(isLocked bool) (err error) {
 		mockConn := NewMockClientConn()
 		Cli = NewManServiceClient(mockConn)
 	} else {
-		conn, err = grpc.NewClient(GRPC_HOST, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err = grpc.NewClient(
+			GRPC_HOST,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(metrics.UnaryClientInterceptor()),
+		)
 		if err != nil {
 			return err
 		}

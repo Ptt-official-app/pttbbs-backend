@@ -10,6 +10,7 @@ import (
 
 	"github.com/Ptt-official-app/pttbbs-backend/api"
 	"github.com/Ptt-official-app/pttbbs-backend/cron"
+	"github.com/Ptt-official-app/pttbbs-backend/metrics"
 	"github.com/Ptt-official-app/pttbbs-backend/oidcop"
 	"github.com/Ptt-official-app/pttbbs-backend/queue"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -37,7 +38,10 @@ func initGin() (*gin.Engine, error) {
 // gin trusts every proxy by default, which lets any client choose its
 // c.ClientIP() through X-Forwarded-For.
 func newGinEngine() (*gin.Engine, error) {
-	router := gin.Default()
+	// same as gin.Default(), with metrics outside Recovery so that
+	// recovered panics are counted as 500.
+	router := gin.New()
+	router.Use(gin.Logger(), metrics.GinMiddleware(), gin.Recovery())
 
 	proxies := make([]string, 0, len(types.TRUSTED_PROXIES))
 	for _, each := range types.TRUSTED_PROXIES {
@@ -353,5 +357,32 @@ func main() {
 		return nil
 	})
 
+	metrics.SetBuildInfo(types.VERSION, types.GIT_VERSION)
+	if types.METRICS_HOST != "" {
+		addMetricsServerJobs(g, types.METRICS_HOST)
+	}
+
 	<-g.Done()
+}
+
+// addMetricsServerJobs serves prometheus /metrics on addr (internal only,
+// separate from the public API server) until shutdown.
+func addMetricsServerJobs(g *graceful.Manager, addr string) {
+	ms := metrics.NewServer(addr)
+
+	g.AddRunningJob(func(ctx context.Context) error {
+		<-ctx.Done()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		return ms.Shutdown(ctx)
+	})
+
+	g.AddRunningJob(func(ctx context.Context) error {
+		logrus.Infof("main: serving metrics: addr: %s path: %s", addr, metrics.METRICS_R)
+		if err := ms.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			// same as the API server: a misconfigured METRICS_HOST should fail loudly.
+			logrus.Fatalf("main: unable to serve metrics: addr: %s e: %v", addr, err)
+		}
+		return nil
+	})
 }

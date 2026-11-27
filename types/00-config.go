@@ -11,6 +11,7 @@ var (
 
 	HTTP_SCHEME      = "http://"
 	HTTP_HOST        = "localhost:3457"            // serving http-host
+	METRICS_HOST     = ""                          // serving prometheus /metrics (internal only). empty: disabled
 	URL_PREFIX       = "http://localhost:3457/bbs" // advertising url-prefix (for constructing article url)
 	GO_PTTBBS_PREFIX = "http://localhost:3456/v1"  // backend url-prefix
 
