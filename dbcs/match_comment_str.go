@@ -43,40 +43,27 @@ var (
 	MATCH_COMMENT_GREEN_PREFIX_STR = "※ " //※
 )
 
+// MatchCommentStr is the utf-8 version of MatchComment.
 func MatchCommentStr(content string) int {
-	theIdx := -1
+	for lineStart := 0; lineStart < len(content); {
+		line := content[lineStart:]
+		idxNewLine := strings.IndexByte(line, '\n')
+		if idxNewLine != -1 {
+			line = line[:idxNewLine]
+		}
 
-	idxRecommend := strings.Index(content, MATCH_COMMENT_RECOMMEND_STR)
-	if idxRecommend != -1 && (idxRecommend == 0 || content[idxRecommend-1] == '\n') {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxRecommend)
-	}
+		theType, _ := MatchCommentTypeStr(line)
+		if theType != ptttype.COMMENT_TYPE_UNKNOWN {
+			return lineStart
+		}
 
-	idxBoo := strings.Index(content, MATCH_COMMENT_BOO_STR)
-	if idxBoo != -1 && (idxBoo == 0 || content[idxBoo-1] == '\n') {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxBoo)
-	}
-	idxArrow := strings.Index(content, MATCH_COMMENT_ARROW_STR)
-	if idxArrow != -1 && (idxArrow == 0 || content[idxArrow-1] == '\n') {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxArrow)
-	}
-	idxEdit := strings.Index(content, MATCH_COMMENT_EDIT_STR)
-	if idxEdit != -1 && (idxEdit == 0 || content[idxEdit-1] == '\n') {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxEdit)
-	}
-	idxForward := matchCommentForwardStr(content)
-	if idxForward != -1 {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxForward)
-	}
-	idxDeleted := matchCommentDeletedStr(content)
-	if idxDeleted != -1 {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxDeleted)
+		if idxNewLine == -1 {
+			return -1
+		}
+		lineStart += idxNewLine + 1
 	}
 
-	if theIdx == -1 {
-		return theIdx
-	}
-
-	return theIdx // do not include the leading \n
+	return -1
 }
 
 func MatchCommentTypeStr(commentDBCS string) (theType ptttype.CommentType, nextCommentDBCS string) {
@@ -105,37 +92,6 @@ func MatchCommentTypeStr(commentDBCS string) (theType ptttype.CommentType, nextC
 	return ptttype.COMMENT_TYPE_UNKNOWN, commentDBCS
 }
 
-func matchCommentForwardStr(content string) (idx int) {
-	for len(content) > 0 {
-		idx = strings.Index(content, MATCH_COMMENT_FORWARD_STR)
-		if idx == -1 {
-			return -1
-		}
-
-		lenPrefix := len("※")
-		skipIdx := idx
-		if idx < lenPrefix+1 {
-			content = content[skipIdx+len(MATCH_COMMENT_FORWARD_STR):]
-			continue
-		}
-
-		idx--
-		//nolint:revive
-		for ; idx >= lenPrefix && content[idx] != ' '; idx-- {
-		}
-		if idx == lenPrefix && content[0:idx] == "※" && content[idx] == ' ' {
-			return 0
-		}
-		if content[0] == '\n' && content[1:idx] == "※" && content[idx] == ' ' {
-			return 1
-		}
-
-		content = content[skipIdx+len(MATCH_COMMENT_FORWARD_STR):]
-	}
-
-	return -1
-}
-
 func hasPrefixCommentForwardStr(content string) (isForward bool, nextCommentDBCS string) {
 	idx := strings.Index(content, MATCH_COMMENT_FORWARD_STR)
 	if idx == -1 {
@@ -155,35 +111,6 @@ func hasPrefixCommentForwardStr(content string) (isForward bool, nextCommentDBCS
 	}
 
 	return false, ""
-}
-
-func matchCommentDeletedStr(content string) (idx int) {
-	for len(content) > 0 {
-		idx = strings.Index(content, MATCH_COMMENT_DELETED_PREFIX_STR)
-		if idx == -1 {
-			return -1
-		}
-		startIdx := idx
-		//nolint:revive
-		for ; idx < len(content) && content[idx] != ' '; idx++ {
-		}
-		if !strings.HasPrefix(content[idx:], MATCH_COMMENT_DELETED_INFIX0_STR) {
-			content = content[idx:]
-			continue
-		}
-		idx += len(MATCH_COMMENT_DELETED_INFIX0_STR)
-		//nolint:revive
-		for ; idx < len(content) && content[idx] != ' '; idx++ {
-		}
-		if !strings.HasPrefix(content[idx:], MATCH_COMMENT_DELETED_INFIX1_STR) {
-			content = content[idx:]
-			continue
-		}
-
-		return startIdx
-	}
-
-	return -1
 }
 
 func hasPrefixCommentDeletedStr(content string) (isDeleted bool, nextCommentDBCS string) {

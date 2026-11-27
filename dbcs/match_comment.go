@@ -108,16 +108,6 @@ func MatchCommentType(commentDBCS []byte) (theType ptttype.CommentType, nextComm
 	return ptttype.COMMENT_TYPE_UNKNOWN, commentDBCS
 }
 
-func matchCommentIntegratedIdx(theIdx int, idx int) int {
-	if theIdx == -1 {
-		return idx
-	}
-	if theIdx < idx {
-		return theIdx
-	}
-	return idx
-}
-
 func hasPrefixCommentForward(content []byte) (isForward bool, nextCommentDBCS []byte) {
 	idx := bytes.Index(content, MATCH_COMMENT_FORWARD_BYTES)
 	if idx == -1 {
