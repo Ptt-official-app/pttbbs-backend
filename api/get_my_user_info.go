@@ -1,7 +1,10 @@
 package api
 
 import (
+	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
+	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
+	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,6 +21,11 @@ func GetMyUserInfoWrapper(c *gin.Context) {
 // (genUsername assigns a random username on registration).
 func GetMyUserInfo(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
 	getUserDetail := func() (*schema.UserDetail, error) {
+		// special treatment to pttbbsapi.GUEST
+		if user.UserID == bbs.UUserID(pttbbsapi.GUEST) {
+			return deserializeUserDetailAndUpdateDBGuest(types.NowNanoTS())
+		}
+
 		return schema.GetUserDetailByUserID(user.UserID)
 	}
 

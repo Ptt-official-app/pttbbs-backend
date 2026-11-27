@@ -4,6 +4,7 @@ import (
 	"sync"
 	"testing"
 
+	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/testutil"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
@@ -117,4 +118,23 @@ func TestGetUserInfo_notFound(t *testing.T) {
 	_, statusCode, err := GetUserInfo(testIP, user, nil, &GetUserInfoPath{Username: "nosuchuser"}, nil)
 	assert.Error(t, err)
 	assert.Equal(t, 404, statusCode)
+}
+
+func TestGetUserInfo_guestQueriesUsername(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	_, _ = DeserializeUserDetailAndUpdateDBForTest(testUserSYSOP_b, 123456890000000000)
+
+	// a guest gets the queried user's public info, not the guest's own info.
+	guest := &UserInfo{UserID: bbs.UUserID(pttbbsapi.GUEST)}
+	gotResult, statusCode, err := GetUserInfo(testIP, guest, nil, &GetUserInfoPath{Username: "SYSOP"}, nil)
+	require.NoError(t, err)
+	assert.Equal(t, 200, statusCode)
+
+	got := gotResult.(*GetUserInfoResult)
+	assert.Equal(t, bbs.UUserID("SYSOP"), got.UserID)
+	assert.Equal(t, "神", got.Nickname)
+	assert.Empty(t, got.Realname)
+	assert.Zero(t, got.Userlevel)
 }
