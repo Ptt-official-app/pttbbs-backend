@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 
-	pttbbsapi "github.com/Ptt-official-app/go-pttbbs/api"
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/go-pttbbs/ptttype"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
@@ -138,7 +137,7 @@ func getUserInfo(user *UserInfo, getUserDetail func() (*schema.UserDetail, error
 
 	updateNanoTS := types.NowNanoTS()
 
-	userDetail, statusCode, err := tryGetUserInfo(userID, getUserDetail, updateNanoTS)
+	userDetail, statusCode, err := tryGetUserInfo(getUserDetail)
 	if err != nil {
 		return nil, statusCode, err
 	}
@@ -165,17 +164,7 @@ func getUserInfo(user *UserInfo, getUserDetail func() (*schema.UserDetail, error
 	return result, 200, nil
 }
 
-func tryGetUserInfo(userID bbs.UUserID, getUserDetail func() (*schema.UserDetail, error), updateNanoTS types.NanoTS) (userDetail *schema.UserDetail, statusCode int, err error) {
-	// special treatment to pttbbsapi.GUEST
-	if userID == bbs.UUserID(pttbbsapi.GUEST) {
-		userDetail, err = deserializeUserDetailAndUpdateDBGuest(updateNanoTS)
-		if err != nil {
-			return nil, 500, err
-		}
-
-		return userDetail, 0, nil
-	}
-
+func tryGetUserInfo(getUserDetail func() (*schema.UserDetail, error)) (userDetail *schema.UserDetail, statusCode int, err error) {
 	// get backend data
 	userDetail, err = getUserDetail()
 	if errors.Is(err, mongo.ErrNoDocuments) {
