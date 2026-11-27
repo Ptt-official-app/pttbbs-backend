@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Ptt-official-app/pttbbs-backend/metrics"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -78,7 +79,7 @@ func Test_httpProcess_respectsConfiguredTimeout(t *testing.T) {
 	require.NoError(t, err)
 
 	result := map[string]bool{}
-	statusCode, err := httpProcess(req, map[string]string{}, &result)
+	statusCode, err := httpProcess(req, map[string]string{}, &result, metrics.ROUTE_NONE)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, statusCode)
 	assert.True(t, result["ok"])

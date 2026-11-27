@@ -13,6 +13,7 @@ func config() {
 
 	HTTP_SCHEME = setStringConfig("HTTP_SCHEME", HTTP_SCHEME)
 	HTTP_HOST = setStringConfig("HTTP_HOST", HTTP_HOST)
+	METRICS_HOST = setStringConfig("METRICS_HOST", METRICS_HOST)
 	URL_PREFIX = setStringConfig("URL_PREFIX", URL_PREFIX)
 	GO_PTTBBS_PREFIX = setStringConfig("GO_PTTBBS_PREFIX", GO_PTTBBS_PREFIX)
 

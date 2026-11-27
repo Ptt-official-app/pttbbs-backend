@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Ptt-official-app/pttbbs-backend/metrics"
 	"github.com/Ptt-official-app/pttbbs-backend/mockhttp"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
@@ -55,7 +56,7 @@ func BackendPost(c *gin.Context, url string, postData any, headers map[string]st
 		return 500, err
 	}
 
-	return httpProcess(req, headers, result)
+	return httpProcess(req, headers, result, metrics.RouteLabel(c))
 }
 
 func BackendGet(c *gin.Context, url string, params any, headers map[string]string, result any) (statusCode int, err error) {
@@ -80,7 +81,7 @@ func BackendGet(c *gin.Context, url string, params any, headers map[string]strin
 		return 500, err
 	}
 
-	return httpProcess(req, headers, result)
+	return httpProcess(req, headers, result, metrics.RouteLabel(c))
 }
 
 func httpUpdateHeaders(headers map[string]string, c *gin.Context) {
@@ -110,7 +111,18 @@ func httpUpdateHeaders(headers map[string]string, c *gin.Context) {
 	}
 }
 
-func httpProcess(req *http.Request, headers map[string]string, result any) (statusCode int, err error) {
+// httpProcess
+//
+// Params
+//
+//	route: route template of the incoming request, for metrics.
+func httpProcess(req *http.Request, headers map[string]string, result any, route string) (statusCode int, err error) {
+	start := time.Now()
+	respStatusCode := 0 // stays 0 if no response is received.
+	defer func() {
+		metrics.ObserveGoPTTBBS(route, req.Method, respStatusCode, time.Since(start))
+	}()
+
 	for k, v := range headers {
 		req.Header.Add(k, v)
 	}
@@ -129,6 +141,7 @@ func httpProcess(req *http.Request, headers map[string]string, result any) (stat
 	defer resp.Body.Close()
 
 	statusCode = resp.StatusCode
+	respStatusCode = statusCode
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

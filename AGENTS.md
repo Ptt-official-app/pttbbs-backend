@@ -21,6 +21,7 @@ Result -> `processResult`: 200 returns JSON, 303 redirects, otherwise `{Msg, tok
 - `schema/` Mongo document structs, indexes (`init.go`), Redis prefixes (`const.go`), OIDC client impl
 - `apitypes/` response DTOs with `New*` constructors from schema structs
 - `db/` thin Mongo/Redis wrappers; `boardd/`, `mand/` gRPC clients (generated `*.pb.go`, do not hand-edit)
+- `metrics/` Prometheus metrics (Gin middleware, gRPC client interceptor, go-pttbbs calls); served on `METRICS_HOST` (empty: disabled). Label routes by template (`c.FullPath()`), never raw paths.
 - `queue/`, `cron/`, `dbcs/` (Big5/DBCS article+comment parsing), `fav/`, `oidcop/`, `zk/`, `lemmyutils/`, `utils/`, `configutil/`, `types/` (global config vars, Big5 tables)
 - `mock/`, `mockhttp/`, `testcase/` test fixtures; `docs/` (PIPs, nginx, config templates); `scripts/`; `apidoc/` (Python swagger gen); `docker/`
 - `pttbbs/`, `lemmy/`, `lemmy-js-client/`, `lemmy-ui/` are git submodules: do not edit. `mandloadmanarticles/`, `boarddreadcontent/` are extra binaries.
