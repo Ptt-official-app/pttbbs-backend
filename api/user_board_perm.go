@@ -384,6 +384,9 @@ func checkBoardBM(userID bbs.UUserID, boardID bbs.BBoardID, bms []bbs.UUserID, b
 		if err != nil {
 			return false, err
 		}
+		if boardPermInfo == nil {
+			return false, nil
+		}
 
 		if slices.Contains(boardPermInfo.BMs, userID) {
 			return true, nil
