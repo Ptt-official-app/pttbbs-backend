@@ -9,7 +9,7 @@ import (
 
 const testForwardInfix = "\x1b[0;32m:\xc2\xe0\xbf\xfd\xa6\xdc"
 
-func Test_matchCommentForward(t *testing.T) {
+func TestMatchComment_forward(t *testing.T) {
 	tests := []struct {
 		name    string
 		content string
@@ -27,12 +27,12 @@ func Test_matchCommentForward(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, matchCommentForward([]byte(tt.content)))
+			assert.Equal(t, tt.want, MatchComment([]byte(tt.content)))
 		})
 	}
 }
 
-func Test_matchCommentDeleted(t *testing.T) {
+func TestMatchComment_deleted(t *testing.T) {
 	deleted := "\x1b[1;30m(abc \xa7R\xb0\xa3 abc \xaa\xba\xb1\xc0\xa4\xe5: x)\x1b[m"
 	tests := []struct {
 		name    string
@@ -43,11 +43,14 @@ func Test_matchCommentDeleted(t *testing.T) {
 		{"deleted after newline", "x\n" + deleted, 2},
 		// the first prefix is not a deleted comment: the offset must be relative to the whole content.
 		{"offset after skipped prefix", "\x1b[1;30m(abc def\n" + deleted, len("\x1b[1;30m(abc def\n")},
+		{"deleted not at the beginning of a line", "x " + deleted, -1},
+		// a mid-line occurrence must not hide the comment on the next line.
+		{"deleted after a mid-line occurrence", "x " + deleted + "\n" + deleted, len("x " + deleted + "\n")},
 		{"no deleted", "abc", -1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, matchCommentDeleted([]byte(tt.content)))
+			assert.Equal(t, tt.want, MatchComment([]byte(tt.content)))
 		})
 	}
 }

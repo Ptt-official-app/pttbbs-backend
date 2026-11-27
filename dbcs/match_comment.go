@@ -54,43 +54,32 @@ var (
 	MATCH_COMMENT_GREEN_PREFIX = []byte("\xa1\xb0 ") //※
 )
 
-// MatchComment
+// MatchComment returns the offset of the first line (at offset 0 or right after '\n')
+// that starts with a comment, or -1.
 //
-// TODO: record the idxes of each condition, rematch only the condition with the smallest idx.
+// It scans line by line and stops at the next comment, instead of searching the whole
+// remaining content once per comment type: callers call MatchComment repeatedly on the
+// rest of the content, so a per-type search makes parsing an article O(n^2).
 func MatchComment(content []byte) int {
-	theIdx := -1
+	for lineStart := 0; lineStart < len(content); {
+		line := content[lineStart:]
+		idxNewLine := bytes.IndexByte(line, '\n')
+		if idxNewLine != -1 {
+			line = line[:idxNewLine]
+		}
 
-	idxRecommend := bytes.Index(content, MATCH_COMMENT_RECOMMEND_BYTES)
-	if idxRecommend != -1 && (idxRecommend == 0 || content[idxRecommend-1] == '\n') {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxRecommend)
-	}
+		theType, _ := MatchCommentType(line)
+		if theType != ptttype.COMMENT_TYPE_UNKNOWN {
+			return lineStart
+		}
 
-	idxBoo := bytes.Index(content, MATCH_COMMENT_BOO_BYTES)
-	if idxBoo != -1 && (idxBoo == 0 || content[idxBoo-1] == '\n') {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxBoo)
-	}
-	idxArrow := bytes.Index(content, MATCH_COMMENT_ARROW_BYTES)
-	if idxArrow != -1 && (idxArrow == 0 || content[idxArrow-1] == '\n') {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxArrow)
-	}
-	idxEdit := bytes.Index(content, MATCH_COMMENT_EDIT_BYTES)
-	if idxEdit != -1 && (idxEdit == 0 || content[idxEdit-1] == '\n') {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxEdit)
-	}
-	idxForward := matchCommentForward(content)
-	if idxForward != -1 {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxForward)
-	}
-	idxDeleted := matchCommentDeleted(content)
-	if idxDeleted != -1 {
-		theIdx = matchCommentIntegratedIdx(theIdx, idxDeleted)
+		if idxNewLine == -1 {
+			return -1
+		}
+		lineStart += idxNewLine + 1
 	}
 
-	if theIdx == -1 {
-		return theIdx
-	}
-
-	return theIdx // do not include the leading \n
+	return -1
 }
 
 func MatchCommentType(commentDBCS []byte) (theType ptttype.CommentType, nextCommentDBCS []byte) {
@@ -129,40 +118,6 @@ func matchCommentIntegratedIdx(theIdx int, idx int) int {
 	return idx
 }
 
-// matchCommentForward returns the offset of the first forward comment in content, or -1.
-//
-// base tracks how much of content has already been skipped, so that the returned
-// offset is always relative to the original content.
-func matchCommentForward(content []byte) (idx int) {
-	for base := 0; base < len(content); {
-		rel := bytes.Index(content[base:], MATCH_COMMENT_FORWARD_BYTES)
-		if rel == -1 {
-			return -1
-		}
-
-		pos := base + rel
-		next := pos + len(MATCH_COMMENT_FORWARD_BYTES)
-		if rel < 3 {
-			base = next
-			continue
-		}
-
-		idx = pos - 1
-		//nolint:revive
-		for ; idx >= base+2 && content[idx] != ' '; idx-- {
-		}
-		start := idx - 2
-		if start >= base && content[idx] == ' ' && content[idx-1] == '\xb0' && content[idx-2] == '\xa1' &&
-			(start == 0 || content[start-1] == '\n') {
-			return start
-		}
-
-		base = next
-	}
-
-	return -1
-}
-
 func hasPrefixCommentForward(content []byte) (isForward bool, nextCommentDBCS []byte) {
 	idx := bytes.Index(content, MATCH_COMMENT_FORWARD_BYTES)
 	if idx == -1 {
@@ -181,40 +136,6 @@ func hasPrefixCommentForward(content []byte) (isForward bool, nextCommentDBCS []
 	}
 
 	return false, nil
-}
-
-// matchCommentDeleted returns the offset of the first deleted comment in content, or -1.
-//
-// base tracks how much of content has already been skipped, so that the returned
-// offset is always relative to the original content.
-func matchCommentDeleted(content []byte) (idx int) {
-	for base := 0; base < len(content); {
-		rest := content[base:]
-		idx = bytes.Index(rest, MATCH_COMMENT_DELETED_PREFIX)
-		if idx == -1 {
-			return -1
-		}
-		startIdx := idx
-		//nolint:revive
-		for ; idx < len(rest) && rest[idx] != ' '; idx++ {
-		}
-		if !bytes.HasPrefix(rest[idx:], MATCH_COMMENT_DELETED_INFIX0) {
-			base += idx
-			continue
-		}
-		idx += len(MATCH_COMMENT_DELETED_INFIX0)
-		//nolint:revive
-		for ; idx < len(rest) && rest[idx] != ' '; idx++ {
-		}
-		if !bytes.HasPrefix(rest[idx:], MATCH_COMMENT_DELETED_INFIX1) {
-			base += idx
-			continue
-		}
-
-		return base + startIdx
-	}
-
-	return -1
 }
 
 func hasPrefixCommentDeleted(content []byte) (isDeleted bool, nextCommentDBCS []byte) {
