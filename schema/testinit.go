@@ -5,17 +5,24 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/sirupsen/logrus"
 )
 
 var (
 	IsTest = false
 	lock   sync.Mutex
+
+	origRedisTimeoutMilliTS time.Duration
 )
 
 func SetIsTest() {
 	lock.Lock()
 	IsTest = true
+
+	// testResetDB flushes Redis with this timeout: a timed-out flush leaks keys to the next test.
+	origRedisTimeoutMilliTS = REDIS_TIMEOUT_MILLI_TS
+	REDIS_TIMEOUT_MILLI_TS = db.TEST_REDIS_TIMEOUT_MILLI_TS
 
 	logrus.Info("schema: SetIsTest")
 
@@ -31,6 +38,8 @@ func UnsetIsTest() {
 	Close()
 
 	logrus.Info("schema: UnsetIsTest")
+
+	REDIS_TIMEOUT_MILLI_TS = origRedisTimeoutMilliTS
 
 	IsTest = false
 	lock.Unlock()
