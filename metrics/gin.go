@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"net/http"
 	"strconv"
 	"time"
 
@@ -13,7 +14,32 @@ const (
 	ROUTE_NO_ROUTE = "NoRoute"
 	// ROUTE_NONE labels calls made outside any HTTP request (cron, queue).
 	ROUTE_NONE = "none"
+	// METHOD_OTHER labels requests with a non-standard method.
+	METHOD_OTHER = "OTHER"
 )
+
+var standardMethods = map[string]bool{
+	http.MethodGet:     true,
+	http.MethodHead:    true,
+	http.MethodPost:    true,
+	http.MethodPut:     true,
+	http.MethodPatch:   true,
+	http.MethodDelete:  true,
+	http.MethodConnect: true,
+	http.MethodOptions: true,
+	http.MethodTrace:   true,
+}
+
+// MethodLabel returns method if it is a standard HTTP method, otherwise METHOD_OTHER.
+//
+// Requests with any method token reach NoRoute, so a client could otherwise
+// create unbounded label values (series) just by sending made-up methods.
+func MethodLabel(method string) string {
+	if !standardMethods[method] {
+		return METHOD_OTHER
+	}
+	return method
+}
 
 // RouteLabel returns the matched route template of c (e.g. /api/board/:bid),
 // never the raw path, to keep label cardinality bounded.
@@ -39,7 +65,7 @@ func GinMiddleware() gin.HandlerFunc {
 
 		c.Next()
 
-		method := c.Request.Method
+		method := MethodLabel(c.Request.Method)
 		route := RouteLabel(c)
 		code := strconv.Itoa(c.Writer.Status())
 
