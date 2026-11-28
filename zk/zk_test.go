@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/stretchr/testify/assert"
@@ -48,5 +49,34 @@ func TestNewZKProxyDoesNotForwardSession(t *testing.T) {
 			assert.Empty(t, w.Header().Values("Set-Cookie"))
 			assert.Empty(t, w.Header().Get("Access-Control-Allow-Origin"))
 		})
+	}
+}
+
+func TestNewZKProxyTimesOutOnHangingUpstream(t *testing.T) {
+	release := make(chan struct{})
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		<-release
+	}))
+	defer upstream.Close()
+	defer close(release)
+
+	origZKPrefix, origTimeout := types.ZK_PREFIX, types.ZK_RESPONSE_HEADER_TIMEOUT_TS
+	types.ZK_PREFIX, types.ZK_RESPONSE_HEADER_TIMEOUT_TS = upstream.URL, 1
+	defer func() { types.ZK_PREFIX, types.ZK_RESPONSE_HEADER_TIMEOUT_TS = origZKPrefix, origTimeout }()
+
+	proxy := NewZKProxy()
+
+	done := make(chan int, 1)
+	go func() {
+		w := httptest.NewRecorder()
+		proxy.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/challenge/test", nil))
+		done <- w.Code
+	}()
+
+	select {
+	case code := <-done:
+		assert.Equal(t, http.StatusBadGateway, code)
+	case <-time.After(5 * time.Second):
+		t.Fatal("proxy did not time out")
 	}
 }

@@ -97,7 +97,13 @@ type SmtRootIssuerID int
 // separate service: the access/refresh cookies have Path "/" and the default
 // director forwards them, together with Authorization, to the upstream.
 func newZKReverseProxy(theURL *url.URL) *httputil.ReverseProxy {
+	// http.DefaultTransport has no response timeout, so a hanging verifier would
+	// hold the handler goroutines (and the client connections) indefinitely.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.ResponseHeaderTimeout = time.Duration(types.ZK_RESPONSE_HEADER_TIMEOUT_TS) * time.Second
+
 	return &httputil.ReverseProxy{
+		Transport: transport,
 		Rewrite: func(r *httputil.ProxyRequest) {
 			r.SetURL(theURL)
 			// same as httputil.NewSingleHostReverseProxy: keep the inbound Host and set X-Forwarded-For.
