@@ -116,6 +116,10 @@ var (
 	MAX_2FA_TOKEN_STR_PROMPT       = "%06d"
 	MAX_2FA_ATTEMPT          int64 = 5 // max verification attempts per user within EXPIRE_ATTEMPT_LOGIN_EMAIL_TS
 
+	// max requests per client ip to the login / register apis within AUTH_RATE_LIMIT_WINDOW_TS_DURATION.
+	AUTH_RATE_LIMIT_PER_IP             int64 = 30
+	AUTH_RATE_LIMIT_WINDOW_TS_DURATION       = 5 * time.Minute
+
 	// big5
 	BIG5_TO_UTF8 = "types/uao250-b2u.big5.txt"
 	UTF8_TO_BIG5 = "types/uao250-u2b.big5.txt"

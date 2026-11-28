@@ -33,6 +33,7 @@ const (
 	RDB_PREFIX_SEPARATOR                             = ":"
 	RDB_PREFIX_2FA                                   = "2fa" + RDB_PREFIX_SEPARATOR
 	RDB_PREFIX_2FA_ATTEMPT                           = "2faattempt" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_AUTH_RATE_LIMIT                       = "authratelimit" + RDB_PREFIX_SEPARATOR
 	RDB_PREFIX_EMAIL                                 = "email" + RDB_PREFIX_SEPARATOR
 	RDB_PREFIX_LOCK                                  = "lock" + RDB_PREFIX_SEPARATOR
 	RDB_PREFIX_OIDC_OP_CODE                          = "opcode" + RDB_PREFIX_SEPARATOR
