@@ -5,6 +5,7 @@ import (
 
 	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func processResult(c *gin.Context, result any, statusCode int, err error, userID bbs.UUserID) {
@@ -26,12 +27,19 @@ func processResult(c *gin.Context, result any, statusCode int, err error, userID
 		return
 	}
 
-	c.JSON(statusCode, &errResult{Msg: errMsg(statusCode, err), TokenUser: userID})
+	c.JSON(statusCode, &errResult{Msg: errMsg(c, statusCode, err), TokenUser: userID})
 }
 
-// errMsg returns the error message, or the status text if err is nil.
-func errMsg(statusCode int, err error) string {
+// errMsg returns the error message, or the status text if err is nil or the status is 5xx.
+//
+// 5xx errors come from mongo / redis / go-pttbbs / the file system and may contain
+// internal hosts, urls and file paths, so they are only logged.
+func errMsg(c *gin.Context, statusCode int, err error) string {
 	if err == nil {
+		return http.StatusText(statusCode)
+	}
+	if statusCode >= 500 {
+		logrus.Errorf("errMsg: %v %v: status: %v e: %v", c.Request.Method, c.Request.URL.Path, statusCode, err)
 		return http.StatusText(statusCode)
 	}
 	return err.Error()
@@ -50,7 +58,7 @@ func processRedirectResult(c *gin.Context, redirectPath string, statusCode int, 
 	if statusCode == 303 {
 		c.Redirect(statusCode, redirectPath)
 	} else {
-		c.JSON(statusCode, &errResult{Msg: errMsg(statusCode, err), TokenUser: userID})
+		c.JSON(statusCode, &errResult{Msg: errMsg(c, statusCode, err), TokenUser: userID})
 	}
 }
 
