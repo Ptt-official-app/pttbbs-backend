@@ -70,3 +70,22 @@ func Test_newGinEngine_trustedProxies(t *testing.T) {
 	_, err := newGinEngine()
 	assert.Error(t, err)
 }
+
+func Test_newGinEngine_securityHeaders(t *testing.T) {
+	setupTest()
+	defer teardownTest()
+
+	router, err := newGinEngine()
+	require.NoError(t, err)
+	router.GET("/test", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
+	router.NoRoute(func(c *gin.Context) { c.String(http.StatusOK, "index.html") })
+
+	for _, path := range []string{"/test", "/no-such-route"} {
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, httptest.NewRequest(http.MethodGet, path, nil))
+
+		assert.Equal(t, "nosniff", w.Header().Get("X-Content-Type-Options"), path)
+		assert.Equal(t, "SAMEORIGIN", w.Header().Get("X-Frame-Options"), path)
+		assert.Equal(t, "frame-ancestors 'self'", w.Header().Get("Content-Security-Policy"), path)
+	}
+}

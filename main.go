@@ -41,7 +41,7 @@ func newGinEngine() (*gin.Engine, error) {
 	// same as gin.Default(), with metrics outside Recovery so that
 	// recovered panics are counted as 500.
 	router := gin.New()
-	router.Use(gin.Logger(), metrics.GinMiddleware(), gin.Recovery())
+	router.Use(gin.Logger(), metrics.GinMiddleware(), gin.Recovery(), securityHeaders)
 
 	proxies := make([]string, 0, len(types.TRUSTED_PROXIES))
 	for _, each := range types.TRUSTED_PROXIES {
@@ -55,6 +55,14 @@ func newGinEngine() (*gin.Engine, error) {
 	}
 
 	return router, nil
+}
+
+// securityHeaders keeps other sites from framing the pages (clickjacking on
+// login / register / password pages) and browsers from sniffing content types.
+func securityHeaders(c *gin.Context) {
+	c.Header("X-Content-Type-Options", "nosniff")
+	c.Header("X-Frame-Options", "SAMEORIGIN")
+	c.Header("Content-Security-Policy", "frame-ancestors 'self'")
 }
 
 func initGinAllGuest() (*gin.Engine, error) {
