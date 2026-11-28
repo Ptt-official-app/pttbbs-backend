@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/oidcop"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -382,6 +383,25 @@ func TestLoginDoesNotRevealAccountExistence(t *testing.T) {
 			_, statusCode, err := Login("localhost", userInfo, params, ctx)
 			if statusCode != 401 || !errors.Is(err, ErrLoginFailed) {
 				t.Errorf("Login() statusCode: %v e: %v, want 401 ErrLoginFailed", statusCode, err)
+			}
+		})
+	}
+
+	// the attempt limit applies to unknown and existing accounts alike.
+	for _, tt := range tests {
+		t.Run(tt.name+", too many attempts", func(t *testing.T) {
+			_ = schema.Reset2FAAttempt("SYSOP")
+			_ = schema.Reset2FAAttempt(bbs.UUserID(tt.input))
+			params := &LoginParams{Input: tt.input, VerifyCode: "wrong"}
+			for i := int64(0); i < types.MAX_2FA_ATTEMPT; i++ {
+				_, statusCode, err := Login("localhost", userInfo, params, ctx)
+				if statusCode != 401 || !errors.Is(err, ErrLoginFailed) {
+					t.Fatalf("Login() attempt %v statusCode: %v e: %v, want 401 ErrLoginFailed", i+1, statusCode, err)
+				}
+			}
+			_, statusCode, err := Login("localhost", userInfo, params, ctx)
+			if statusCode != 429 || !errors.Is(err, ErrTooManyAttempts) {
+				t.Errorf("Login() statusCode: %v e: %v, want 429 ErrTooManyAttempts", statusCode, err)
 			}
 		})
 	}
