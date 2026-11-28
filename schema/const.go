@@ -39,6 +39,7 @@ const (
 	RDB_PREFIX_OIDC_OP_REQUEST                       = "opreq" + RDB_PREFIX_SEPARATOR
 	RDB_PREFIX_OIDC_OP_REQUEST_CHALLENGE             = "opreqchal" + RDB_PREFIX_SEPARATOR
 	RDB_PREFIX_OIDC_OP_REQUEST_IS_AUTH               = "opreqauth" + RDB_PREFIX_SEPARATOR
+	RDB_PREFIX_OIDC_OP_REQUEST_CALLBACK_SECRET       = "opreqcbsecret" + RDB_PREFIX_SEPARATOR
 	RDB_OIDC_OP_REQUEST_TRUE                         = "1"
 	RDB_PREFIX_OIDC_OP_CHALLENGE                     = "opchal" + RDB_PREFIX_SEPARATOR
 	RDB_PREFIX_OIDC_OP_ACCESS_TOKEN                  = "opaccess" + RDB_PREFIX_SEPARATOR

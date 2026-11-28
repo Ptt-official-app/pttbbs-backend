@@ -3,11 +3,15 @@ package oidcop
 import (
 	"context"
 	"crypto/sha256"
+	"net/http"
+	"net/url"
 	"time"
 
+	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
 	"github.com/gin-gonic/gin"
 	"github.com/go-jose/go-jose/v4"
+	"github.com/sirupsen/logrus"
 	"github.com/zitadel/oidc/v3/pkg/op"
 	"golang.org/x/text/language"
 )
@@ -19,8 +23,8 @@ func InitGinRouter(router *gin.Engine, extraOptions ...op.Option) (err error) {
 	}
 
 	router.GET("/.well-known/openid-configuration", gin.WrapH(provider))
-	router.GET("/api/oidc/*path", gin.WrapH(provider))
-	router.POST("/api/oidc/*path", gin.WrapH(provider))
+	router.GET("/api/oidc/*path", requireAuthCallbackSecret, gin.WrapH(provider))
+	router.POST("/api/oidc/*path", requireAuthCallbackSecret, gin.WrapH(provider))
 
 	return nil
 }
@@ -125,9 +129,41 @@ func NewProvider(extraOptions ...op.Option) (provider *op.Provider, err error) {
 
 func setupProvider(provider *op.Provider) {
 	PROVIDER = provider
-	AUTH_CALLBACK_URL = func(ctx context.Context, oidcID string) string {
+	AUTH_CALLBACK_URL = func(ctx context.Context, oidcID string, callbackSecret string) string {
 		// the callers pass a *gin.Context that carries no issuer (the issuer interceptor only runs for requests
 		// served by the provider itself), and the OP routes are registered without types.URL_PREFIX.
-		return op.AuthCallbackURL(PROVIDER)(op.ContextWithIssuer(ctx, types.OIDC_OP_ISSUER), oidcID)
+		callbackURL := op.AuthCallbackURL(PROVIDER)(op.ContextWithIssuer(ctx, types.OIDC_OP_ISSUER), oidcID)
+		return callbackURL + "&" + AUTH_CALLBACK_SECRET_PARAM + "=" + url.QueryEscape(callbackSecret)
+	}
+}
+
+// requireAuthCallbackSecret lets the auth callback through only with the
+// one-time secret that api.Login returned to the browser that logged in.
+//
+// op.AuthorizeCallback only checks that the auth request is done, so anyone
+// who knows the auth request id could otherwise fetch the code.
+func requireAuthCallbackSecret(c *gin.Context) {
+	if c.Request.URL.Path != AUTH_CALLBACK_PATH {
+		return
+	}
+
+	// op.AuthorizeCallback reads id from r.Form (POST body before query),
+	// so read it the same way; otherwise a body id could bypass the check.
+	if err := c.Request.ParseForm(); err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	authReqID := c.Request.Form.Get("id")
+	callbackSecret := c.Request.Form.Get(AUTH_CALLBACK_SECRET_PARAM)
+
+	isValid, err := schema.ConsumeAuthRequestCallbackSecret(authReqID, callbackSecret)
+	if err != nil {
+		logrus.Errorf("oidcop.requireAuthCallbackSecret: unable to ConsumeAuthRequestCallbackSecret: authReqID: %v e: %v", authReqID, err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	if !isValid {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
 	}
 }
