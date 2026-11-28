@@ -93,15 +93,46 @@ type VerifyResponse struct {
 // from: https://github.com/privacy-ethereum/go-zkid-verifier/blob/main/smtroot/smtroot.go
 type SmtRootIssuerID int
 
+// newZKReverseProxy keeps the PTT session out of the ZK verifier, which is a
+// separate service: the access/refresh cookies have Path "/" and the default
+// director forwards them, together with Authorization, to the upstream.
+func newZKReverseProxy(theURL *url.URL) *httputil.ReverseProxy {
+	// http.DefaultTransport has no response timeout, so a hanging verifier would
+	// hold the handler goroutines (and the client connections) indefinitely.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.ResponseHeaderTimeout = time.Duration(types.ZK_RESPONSE_HEADER_TIMEOUT_TS) * time.Second
+
+	return &httputil.ReverseProxy{
+		Transport: transport,
+		Rewrite: func(r *httputil.ProxyRequest) {
+			r.SetURL(theURL)
+			// same as httputil.NewSingleHostReverseProxy: keep the inbound Host and set X-Forwarded-For.
+			r.Out.Host = r.In.Host
+			r.SetXForwarded()
+
+			r.Out.Header.Del("Authorization")
+			r.Out.Header.Del("Cookie")
+			r.Out.Header.Del("X-CSRFToken")
+		},
+	}
+}
+
+// removeUpstreamOnlyHeaders drops the upstream CORS headers (the API sets its own)
+// and Set-Cookie, so the upstream cannot set cookies on the API origin.
+func removeUpstreamOnlyHeaders(resp *http.Response) {
+	resp.Header.Del("Access-Control-Allow-Origin")
+	resp.Header.Del("Access-Control-Allow-Methods")
+	resp.Header.Del("Access-Control-Allow-Headers")
+	resp.Header.Del("Access-Control-Allow-Credentials")
+	resp.Header.Del("Set-Cookie")
+}
+
 func NewZKProxy() *httputil.ReverseProxy {
 	theURL, _ := url.Parse(types.ZK_PREFIX)
-	proxy := httputil.NewSingleHostReverseProxy(theURL)
+	proxy := newZKReverseProxy(theURL)
 
 	proxy.ModifyResponse = func(resp *http.Response) error {
-		resp.Header.Del("Access-Control-Allow-Origin")
-		resp.Header.Del("Access-Control-Allow-Methods")
-		resp.Header.Del("Access-Control-Allow-Headers")
-		resp.Header.Del("Access-Control-Allow-Credentials")
+		removeUpstreamOnlyHeaders(resp)
 		return nil
 	}
 
@@ -111,13 +142,10 @@ func NewZKProxy() *httputil.ReverseProxy {
 func NewZKLinkVerifyProxy() *httputil.ReverseProxy {
 	url, _ := url.Parse(types.ZK_PREFIX)
 
-	proxy := httputil.NewSingleHostReverseProxy(url)
+	proxy := newZKReverseProxy(url)
 
 	proxy.ModifyResponse = func(resp *http.Response) error {
-		resp.Header.Del("Access-Control-Allow-Origin")
-		resp.Header.Del("Access-Control-Allow-Methods")
-		resp.Header.Del("Access-Control-Allow-Headers")
-		resp.Header.Del("Access-Control-Allow-Credentials")
+		removeUpstreamOnlyHeaders(resp)
 
 		// Only log successful or specific status codes if desired
 		if resp.StatusCode != http.StatusOK {

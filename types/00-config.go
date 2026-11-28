@@ -23,6 +23,8 @@ var (
 	API_PREFIX        = "/api" // api-prefix
 	REGISTER_USER_URL = "http://localhost:3457/api/account/register"
 	ZK_PREFIX         = "http://localhost:3458"
+
+	ZK_RESPONSE_HEADER_TIMEOUT_TS = 30 // seconds to wait for the ZK verifier to respond
 	EMAIL_URL         = "http://localhost:3457" // for email url
 
 	OIDC_OP_KEY             = "oidc-op-key"
