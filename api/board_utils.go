@@ -40,12 +40,12 @@ func toBoardID(fboardID apitypes.FBoardID, remoteAddr string, userID bbs.UUserID
 
 func validateBoardID(boardID bbs.BBoardID) (err error) {
 	brdname := boardID.ToBrdname()
-	is_invalid, ok := BRDNAME_BLACK_LIST_MAP[brdname]
+	is_invalid, ok := brdnameBlackListMap()[brdname]
 	if ok && is_invalid {
 		return ErrBoardNotPopular
 	}
 
-	_, ok = BRDNAME_WHITE_LIST_MAP[brdname]
+	_, ok = brdnameWhiteListMap()[brdname]
 	if ok {
 		return nil
 	}
@@ -340,6 +340,22 @@ func checkUserReadBoard(userID bbs.UUserID, userBoardInfoMap map[bbs.BBoardID]*a
 	return userBoardInfoMap, nil
 }
 
+func brdnameWhiteListMap() map[string]int {
+	theMap := BRDNAME_WHITE_LIST_MAP.Load()
+	if theMap == nil {
+		return nil
+	}
+	return *theMap
+}
+
+func brdnameBlackListMap() map[string]bool {
+	theMap := BRDNAME_BLACK_LIST_MAP.Load()
+	if theMap == nil {
+		return nil
+	}
+	return *theMap
+}
+
 func RefreshBrdnameWhiteListMap() (nBoardID int, err error) {
 	if types.BRDNAME_WHITE_LIST_MAP_FILENAME == "" {
 		return 0, nil
@@ -361,7 +377,7 @@ func RefreshBrdnameWhiteListMap() (nBoardID int, err error) {
 
 	nBoardID = len(brdnameWhiteListMap)
 
-	BRDNAME_WHITE_LIST_MAP = brdnameWhiteListMap
+	BRDNAME_WHITE_LIST_MAP.Store(&brdnameWhiteListMap)
 
 	return nBoardID, nil
 }
@@ -387,7 +403,7 @@ func RefreshBrdnameBlackListMap() (nBoardID int, err error) {
 
 	nBoardID = len(brdnameBlackListMap)
 
-	BRDNAME_BLACK_LIST_MAP = brdnameBlackListMap
+	BRDNAME_BLACK_LIST_MAP.Store(&brdnameBlackListMap)
 
 	return nBoardID, nil
 }
