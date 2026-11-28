@@ -64,17 +64,14 @@ func MatchComment(content []byte) int {
 	for lineStart := 0; lineStart < len(content); {
 		line := content[lineStart:]
 		idxNewLine := bytes.IndexByte(line, '\n')
-		if idxNewLine != -1 {
-			line = line[:idxNewLine]
+		if idxNewLine == -1 {
+			idxNewLine = len(line)
 		}
+		line = line[:idxNewLine]
 
 		theType, _ := MatchCommentType(line)
 		if theType != ptttype.COMMENT_TYPE_UNKNOWN {
 			return lineStart
-		}
-
-		if idxNewLine == -1 {
-			return -1
 		}
 		lineStart += idxNewLine + 1
 	}
