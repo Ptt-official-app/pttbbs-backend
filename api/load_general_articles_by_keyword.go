@@ -8,6 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// MAX_ARTICLE_KEYWORDS caps the space-separated terms of a title search:
+// every term becomes a clause of the Mongo query, which is repeated for each scan round.
+const MAX_ARTICLE_KEYWORDS = 10
+
 func LoadGeneralArticlesByKeyword(remoteAddr string, user *UserInfo, params any, path any, c *gin.Context) (result any, statusCode int, err error) {
 	theParams, ok := params.(*LoadGeneralArticlesParams)
 	if !ok {
@@ -16,6 +20,11 @@ func LoadGeneralArticlesByKeyword(remoteAddr string, user *UserInfo, params any,
 
 	if !isValidLimit(theParams.Max) {
 		return nil, 400, ErrInvalidLimit
+	}
+
+	keywordList := types.StringsSplitAsRune(theParams.Keyword, " ")
+	if len(keywordList) > MAX_ARTICLE_KEYWORDS {
+		return nil, 400, ErrTooManyKeywords
 	}
 
 	thePath, ok := path.(*LoadGeneralArticlesPath)
@@ -36,8 +45,6 @@ func LoadGeneralArticlesByKeyword(remoteAddr string, user *UserInfo, params any,
 	}
 
 	// get article-summaries
-	keywordList := types.StringsSplitAsRune(theParams.Keyword, " ")
-
 	var createNanoTS types.NanoTS
 	var articleID bbs.ArticleID
 	var createTSTime4 ptttypes.Time4
