@@ -92,6 +92,29 @@ func TestRouteLabel(t *testing.T) {
 	assert.Equal(t, ROUTE_NONE, RouteLabel(nil))
 }
 
+func TestGinMiddlewareNonStandardMethod(t *testing.T) {
+	router := newTestRouter()
+
+	before := testutil.ToFloat64(httpRequestsTotal.WithLabelValues(METHOD_OTHER, ROUTE_NO_ROUTE, "200"))
+	for _, method := range []string{"X0001", "X0002", "X0003"} {
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, httptest.NewRequest(method, "/", nil))
+	}
+	after := testutil.ToFloat64(httpRequestsTotal.WithLabelValues(METHOD_OTHER, ROUTE_NO_ROUTE, "200"))
+	assert.Equal(t, float64(3), after-before)
+
+	for _, method := range []string{"X0001", "X0002", "X0003"} {
+		assert.Equal(t, float64(0), testutil.ToFloat64(httpRequestsTotal.WithLabelValues(method, ROUTE_NO_ROUTE, "200")))
+	}
+}
+
+func TestMethodLabel(t *testing.T) {
+	assert.Equal(t, http.MethodGet, MethodLabel(http.MethodGet))
+	assert.Equal(t, http.MethodOptions, MethodLabel(http.MethodOptions))
+	assert.Equal(t, METHOD_OTHER, MethodLabel("X0001"))
+	assert.Equal(t, METHOD_OTHER, MethodLabel("get"))
+}
+
 func TestUnaryClientInterceptor(t *testing.T) {
 	interceptor := UnaryClientInterceptor()
 	const method = "/test.Service/Test"
