@@ -13,6 +13,8 @@ var (
 	ErrInvalidParams = errors.New("invalid params")
 	ErrInvalidLimit  = errors.New("invalid limit")
 
+	ErrTooManyKeywords = errors.New("too many keywords")
+
 	ErrNoUserID                 = errors.New("no userid")
 	ErrNoUsername               = errors.New("no username")
 	ErrLoginFailed              = errors.New("login failed")
