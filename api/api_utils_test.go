@@ -147,3 +147,29 @@ func Test_processCSRFContentFileNotFound(t *testing.T) {
 		t.Errorf("code: %v, want 404", w.Code)
 	}
 }
+
+func TestSetCookieSameSiteLax(t *testing.T) {
+	origIsTest := IsTest
+	IsTest = false
+	defer func() { IsTest = origIsTest }()
+
+	gin.SetMode(gin.TestMode)
+
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	setCookie(c, types.ACCESS_TOKEN_NAME, "test-token", types.ACCESS_TOKEN_EXPIRE_TS_DURATION, true, "")
+	removeCookie(c, types.REFRESH_TOKEN_NAME, true, "")
+
+	cookies := w.Result().Cookies()
+	if len(cookies) != 2 {
+		t.Fatalf("cookies: %v, want 2", len(cookies))
+	}
+	for _, cookie := range cookies {
+		if cookie.SameSite != http.SameSiteLaxMode {
+			t.Errorf("cookie %v: SameSite = %v, want Lax", cookie.Name, cookie.SameSite)
+		}
+		if !cookie.Secure || !cookie.HttpOnly {
+			t.Errorf("cookie %v: Secure = %v HttpOnly = %v, want both true", cookie.Name, cookie.Secure, cookie.HttpOnly)
+		}
+	}
+}

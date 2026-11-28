@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -169,6 +170,8 @@ func setCookie(c *gin.Context, name string, value string, expireDuration time.Du
 		cookieDomain = types.COOKIE_DOMAIN
 	}
 
+	// Lax: browsers do not send the session cookies on cross-site POSTs (e.g. forged logout).
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie(name, value, int(expireDuration.Seconds()), "/", cookieDomain, true, isHTTPOnly)
 }
 
@@ -181,5 +184,6 @@ func removeCookie(c *gin.Context, name string, isHTTPOnly bool, cookieDomain str
 		cookieDomain = types.COOKIE_DOMAIN
 	}
 
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie(name, "", -1, "/", cookieDomain, true, isHTTPOnly)
 }
