@@ -15,6 +15,10 @@ func RefreshBrdnameBlackListMapAllGuestWrapper(c *gin.Context) {
 }
 
 func RefreshBrdnameBlackListMapAllGuest(remoteAddr string, user *UserInfo, params any, c *gin.Context) (result any, statusCode int, err error) {
+	if !isLocalRemoteAddr(remoteAddr) {
+		return nil, 403, ErrInvalidRemoteAddr
+	}
+
 	nBoardID, err := RefreshBrdnameBlackListMap()
 	if err != nil {
 		return 0, 500, err

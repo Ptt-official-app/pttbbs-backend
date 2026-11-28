@@ -124,9 +124,10 @@ func tryLoadPttWebPopularBoardsCore(c *gin.Context, updateNanoTS types.NanoTS) (
 }
 
 func tryLoadPttWebWhiteListBoards(c *gin.Context, updateNanoTS types.NanoTS) (boards []*schema.BoardSummary, err error) {
-	nBoard := len(BRDNAME_WHITE_LIST_MAP)
+	whiteListMap := brdnameWhiteListMap()
+	nBoard := len(whiteListMap)
 	boards = make([]*schema.BoardSummary, 0, nBoard)
-	for brdname, clsID := range BRDNAME_WHITE_LIST_MAP {
+	for brdname, clsID := range whiteListMap {
 		url := fmt.Sprintf("%v/cls/%v", types.PTTWEB_BASE_URL, clsID)
 
 		req, err := http.NewRequest("GET", url, nil)
@@ -235,7 +236,7 @@ func loadPttWebBoardsParseBoard(node *html.Node, c *gin.Context, updateNanoTS ty
 		return nil, ErrInvalidBoardname
 	}
 
-	is_invalid, ok := BRDNAME_BLACK_LIST_MAP[boardName]
+	is_invalid, ok := brdnameBlackListMap()[boardName]
 	if ok && is_invalid {
 		return nil, ErrInvalidBoardname
 	}

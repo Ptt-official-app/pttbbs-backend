@@ -1,6 +1,7 @@
 package api
 
 import (
+	"sync/atomic"
 	"time"
 
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -38,9 +39,10 @@ var (
 		".map":  "application/json",
 	}
 
-	BRDNAME_WHITE_LIST_MAP = map[string]int{}
+	// replaced as a whole by RefreshBrdname*ListMap while requests read them.
+	BRDNAME_WHITE_LIST_MAP atomic.Pointer[map[string]int]
 
-	BRDNAME_BLACK_LIST_MAP = map[string]bool{}
+	BRDNAME_BLACK_LIST_MAP atomic.Pointer[map[string]bool]
 )
 
 const (
