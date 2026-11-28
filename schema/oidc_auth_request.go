@@ -1,11 +1,14 @@
 package schema
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"time"
 
 	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
+	"github.com/Ptt-official-app/pttbbs-backend/utils"
 	"github.com/zitadel/oidc/v3/pkg/oidc"
 	"golang.org/x/text/language"
 )
@@ -114,21 +117,49 @@ func SaveAuthRequest(authReq *OIDCAuthRequest) (err error) {
 	return nil
 }
 
-func SetAuthRequestIsAuth(authReqID string, username string) (err error) {
+// SetAuthRequestIsAuth marks the auth request as logged in by username and
+// returns the one-time secret that the auth callback must present.
+//
+// The OP callback only checks that the auth request is done, so without the
+// secret anyone who knows the auth request id (e.g. whoever started the auth
+// request and sent the login link to the victim) could fetch the code.
+func SetAuthRequestIsAuth(authReqID string, username string) (callbackSecret string, err error) {
 	info := &OIDCAuthRequestIsAuthInfo{
 		Subject:  username,
 		AuthTime: time.Now(),
 	}
 	infoStr, err := json.Marshal(info)
 	if err != nil {
-		return err
+		return "", err
 	}
-	err = db.RDBSet(rdb, RDB_PREFIX_OIDC_OP_REQUEST_IS_AUTH+authReqID, string(infoStr), types.EXPIRE_OIDC_AUTH_REQUEST_TS_DURATION)
+	// SetNX: an auth request that is already logged in must not be re-bound to another user.
+	err = db.RDBSetNX(rdb, RDB_PREFIX_OIDC_OP_REQUEST_IS_AUTH+authReqID, string(infoStr), types.EXPIRE_OIDC_AUTH_REQUEST_TS_DURATION)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	callbackSecret = utils.GenRandomString()
+	err = db.RDBSet(rdb, authRequestCallbackSecretKey(authReqID, callbackSecret), RDB_OIDC_OP_REQUEST_TRUE, types.EXPIRE_OIDC_AUTH_REQUEST_TS_DURATION)
+	if err != nil {
+		return "", err
+	}
+
+	return callbackSecret, nil
+}
+
+// ConsumeAuthRequestCallbackSecret reports whether callbackSecret is the
+// secret issued for authReqID, and makes it unusable afterwards.
+func ConsumeAuthRequestCallbackSecret(authReqID string, callbackSecret string) (isValid bool, err error) {
+	if authReqID == "" || callbackSecret == "" {
+		return false, nil
+	}
+
+	return db.RDBDelExisting(rdb, authRequestCallbackSecretKey(authReqID, callbackSecret))
+}
+
+func authRequestCallbackSecretKey(authReqID string, callbackSecret string) string {
+	hash := sha256.Sum256([]byte(callbackSecret))
+	return RDB_PREFIX_OIDC_OP_REQUEST_CALLBACK_SECRET + authReqID + RDB_PREFIX_SEPARATOR + hex.EncodeToString(hash[:])
 }
 
 func PromptToInternal(oidcPrompt oidc.SpaceDelimitedArray) []string {

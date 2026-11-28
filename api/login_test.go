@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"testing"
 
@@ -350,6 +351,20 @@ func TestLoginOIDCIDComesFromLoginRequest(t *testing.T) {
 	got, err = schema.GetOIDCAuthRequestByRequestID(authReq.ID)
 	require.NoError(t, err)
 	assert.True(t, got.Done())
+
+	// the redirect carries the one-time callback secret for this auth request.
+	redirectURL, err := url.Parse(result.RedirectURI)
+	require.NoError(t, err)
+	isValid, err := schema.ConsumeAuthRequestCallbackSecret(authReq.ID, redirectURL.Query().Get(oidcop.AUTH_CALLBACK_SECRET_PARAM))
+	require.NoError(t, err)
+	assert.True(t, isValid)
+
+	// 4. an auth request that is already logged in cannot be logged in again (re-bound).
+	attemptLogin(`{"input":"SYSOP"}`)
+	token_db, _ = schema.Get2FA("SYSOP")
+	_, statusCode, err = login(`{"input":"SYSOP","verify_code":"` + token_db.Token + `","oidc_id":"` + authReq.ID + `"}`)
+	assert.Equal(t, 400, statusCode)
+	assert.ErrorIs(t, err, ErrInvalidParams)
 }
 
 

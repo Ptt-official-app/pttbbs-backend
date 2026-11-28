@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Ptt-official-app/pttbbs-backend/db"
 	"github.com/Ptt-official-app/pttbbs-backend/oidcop"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -123,12 +124,15 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 	}
 
 	if oidcID != "" {
-		err = schema.SetAuthRequestIsAuth(oidcID, username)
+		callbackSecret, err := schema.SetAuthRequestIsAuth(oidcID, username)
+		if errors.Is(err, db.ErrRDBAlreadyExists) {
+			return nil, 400, ErrInvalidParams
+		}
 		if err != nil {
 			return nil, 500, err
 		}
 
-		redirectURI := oidcop.AUTH_CALLBACK_URL(c, oidcID)
+		redirectURI := oidcop.AUTH_CALLBACK_URL(c, oidcID, callbackSecret)
 		loginLog.IsSuccess = true
 
 		result = NewLoginResult(username, "", "", 0, redirectURI)
