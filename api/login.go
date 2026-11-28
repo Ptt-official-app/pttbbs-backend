@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Ptt-official-app/go-pttbbs/bbs"
 	"github.com/Ptt-official-app/pttbbs-backend/oidcop"
 	"github.com/Ptt-official-app/pttbbs-backend/schema"
 	"github.com/Ptt-official-app/pttbbs-backend/types"
@@ -101,6 +102,9 @@ func Login(remoteAddr string, user *UserInfo, params any, c *gin.Context) (resul
 	userID, username, _, err := loginInputToUsernameEmail(theParams.Input)
 	if err != nil {
 		logrus.Warnf("api.Login: unable to loginInputToUsernameEmail: input: %v e: %v", theParams.Input, err)
+		if isTooManyUnknownLoginAttempts(theParams.Input) {
+			return nil, 429, ErrTooManyAttempts
+		}
 		return nil, 401, ErrLoginFailed
 	}
 
@@ -168,4 +172,16 @@ func NewLoginResult(username string, accessToken string, refreshToken string, ex
 		RefreshExpireTS: refreshExpireTS_u64,
 		RedirectURI:     redirectURI,
 	}
+}
+
+// isTooManyUnknownLoginAttempts counts a login attempt for an input that
+// matches no account, the same way check2FAToken counts attempts for an
+// existing account, so a 429 after MAX_2FA_ATTEMPT tries does not reveal
+// whether the account exists.
+func isTooManyUnknownLoginAttempts(input string) bool {
+	attempts, err := schema.Incr2FAAttempt(bbs.UUserID(input), types.EXPIRE_ATTEMPT_LOGIN_EMAIL_TS_DURATION)
+	if err != nil {
+		return false
+	}
+	return attempts > types.MAX_2FA_ATTEMPT
 }
