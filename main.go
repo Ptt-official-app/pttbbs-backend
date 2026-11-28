@@ -128,10 +128,10 @@ func initGinCore() (*gin.Engine, error) {
 
 	// register/login
 	router.POST(withPrefix(api.REGISTER_CLIENT_R), api.RegisterClientWrapper)
-	router.POST(withPrefix(api.ATTEMPT_REGISTER_USER_R), api.AttemptRegisterUserWrapper)
-	router.GET(withPrefix(api.REGISTER_USER_R), api.RegisterUserWrapper)
-	router.POST(withPrefix(api.ATTEMPT_LOGIN_R), api.AttemptLoginWrapper)
-	router.POST(withPrefix(api.LOGIN_R), api.LoginWrapper)
+	router.POST(withPrefix(api.ATTEMPT_REGISTER_USER_R), api.AuthRateLimitByIP, api.AttemptRegisterUserWrapper)
+	router.GET(withPrefix(api.REGISTER_USER_R), api.AuthRateLimitByIP, api.RegisterUserWrapper)
+	router.POST(withPrefix(api.ATTEMPT_LOGIN_R), api.AuthRateLimitByIP, api.AttemptLoginWrapper)
+	router.POST(withPrefix(api.LOGIN_R), api.AuthRateLimitByIP, api.LoginWrapper)
 	router.POST(withPrefix(api.LOGOUT_R), api.LogoutWrapper)
 	router.POST(withPrefix(api.REFRESH_R), api.RefreshWrapper)
 
